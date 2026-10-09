@@ -616,7 +616,7 @@ function hurtPlayer(raw, style, opts = {}) {
   const p = run.p, st = stats();
   let dmg = raw * st.taken * (opts.pure ? 1 : 1 - st.reduce);
   if (style === 'magic' && (run.hero.mods || {}).magicTaken) dmg *= run.hero.mods.magicTaken;
-  if (run.prayer && run.prayer === style && !opts.pure) dmg *= opts.full ? 0 : 0.3;
+  if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= opts.full ? 0 : 0.3;
   dmg = Math.round(dmg * (0.6 + Math.random() * 0.4));
   p.hp -= dmg;
   p.hurtT = 0.15;
@@ -674,7 +674,7 @@ function updateEnemies(dt) {
     if (tgt === p && dist < e.r + p.r && e.hitCd <= 0) {
       e.hitCd = e.d.boss ? 1.2 : 0.9;
       if (e.d.explode) { hurtPlayer(e.dmg, 'melee', { pure: true }); killEnemy(e); continue; }
-      hurtPlayer(e.dmg, e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e });
+      hurtPlayer(e.dmg, e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e, noPray: e.d.noPray });
     }
   }
   // soft separation so hordes don't stack into one sprite
@@ -705,8 +705,8 @@ function aimShot(e, speed, style, color, dmg, extra = {}, spreadA = 0) {
 function fan(e, n, step, speed, style, color, dmg, extra) {
   for (let i = 0; i < n; i++) aimShot(e, speed, style, color, dmg, extra, (i - (n - 1) / 2) * step);
 }
-function slam(x, y, r, delay, dmg, style, color, label) {
-  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label });
+function slam(x, y, r, delay, dmg, style, color, label, extra) {
+  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!(extra && extra.noPray) });
 }
 function summon(e, id, n, opts = {}) {
   for (let i = 0; i < n; i++) {
@@ -826,12 +826,17 @@ function bossAI(e, dt) {
       if (e.ai.phase === 1) chat(`${e.d.name} breathes ${kind === 'fire' ? 'dragonfire' : kind + ' breath'}! Protect from Magic helps.`, 'r');
     }
   } else if (k === 'kq') {
+    // Kalphite Queen: her spines and lightning go straight through protection prayers, and she hits hard.
+    if (!e.ai.form2) e.resist = { magic: 0.5, ranged: 0.5 };
+    const np = { noPray: true };
     if (e.ai.t <= 0) {
-      e.ai.t = 2.8;
-      if (!e.ai.form2) { e.resist = { magic: 0.5, ranged: 0.5 }; }
-      if (e.ai.phase++ % 3 === 2) summon(e, 'kalphite_worker', 3);
-      else if (e.ai.form2) fan(e, 5, 0.2, 380, 'magic', '#c8a0ff', e.dmg * 0.8);
-      else fan(e, 3, 0.15, 420, 'ranged', '#c8a060', e.dmg * 0.8, { drain: 3 });
+      e.ai.t = e.ai.form2 ? 1.7 : 2.1;
+      const r = e.ai.phase++ % 4;
+      if (r === 0 && e.ai.phase === 1) chat('The Kalphite Queen\'s attacks ignore protection prayers!', 'r');
+      if (r === 3) { summon(e, e.ai.form2 ? 'kalphite_soldier' : 'kalphite_worker', 3); slam(p.x, p.y, 90, 1.0, e.dmg * 1.4, 'melee', '#c8a060', 'Acid!', np); }
+      else if (e.ai.form2) fan(e, r === 1 ? 9 : 7, 0.14, 440, 'magic', '#c8a0ff', e.dmg, np);
+      else fan(e, r === 1 ? 7 : 5, 0.13, 480, 'ranged', '#c8a060', e.dmg, { drain: 3, noPray: true });
+      sfx(90, 0.25, 'square', 0.05);
     }
   } else if (k === 'graardor') {
     if (e.ai.t <= 0) {
@@ -993,7 +998,7 @@ function updateEnemyShots(dt) {
         if (along > 0 && along < t.len && off < t.w / 2) hurtPlayer(t.dmg, t.style);
       } else {
         fx.push({ kind: 'boom', x: t.x, y: t.y, r: t.r, color: t.color, t: 0.35, max: 0.35 });
-        if (Math.hypot(p.x - t.x, p.y - t.y) < t.r) hurtPlayer(t.dmg, t.style);
+        if (Math.hypot(p.x - t.x, p.y - t.y) < t.r) hurtPlayer(t.dmg, t.style, { noPray: t.noPray });
       }
     }
   }
