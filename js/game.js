@@ -185,7 +185,8 @@ function unlockText(h) {
   return `Costs ${h.unlock.sticks} trading sticks`;
 }
 function upLevel(id) { return meta.up[id] || 0; }
-function upVal(id) { const u = UPGRADES.find((x) => x.id === id); return upLevel(id) * u.per; }
+let noUpgrades = false; // the Corrupted invocation turns trading-stick upgrades off for a run
+function upVal(id) { const u = UPGRADES.find((x) => x.id === id); return noUpgrades ? 0 : upLevel(id) * u.per; }
 function upCost(u) { return Math.round(u.base * Math.pow(1.55, upLevel(u.id))); }
 // Sticks for a run: progress, bosses and clues all count.
 function sticksEarned() {
@@ -203,6 +204,7 @@ let enemies = [], shots = [], eshots = [], coins = [], splats = [], fx = [], tel
 const TOTAL_STAGES = AREAS.length * (WAVES_PER_AREA + 1);
 
 function newRun(hero) {
+  noUpgrades = !!(meta.invo || {}).corrupted;
   const skills = {};
   for (const s of SKILLS) skills[s.id] = s.start;
   Object.assign(skills, hero.skills || {});
@@ -256,7 +258,7 @@ function stats() {
   let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane)) * (1 + 0.15 * bv('might')) * (ycon('severance') ? 1.6 : 1);
   if (run.weakT > 0) dmgMult *= 0.85; // the Weaken spell, King Black Dragon's shock breath
   let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd') * (1 + 0.15 * bv('haste')) * (ycon('bloodied') ? 1.5 : 1);
-  const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach'));
+  const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach')) * (inv('myopia') ? 0.75 : 1);
   let splash = (m.splash || 1) * (1 + 0.2 * bv('pierce'));
   // Skill levels run to 99, so each level is a small step.
   if (lane === 'melee') { dmgMult *= 1 + 0.03 * (s.strength - 1); aspd *= 1 + 0.01 * (s.attack - 1); }
@@ -268,10 +270,10 @@ function stats() {
     lane, weapon, dmgMult, aspd, range, splash,
     pierce: sum('pierce') + bv('pierce'),
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
-    maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.6 : 1)),
+    maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.6 : 1) * (inv('frailty') ? 0.8 : 1)),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
-    ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
-    reduce: Math.min(0.75, defPts / 100),
+    ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
+    reduce: inv('relentless') ? 0 : Math.min(0.75, defPts / 100),
     taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: (run.p && run.p.slowT > 0 ? 0.6 : 1) * 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
     goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1) * (run.skull ? SKULL.gold : 1),
@@ -294,12 +296,16 @@ function startStage() {
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false;
   run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null;
+  if (subIndex() === 0) run.phoenixUsed = false;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
   run.prayer = null;
   const a = areaIndex(), sub = subIndex();
   toSpawn = isBoss ? 4 + a * 2 : 12 + a * 4 + sub * 6;
   if (!isBoss && inv('overlords')) toSpawn = Math.round(toSpawn * 1.4);
+  if (!isBoss && inv('quartet')) { toSpawn++; run.quartet = true; }
+  if (inv('bees')) hazards.push({ x: 60, y: 140, r: 32, t: 1e9, color: '#ffd23a', dps: 3 + areaIndex() * 1.5, chase: 105, bees: true });
+  if (inv('solarflare')) hazards.push({ x: WORLD_W / 2, y: WORLD_H / 2, r: 38, t: 1e9, color: '#ff9a1a', dps: 6 + areaIndex() * 2, orbit: { a: 0 } });
   // Varrock: the dark wizards' circle south of the city ambushes you once in each wave
   if (!isBoss && area.name === 'Varrock') run.circleAt = Math.floor(toSpawn * (0.3 + Math.random() * 0.5));
   // Insanity: a boss from elsewhere in Gielinor bursts into this wave partway through
@@ -383,6 +389,8 @@ function spawnMonster(id, x, y, opts = {}) {
     e.capRate = e.hp / (ttk * 0.7); e.capBank = e.capRate * 2;
   }
   if (ycon('glyphic')) e.hp = Math.round(e.hp * 1.4);
+  if (inv('cm') && !d.boss) { e.hp = Math.round(e.hp * 1.5); e.dmg *= 1.2; }
+  if (inv('hmt') && d.boss) e.hp = Math.round(e.hp * 1.3);
   e.maxHp = e.hp;
   enemies.push(e);
   if (d.say) say(e, d.say);
@@ -435,7 +443,9 @@ function spawnTick(dt) {
     const pos = spreadSpawn();
     if (run.skull && !isBoss && Math.random() < 0.12 && enemies.filter((e) => e.d.pker && !e.dead).length < 2) { spawnPker(pos); continue; }
     if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
+    if (run.quartet && area.elites.length) { run.quartet = false; id = area.elites[Math.floor(Math.random() * area.elites.length)]; }
     const m = spawnMonster(id, pos.x, pos.y);
+    if (inv('duo') && m.d.elite && !isBoss) { const p2 = spreadSpawn(); spawnMonster(id, p2.x, p2.y); }
     if (!isBoss && a >= 1 && !m.d.caster && Math.random() < Math.min(0.45, 0.2 + a * 0.02)) mixStyle(m);
     burst(pos.x, pos.y, '#d8c8a0', 8);
     if (m && Math.random() < 0.45) m.lead = 0.5 + Math.random() * 0.7; // cuts you off instead of chasing your tail
@@ -577,7 +587,7 @@ function maybeDropPotion(e) {
     pickups.push({ kind: 'pie', x: e.x - 20, y: e.y, t: 0 });
   }
 }
-function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0) + (run.raid || 0) / 400 + (run.skull ? SKULL.luck : 0); }
+function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0) + (run.raid || 0) / 400 + (run.skull ? SKULL.luck : 0) + 0.25 * bv('wealth'); }
 // Invocations chosen for this run (INVOCATIONS in data.js)
 function inv(id) { return !!(run && run.invo && run.invo[id]); }
 function raidLevel(set) { return INVOCATIONS.reduce((a, v) => a + (set[v.id] ? v.lvl : 0), 0); }
@@ -677,6 +687,10 @@ function cheatDeathAllowed() {
 function invoTick(dt) {
   const p = run.p;
   run.stageT += dt;
+  if (p.doom > 0) p.doom = Math.max(0, p.doom - dt * 0.4);
+  if (inv('hmt') && bossAlive && !bossAlive.dead && bossAlive.d.boss === 'verzik' && (bossAlive.ai.vphase || 1) === 3 && !bossAlive.ai.hmHeal && bossAlive.hp < bossAlive.maxHp * 0.05) {
+    bossAlive.ai.hmHeal = true; bossAlive.hp += bossAlive.maxHp * 0.3; chat('Verzik heals herself!', 'r'); burst(bossAlive.x, bossAlive.y, '#c01a1a', 30);
+  }
   const T = timeLimit();
   if (T && !run.enraged && run.stageT > T) { run.enraged = true; chat('Time is up! Every enemy enrages: they hit 50% harder and move faster.', 'r'); sfx(70, 0.6, 'sawtooth', 0.08); }
   if (inv('aerial') && !isBoss) {
@@ -770,6 +784,8 @@ function rollDamage(base, target, st) {
   const crit = Math.random() < st.crit;
   if (crit) dmg *= 2 + 0.5 * bv('crit');
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
+  if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
+  if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 
@@ -783,8 +799,10 @@ function damageEnemy(e, dmg, crit, opts = {}) {
   e.hp -= dmg;
   e.flash = 0.12;
   e.aggro = true;
-  splats.push({ x: e.x + (Math.random() - 0.5) * 16, y: e.y - e.d.size * 0.5, v: dmg, crit, t: 0.8, kind: dmg === 0 ? 'miss' : 'hit' });
+  splats.push({ x: e.x + (Math.random() - 0.5) * 16, y: e.y - e.d.size * 0.5, v: dmg, crit, t: 0.8, kind: dmg === 0 ? 'miss' : opts.venom ? 'venom' : 'hit' });
   if (opts.freeze && dmg > 0 && !e.d.boss) e.frozen = Math.max(e.frozen, opts.freeze);
+  if (bv('barrage') && dmg > 0 && !e.d.boss && !opts.venom && Math.random() < 0.1 * bv('barrage')) e.frozen = Math.max(e.frozen, 1.5);
+  if (bv('venom') && dmg > 0 && !opts.venom) { e.venomT = 5; e.venomDps = e.maxHp * (e.d.boss ? 0.02 : 0.1) * bv('venom') / 5; }
   if (opts.knock && !e.d.boss) {
     const a = Math.atan2(e.y - run.p.y, e.x - run.p.x);
     e.kx += Math.cos(a) * opts.knock * 4; e.ky += Math.sin(a) * opts.knock * 4;
@@ -802,6 +820,7 @@ function killEnemy(e) {
   if (e.dead) return;
   e.dead = true;
   run.kills++;
+  if (bv('bones')) run.p.pp = Math.min(stats().maxPp, run.p.pp + bv('bones'));
   run.killsBy[e.id] = (run.killsBy[e.id] || 0) + 1;
   achEvent('kill', e);
   if (e.d.boss && !e.summoned) achEvent('boss', e);
@@ -831,6 +850,7 @@ function killEnemy(e) {
     maybeDropPotion(e);
   }
   if (e.d.explode) burst(e.x, e.y, '#5fd34a', 20);
+  if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
   if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
 }
 
@@ -1065,8 +1085,21 @@ function hurtPlayer(raw, style, opts = {}) {
   if (opts.poison && !(run.hero.mods || {}).poisonImmune) p.poison = Math.max(p.poison, opts.poison);
   if (opts.drain) p.pp = Math.max(0, p.pp - opts.drain);
   if (inv('deadly') && dmg > 0) p.pp = Math.max(0, p.pp - dmg * 0.2);
+  if (inv('blasphemy') && !opts.pure) p.pp = Math.max(0, p.pp - raw * 0.15);
+  if (inv('doom') && dmg > 0) {
+    p.doom = (p.doom || 0) + 1;
+    if (p.doom >= 12) { p.doom = 0; p.hp -= Math.round(stats().maxHp * 0.5); chat('Doom! Your stacks burst.', 'r'); burst(p.x, p.y - 30, '#8a1aff', 30); }
+  }
   if (inv('arterial') && opts.from && !opts.from.dead && dmg > 0) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg);
   if (bv('thorns') && opts.from && !opts.from.dead && dmg > 0) damageEnemy(opts.from, Math.round(dmg * 0.5 * bv('thorns')), false);
+  if (bv('veng') && dmg > 0 && !(run.vengT > 0)) {
+    const t = opts.from && !opts.from.dead ? opts.from : nearestEnemy(p.x, p.y, 700);
+    if (t) { run.vengT = 20; p.over = { text: 'Taste vengeance!', t: 1.6 }; damageEnemy(t, Math.round(dmg * 0.75 * bv('veng')), false); }
+  }
+  if (bv('phoenix') && !run.phoenixUsed && p.hp > 0 && p.hp < st.maxHp * 0.2) {
+    run.phoenixUsed = true; p.hp = Math.min(st.maxHp, p.hp + Math.round(st.maxHp * 0.3));
+    chat('Your phoenix necklace heals you, but is destroyed in the process.', 'g'); burst(p.x, p.y, '#ff8a2a', 20);
+  }
   if (opts.heal && opts.from) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg * opts.heal);
   if (p.hp <= 0 && run.lives > 0 && cheatDeathAllowed()) {
     run.lives--; run.livesUsed++;
@@ -1093,6 +1126,10 @@ function updateEnemies(dt) {
     if (e.capRate) e.capBank = Math.min(e.capRate * 2, e.capBank + e.capRate * dt);
     if (e.over) { e.over.t -= dt; if (e.over.t <= 0) e.over = null; }
     e.x += e.kx * dt; e.y += e.ky * dt; e.kx *= 0.85; e.ky *= 0.85;
+    if (e.venomT > 0) {
+      e.venomT -= dt; e.venomTick = (e.venomTick || 1) - dt;
+      if (e.venomTick <= 0) { e.venomTick = 1; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.venomDps)), false, { venom: true }); if (e.dead) continue; }
+    }
     if (e.frozen > 0) { e.frozen -= dt; continue; }
     if (e.d.boss) bossAI(e, dt);
     if (e.dead || e.ai.burrow > 0) continue;
@@ -1563,6 +1600,7 @@ function updateEnemyShots(dt) {
   telegraphs = telegraphs.filter((t) => !t.done);
   for (const h of hazards) {
     h.t -= dt;
+    if (h.orbit) { h.orbit.a += dt * 0.7; h.x = WORLD_W / 2 + Math.cos(h.orbit.a) * WORLD_W * 0.33; h.y = 470 + Math.sin(h.orbit.a) * 260; }
     if (h.chase) { const a = Math.atan2(p.y - h.y, p.x - h.x); h.x += Math.cos(a) * h.chase * dt; h.y += Math.sin(a) * h.chase * dt; }
     if (Math.hypot(p.x - h.x, p.y - h.y) < h.r) {
       h.tick = (h.tick || 0) - dt;
@@ -1623,7 +1661,16 @@ function updatePlayer(dt) {
   }
   coins = coins.filter((c) => !c.got);
   for (const k in run.buffs) run.buffs[k].t -= dt;
-  run.spec = Math.min(100, run.spec + SPEC_REGEN * dt);
+  run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * dt);
+  if (run.vengT > 0) run.vengT -= dt;
+  if (bv('thrall')) {
+    run.thrallT = (run.thrallT || 0) - dt;
+    if (run.thrallT <= 0) {
+      const t = nearestEnemy(p.x, p.y, 420);
+      run.thrallT = t ? 1 : 0.2;
+      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * bv('thrall') * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
+    }
+  }
   for (const pk of pickups) {
     pk.t += dt;
     if ((pk.kind === 'potion' || pk.kind === 'pie') && pk.t > 20) { pk.got = true; continue; } // potions and pies fade after a while
@@ -2021,6 +2068,12 @@ function drawPlayer() {
     if (ready(sk)) ctx.drawImage(sk, p.x - 11, sy, 22, 22 * sk.naturalHeight / sk.naturalWidth);
     else text('☠', p.x, sy + 18, 20, '#fff');
   }
+  if (bv('thrall')) {
+    const tb = Math.sin(performance.now() / 300) * 5;
+    ctx.save(); ctx.globalAlpha = 0.85;
+    drawSprite(wikiImage(THRALL_FILE), p.x + (p.flip ? 48 : -48), p.y - 6 + tb, 58, { color: '#9ab8d8', label: 'G' });
+    ctx.restore();
+  }
   const bob = p.moving ? Math.abs(Math.sin(performance.now() / 90)) * 3 : 0;
   ctx.save();
   if (p.hurtT > 0) ctx.globalAlpha = 0.6;
@@ -2029,6 +2082,7 @@ function drawPlayer() {
   drawWeapon(p, h);
   if (p.frozen > 0) { ctx.fillStyle = 'rgba(160,220,255,0.45)'; ctx.fillRect(p.x - 26, p.y - h, 52, h + 4); }
   if (p.poison > 0) text('Poisoned', p.x, p.y + 18, 13, '#5fd34a');
+  if (p.doom >= 1) text(`Doom ${Math.floor(p.doom)}/12`, p.x, p.y + 56, 13, '#b06aff');
   // active potion buffs: icon and seconds left under the player
   const active = Object.values(run.buffs).filter((b) => b.t > 0);
   active.forEach((b, i) => {
@@ -2121,7 +2175,7 @@ function drawSplat(s) {
   const a = Math.min(1, s.t * 3);
   const y = s.y - (0.8 - s.t) * 20;
   ctx.globalAlpha = a;
-  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : '#b00000';
+  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : s.kind === 'venom' ? '#1f7a6a' : '#b00000';
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   ctx.beginPath();
   const R = s.crit ? 19 : 15;
@@ -2706,9 +2760,10 @@ function renderInvocations() {
   head.appendChild(el('h2', '', 'Invocations'));
   head.appendChild(el('div', 'purse txt', `Raid level ${rl} · ${raidMode(rl)} mode`));
   s.appendChild(head);
-  s.appendChild(el('p', '', `Pick challenges for your next runs, like the Tombs of Amascut. Each raid level adds 1% trading sticks and a little luck. Your choices stay on until you change them. Right now: +${rl}% sticks.`));
-  const g = el('div', 'grid offers invos');
+  s.appendChild(el('p', '', `Pick challenges for your next runs, inspired by the raids and the Colosseum. Each raid level adds 1% trading sticks and a little luck. Your choices stay on until you change them. Right now: +${rl}% sticks.`));
+  let g = null, raidName = '';
   for (const v of INVOCATIONS) {
+    if (v.raid !== raidName) { raidName = v.raid; const h = el('div', 'sec-title', raidName); h.style.marginTop = '14px'; s.appendChild(h); g = el('div', 'grid offers invos'); s.appendChild(g); }
     const on = !!set[v.id], locked = v.needs && !set[v.needs];
     const c = el('button', 'card offer invo' + (on ? ' sel' : '') + (locked ? ' locked' : '')); c.type = 'button';
     const art = el('div', 'art'); art.appendChild(imgTag(INVO_ICON[v.icon], v.name)); c.appendChild(art);
@@ -2733,7 +2788,6 @@ function renderInvocations() {
     });
     g.appendChild(c);
   }
-  s.appendChild(g);
   const r = el('div', 'row'); r.style.marginTop = '14px';
   r.appendChild(btn('Clear all', 'btn', () => { meta.invo = {}; saveMeta(); renderInvocations(); }));
   r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));

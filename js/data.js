@@ -654,7 +654,8 @@ const CONTRACTS = [
 const INVO_ICON = {
   attempts: 'Invocations_-_attempts_icon.png', time: 'Invocations_-_time_limit_icon.png', help: 'Invocations_-_helpful_spirit_icon.png',
   prayer: 'Invocations_-_prayer_effectiveness_icon.png', diet: 'Invocations_-_On_a_Diet_icon.png', dehy: 'Invocations_-_Dehydration_icon.png',
-  drain: 'Invocations_-_Overly_Draining_icon.png', kephri: 'Kephri_icon.png', zebak: 'Zebak_icon.png', akkha: 'Akkha_icon.png', baba: 'Ba-Ba_icon.png', warden: "Tumeken's_Warden_icon.png",
+  drain: 'Invocations_-_Overly_Draining_icon.png', cox: 'Chambers_of_Xeric_Challenge_Mode_icon.png', tob: 'Verzik_Vitur.png',
+  gauntlet: 'Corrupted_Hunllef.png', colosseum: 'Sol_Heredit.png', kephri: 'Kephri_icon.png', zebak: 'Zebak_icon.png', akkha: 'Akkha_icon.png', baba: 'Ba-Ba_icon.png', warden: "Tumeken's_Warden_icon.png",
 };
 const INVOCATIONS = [
   { id: 'softcore', name: 'Softcore Run', lvl: 15, icon: 'attempts', group: 'attempts', info: 'You can cheat death at most once' },
@@ -683,7 +684,22 @@ const INVOCATIONS = [
   { id: 'oc1', name: 'Overclocked', lvl: 10, icon: 'warden', info: 'Bosses attack 15% faster' },
   { id: 'oc2', name: 'Overclocked 2', lvl: 10, icon: 'warden', needs: 'oc1', info: 'Bosses attack another 15% faster' },
   { id: 'insanity', name: 'Insanity', lvl: 50, icon: 'warden', needs: 'oc2', info: 'Bosses from all over Gielinor tear into normal waves at random' },
+  // Other raids and challenges (effects follow the wiki's descriptions of each mode)
+  { id: 'cm', name: 'Challenge Mode', raid: 'Chambers of Xeric', lvl: 40, icon: 'cox', info: 'Every monster except the area bosses has 50% more hitpoints and hits 20% harder' },
+  { id: 'hmt', name: 'Hard Mode', raid: 'Theatre of Blood', lvl: 40, icon: 'tob', info: 'Bosses have 30% more hitpoints, and Verzik heals 30% once when nearly dead' },
+  { id: 'corrupted', name: 'Corrupted', raid: 'The Gauntlet', lvl: 35, icon: 'gauntlet', info: 'Enter with nothing: your trading-stick upgrades don\'t count this run' },
+  { id: 'bees', name: 'Bees!', raid: 'Fortis Colosseum', lvl: 10, icon: 'colosseum', info: 'A bee swarm chases you in every fight' },
+  { id: 'blasphemy', name: 'Blasphemy', raid: 'Fortis Colosseum', lvl: 15, icon: 'colosseum', info: 'Taking damage drains prayer, even hits your prayer blocks' },
+  { id: 'doom', name: 'Doom', raid: 'Fortis Colosseum', lvl: 20, icon: 'colosseum', info: 'Each hit adds a Doom stack. At 12 stacks you lose half your max hitpoints. Stacks fade slowly' },
+  { id: 'duo', name: 'Dynamic Duo', raid: 'Fortis Colosseum', lvl: 15, icon: 'colosseum', info: 'Elite monsters spawn in pairs' },
+  { id: 'frailty', name: 'Frailty', raid: 'Fortis Colosseum', lvl: 10, icon: 'colosseum', info: 'Your max hitpoints are 20% lower' },
+  { id: 'myopia', name: 'Myopia', raid: 'Fortis Colosseum', lvl: 10, icon: 'colosseum', info: 'Your bows and spells reach 25% less far' },
+  { id: 'relentless', name: 'Relentless', raid: 'Fortis Colosseum', lvl: 15, icon: 'colosseum', info: 'Enemy hits ignore your Defence and armour' },
+  { id: 'solarflare', name: 'Solarflare', raid: 'Fortis Colosseum', lvl: 15, icon: 'colosseum', info: 'A blazing orb circles the arena and burns you on contact' },
+  { id: 'quartet', name: 'Quartet', raid: 'Fortis Colosseum', lvl: 10, icon: 'colosseum', info: 'An extra elite joins every wave' },
+  { id: 'volatility', name: 'Volatility', raid: 'Fortis Colosseum', lvl: 15, icon: 'colosseum', info: 'Enemies explode when they die. Don\'t finish them up close' },
 ];
+for (const v of INVOCATIONS) v.raid = v.raid || 'Tombs of Amascut';
 // Raid level bands from the Tombs of Amascut.
 function raidMode(lvl) { return lvl >= 300 ? 'Expert' : lvl >= 150 ? 'Normal' : 'Entry'; }
 
@@ -691,8 +707,13 @@ function raidMode(lvl) { return lvl >= 300 ? 'Expert' : lvl >= 150 ? 'Normal' : 
 const SKULL = { file: 'Skull_(status)_icon.png', gold: 2, luck: 0.75 };
 // PKers hunt skulled players. They switch attack styles like real PKers, freeze you with Ice Barrage and dump special attacks.
 // Durial321 is left out when you are playing as him.
-const PKERS = ['pk_durial', 'pk_revenant', 'pk_dark_warrior', 'pk_rogue'];
-mon('pk_durial', 'Durial321', 'Durial321.png', 82, 260, 175, 13, 64, 40, 'melee', { elite: true, pker: true });
+const PKERS = ['pk_durial', 'pk_pkmaster', 'pk_purepker', 'pk_pete', 'pk_revenant', 'pk_dark_warrior', 'pk_rogue'];
+mon('pk_durial', 'Durial321', 'Durial321.png', 115, 260, 175, 13, 64, 40, 'melee', { elite: true, pker: true });
+// Player spoofs from the game: PKMaster0036 cut down the Falador gate guards (Garden of Tranquillity),
+// Purepker895 was at the Draynor bank robbery, and Pete Kayer is the PvP tutor of the Ferox Enclave.
+mon('pk_pkmaster', 'PKMaster0036', 'PKMaster0036.png', 87, 280, 165, 14, 64, 40, 'melee', { elite: true, pker: true });
+mon('pk_purepker', 'Purepker895', 'Purepker895.png', 52, 170, 190, 15, 62, 30, 'melee', { elite: true, pker: true });
+mon('pk_pete', 'Pete Kayer', 'Pete_Kayer.png', 126, 340, 160, 15, 66, 50, 'melee', { elite: true, pker: true });
 mon('pk_revenant', 'Revenant knight', 'Revenant_knight.png', 126, 300, 140, 14, 72, 40, 'melee', { elite: true, pker: true });
 mon('pk_dark_warrior', 'Dark warrior', 'Dark_warrior.png', 62, 220, 160, 12, 62, 30, 'melee', { elite: true, pker: true });
 mon('pk_rogue', 'Rogue', 'Rogue.png', 15, 180, 185, 10, 60, 25, 'melee', { elite: true, pker: true });
@@ -742,10 +763,22 @@ const BOONS = [
   { id: 'reach', name: 'Mystic Might', file: 'Mystic_Might.png', max: 3, info: '15% more range and melee reach' },
   { id: 'execute', name: 'Ultimate Strength', file: 'Ultimate_Strength.png', max: 1, info: 'Normal enemies below 12% hitpoints die instantly' },
   { id: 'fleet', name: 'Fleet foot', file: 'Agility_icon.png', max: 3, info: '12% faster running' },
+  { id: 'light', name: 'Lightbearer', file: 'Lightbearer.png', max: 2, info: 'Special attack energy refills ×2 as fast' },
+  { id: 'preserve', name: 'Preserve', file: 'Preserve.png', max: 2, info: 'Prayer drains 25% slower' },
+  { id: 'bones', name: 'Bonecrusher', file: 'Bonecrusher.png', max: 3, info: 'Every kill restores +1 prayer point' },
+  { id: 'barrage', name: 'Ice Barrage', file: 'Ice_Barrage.png', max: 3, info: '10% of hits freeze normal enemies for 1.5 sec' },
+  { id: 'venom', name: 'Venom', file: 'Serpentine_helm.png', max: 2, info: 'Hits envenom enemies: 10% of their max HP over 5 sec (2% on bosses)' },
+  { id: 'veng', name: 'Vengeance', file: 'Vengeance.png', max: 2, info: 'Every 20 sec, the next hit you take is thrown back at 75%' },
+  { id: 'dharok', name: "Dharok's set", file: "Dharok's_greataxe.png", max: 2, info: 'Up to +50% damage as your hitpoints drop' },
+  { id: 'phoenix', name: 'Phoenix necklace', file: 'Phoenix_necklace.png', max: 1, info: 'Once per area, heal 30% HP when you fall below 20%' },
+  { id: 'wealth', name: 'Ring of wealth', file: 'Ring_of_wealth.png', max: 2, info: '+25% luck: clues, potions and pies drop more' },
+  { id: 'slayer', name: 'Slayer helmet', file: 'Slayer_helmet.png', max: 3, info: '+20% damage to elite enemies' },
+  { id: 'thrall', name: 'Greater ghost thrall', file: 'Resurrect_Greater_Ghost.png', max: 3, info: 'A ghost follows you and hits the nearest enemy every second' },
 ];
+const THRALL_FILE = 'Greater_ghostly_thrall.png';
 
 // ---------------------------------------------------------------------------
-// Creature mechanics from each monster's OSRS Wiki page (used by js/creatures.js).
+// Creature mechanics from each monster's OSRS Wiki page (used by the creature mechanics in game.js).
 // onHit: effects of its hits (poison, freeze, slow = Jal-MejRah draining run energy, weaken = the Weaken spell,
 // dragonfire = an anti-dragon or dragonfire shield blocks most of it, prayOff = switches your protection prayer off).
 // split: dies into smaller monsters. heals: heals monsters below half hp beside it. revive: brings slain monsters back.
@@ -758,9 +791,7 @@ mon('jal_akrek_xil', 'Jal-AkRek-Xil', 'Jal-AkRek-Xil.png', 70, 120, 100, 16, 40,
 mon('jal_akrek_mej', 'Jal-AkRek-Mej', 'Jal-AkRek-Mej.png', 70, 120, 100, 16, 40, 6, 'magic', { caster: MAGIC_BOLT('#ff5a1a') });
 mon('shaman_spawn', 'Spawn', 'Spawn_(lizardman_shaman).png', 1, 30, 0, 0, 30, 0, 'melee', { fuse: 2.6 });
 mon('blood_reaver', 'Blood reaver', 'Blood_Reaver.png', 60, 125, 95, 14, 60, 0, 'melee');
-// Player spoofs (real NPCs that parody players, from the wiki's Player spoof category)
-mon('spoof_purepker', 'Purepker895', 'Purepker895.png', 52, 140, 150, 7, 60, 30, 'melee', { elite: true, spoof: 'A player.' });
-mon('spoof_pkmaster', 'PKMaster0036', 'PKMaster0036.png', 87, 260, 140, 10, 62, 45, 'melee', { elite: true, spoof: 'A master of the wilderness.' });
+// I DSCIM YOU, a Deadman breach monster and player spoof: his special switches off your protection prayer, and he runs at you.
 mon('spoof_dscim', 'I DSCIM YOU', 'I_DSCIM_YOU.png', 495, 700, 190, 16, 66, 80, 'melee', { elite: true, spoof: 'Lives off of surge potions.', onHit: { prayOff: true } });
 
 const TRAITS = {
@@ -790,7 +821,7 @@ const TRAITS = {
 for (const id in TRAITS) Object.assign(MONSTERS[id], TRAITS[id]);
 
 // Spoofs that turn up in the second wave of an area.
-const SPOOF_AREAS = { 'Draynor Manor': 'spoof_purepker', Falador: 'spoof_pkmaster', 'God Wars Dungeon': 'spoof_dscim' };
+const SPOOF_AREAS = { 'God Wars Dungeon': 'spoof_dscim' };
 // Friendly spoofs. Lines are their in-game examine texts.
 const CAMEOS = {
   cow31337: { name: 'Cow31337Killer', file: 'Cow31337Killer.png', size: 66, line: 'He hates cows so much.' },

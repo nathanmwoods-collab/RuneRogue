@@ -359,6 +359,11 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Monster | Jal-ImKot | https://oldschool.runescape.wiki/w/File:Jal-ImKot.png |
 | Monster | Jal-Xil | https://oldschool.runescape.wiki/w/File:Jal-Xil.png |
 | Monster | Jal-Zek | https://oldschool.runescape.wiki/w/File:Jal-Zek.png |
+| PKer | PKMaster0036 | https://oldschool.runescape.wiki/w/File:PKMaster0036.png |
+| PKer | Purepker895 | https://oldschool.runescape.wiki/w/File:Purepker895.png |
+| PKer | Pete Kayer | https://oldschool.runescape.wiki/w/File:Pete_Kayer.png |
+| Invocation | Challenge Mode | https://oldschool.runescape.wiki/w/File:Chambers_of_Xeric_Challenge_Mode_icon.png |
+| Invocation | Corrupted | https://oldschool.runescape.wiki/w/File:Corrupted_Hunllef.png |
 | PKer | Revenant knight | https://oldschool.runescape.wiki/w/File:Revenant_knight.png |
 | PKer | Dark warrior | https://oldschool.runescape.wiki/w/File:Dark_warrior.png |
 | PKer | Rogue | https://oldschool.runescape.wiki/w/File:Rogue.png |
@@ -509,6 +514,18 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Boon | Mystic Might | https://oldschool.runescape.wiki/w/File:Mystic_Might.png |
 | Boon | Ultimate Strength | https://oldschool.runescape.wiki/w/File:Ultimate_Strength.png |
 | Boon | Fleet foot | https://oldschool.runescape.wiki/w/File:Agility_icon.png |
+| Boon | Lightbearer | https://oldschool.runescape.wiki/w/File:Lightbearer.png |
+| Boon | Preserve | https://oldschool.runescape.wiki/w/File:Preserve.png |
+| Boon | Bonecrusher | https://oldschool.runescape.wiki/w/File:Bonecrusher.png |
+| Boon | Ice Barrage | https://oldschool.runescape.wiki/w/File:Ice_Barrage.png |
+| Boon | Venom | https://oldschool.runescape.wiki/w/File:Serpentine_helm.png |
+| Boon | Vengeance | https://oldschool.runescape.wiki/w/File:Vengeance.png |
+| Boon | Dharok's set | https://oldschool.runescape.wiki/w/File:Dharok's_greataxe.png |
+| Boon | Phoenix necklace | https://oldschool.runescape.wiki/w/File:Phoenix_necklace.png |
+| Boon | Ring of wealth | https://oldschool.runescape.wiki/w/File:Ring_of_wealth.png |
+| Boon | Slayer helmet | https://oldschool.runescape.wiki/w/File:Slayer_helmet.png |
+| Boon | Greater ghost thrall | https://oldschool.runescape.wiki/w/File:Resurrect_Greater_Ghost.png |
+| Boon | Greater ghost thrall (sprite) | https://oldschool.runescape.wiki/w/File:Greater_ghostly_thrall.png |
 
 ## Creature mechanics and player spoofs
 
@@ -520,8 +537,6 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Monster | Jal-AkRek-Mej | https://oldschool.runescape.wiki/w/File:Jal-AkRek-Mej.png |
 | Monster | Spawn (lizardman shaman) | https://oldschool.runescape.wiki/w/File:Spawn_(lizardman_shaman).png |
 | Monster | Blood reaver | https://oldschool.runescape.wiki/w/File:Blood_Reaver.png |
-| Player spoof | Purepker895 | https://oldschool.runescape.wiki/w/File:Purepker895.png |
-| Player spoof | PKMaster0036 | https://oldschool.runescape.wiki/w/File:PKMaster0036.png |
 | Player spoof | I DSCIM YOU | https://oldschool.runescape.wiki/w/File:I_DSCIM_YOU.png |
 | Player spoof | Cow31337Killer | https://oldschool.runescape.wiki/w/File:Cow31337Killer.png |
 | Player spoof | Hopleez | https://oldschool.runescape.wiki/w/File:Hopleez.png |
