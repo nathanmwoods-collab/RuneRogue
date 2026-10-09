@@ -598,6 +598,18 @@ mon('clue_dusk', 'Dusk', 'Dusk.png', 328, 0, 90, 0, 150, 60, 'melee', { clue: tr
 const CLUE_BOSSES = Object.keys(MONSTERS).filter((id) => MONSTERS[id].clue);
 const CLUE_FILE = 'Clue_scroll_(hard).png';
 const CASKET_FILE = 'Reward_casket_(hard).png';
+// Clue tiers (wiki images). Normal drops follow the area; clue bosses can drop a clue one tier higher on top of their casket.
+const CLUE_TIERS = [
+  { id: 'beginner', name: 'Beginner', mult: 0.7, casketLift: 1, weight: 1 },
+  { id: 'easy', name: 'Easy', mult: 0.8, casketLift: 2, weight: 1.2 },
+  { id: 'medium', name: 'Medium', mult: 0.9, casketLift: 2, weight: 1.4 },
+  { id: 'hard', name: 'Hard', mult: 1, casketLift: 3, weight: 1.6 },
+  { id: 'elite', name: 'Elite', mult: 1.25, casketLift: 4, weight: 2.2 },
+  { id: 'master', name: 'Master', mult: 1.55, casketLift: 5, weight: 3.2 },
+];
+const clueFile = (t) => `Clue_scroll_(${CLUE_TIERS[t].id}).png`;
+const casketFile = (t) => `Reward_casket_(${CLUE_TIERS[t].id}).png`;
+const CLUE_UPGRADE_CHANCE = 0.3;
 const DOOR_FILE = 'Exit_door.png'; // appears once every enemy is dead; walk through it to end the round
 
 // ---------------------------------------------------------------------------

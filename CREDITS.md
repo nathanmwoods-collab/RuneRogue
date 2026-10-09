@@ -585,6 +585,16 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Raid room | Lux grub | https://oldschool.runescape.wiki/w/File:Lux_grub.png |
 | Raid room | Vespine soldier | https://oldschool.runescape.wiki/w/File:Vespine_soldier.png |
 | Raid room | Blood spawn | https://oldschool.runescape.wiki/w/File:Blood_spawn.png |
+| Icon | Clue scroll (beginner) | https://oldschool.runescape.wiki/w/File:Clue_scroll_(beginner).png |
+| Icon | Reward casket (beginner) | https://oldschool.runescape.wiki/w/File:Reward_casket_(beginner).png |
+| Icon | Clue scroll (easy) | https://oldschool.runescape.wiki/w/File:Clue_scroll_(easy).png |
+| Icon | Reward casket (easy) | https://oldschool.runescape.wiki/w/File:Reward_casket_(easy).png |
+| Icon | Clue scroll (medium) | https://oldschool.runescape.wiki/w/File:Clue_scroll_(medium).png |
+| Icon | Reward casket (medium) | https://oldschool.runescape.wiki/w/File:Reward_casket_(medium).png |
+| Icon | Clue scroll (elite) | https://oldschool.runescape.wiki/w/File:Clue_scroll_(elite).png |
+| Icon | Reward casket (elite) | https://oldschool.runescape.wiki/w/File:Reward_casket_(elite).png |
+| Icon | Clue scroll (master) | https://oldschool.runescape.wiki/w/File:Clue_scroll_(master).png |
+| Icon | Reward casket (master) | https://oldschool.runescape.wiki/w/File:Reward_casket_(master).png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | NPC | Yama | https://oldschool.runescape.wiki/w/File:Yama.png |

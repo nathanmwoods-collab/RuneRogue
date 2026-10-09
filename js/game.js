@@ -57,6 +57,7 @@ function toggleMusic() {
 }
 document.getElementById('musicState').textContent = musicOn ? 'on' : 'off';
 document.getElementById('musicBtn').addEventListener('click', toggleMusic);
+document.getElementById('pauseBtn').addEventListener('click', () => togglePause());
 
 // ======================================================================
 // Canvas, world, input
@@ -1222,14 +1223,18 @@ function maybeDropClue(e) {
   if (e.d.boss || e.d.clue || e.summoned) return;
   const chance = (e.d.elite ? 0.02 : 0.005) * (1 + luckVal());
   if (Math.random() < chance) {
-    pickups.push({ kind: 'clue', x: e.x, y: e.y, t: 0 });
-    chat('A clue scroll drops!', 'r');
+    const tier = Math.min(4, baseClueTier() + (e.d.elite && Math.random() < 0.3 ? 1 : 0));
+    pickups.push({ kind: 'clue', tier, x: e.x, y: e.y, t: 0 });
+    chat(`${aAn(CLUE_TIERS[tier].name)} ${CLUE_TIERS[tier].name.toLowerCase()} clue scroll drops!`, 'r');
     sfx(980, 0.2, 'triangle', 0.06);
   }
 }
-let pendingClue = 0;
-function startClue() {
-  if (mode !== 'play') { pendingClue++; return; }
+// beginner clues in the first areas, then easy, medium, hard and elite as the route goes on
+function baseClueTier() { return clamp(Math.floor(areaIndex() / 3), 0, 4); }
+const aAn = (w) => (/^[aeiou]/i.test(w) ? 'An' : 'A');
+let pendingClue = [];
+function startClue(tier = 3) {
+  if (mode !== 'play') { pendingClue.push(tier); return; }
   // A random boss from outside the route, never the same one twice in a run.
   let pool = CLUE_BOSSES.filter((id) => !run.clueSeen.includes(id));
   if (!pool.length) { run.clueSeen = []; pool = CLUE_BOSSES.slice(); }
@@ -1243,25 +1248,27 @@ function startClue() {
   pos.y = clamp(pos.y, 130 + MONSTERS[id].size, WORLD_H - 40);
   pos.x = clamp(pos.x, 40 + MONSTERS[id].size * 0.4, WORLD_W - 40 - MONSTERS[id].size * 0.4);
   const m = spawnMonster(id, pos.x, pos.y);
-  m.clueBoss = true;
-  chat(`You read the clue scroll. A ${m.d.name} appears!`, 'r');
+  m.clueBoss = true; m.clueTier = tier;
+  const T = CLUE_TIERS[tier];
+  m.hp = m.maxHp = Math.round(m.maxHp * T.mult); m.dmg *= T.mult;
+  chat(`You read the ${T.name.toLowerCase()} clue scroll. ${aAn(m.d.name)} ${m.d.name} appears!`, 'r');
 }
 function openCasket(pk) {
   mode = 'casket';
   achEvent('casket');
   const choices = [];
-  const a = areaIndex();
+  const a = areaIndex(), tier = pk.tier ?? 3, T = CLUE_TIERS[tier];
+  // higher tier caskets reach further up the item list and lean rarer; a master casket can hold a mega rare anywhere
   const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
-    it.tier <= a + 3 && (it.rarity !== 'mega' || a >= 10) && run.gear[it.slot] !== it.id);
-  // casket loot leans rarer than the shop
-  const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 : 1.5) }));
-  while (choices.length < 3 && bag.length) {
+    it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id);
+  const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 / T.weight : 1.5 * T.weight) }));
+  while (choices.length < (tier >= 5 ? 4 : 3) && bag.length) {
     const total = bag.reduce((x, b) => x + b.wt, 0);
     let r = Math.random() * total, i = 0;
     while (i < bag.length - 1 && r > bag[i].wt) { r -= bag[i].wt; i++; }
     choices.push(bag.splice(i, 1)[0].it);
   }
-  renderCasket(choices);
+  renderCasket(choices, tier);
 }
 
 // ======================================================================
@@ -1355,8 +1362,15 @@ function killEnemy(e) {
     burst(e.x, e.y, '#ffd060', 30);
     maybeDropPotion(e);
   } else if (e.clueBoss) {
-    pickups.push({ kind: 'casket', x: e.x, y: e.y, t: 0 });
-    chat(`The ${e.d.name} drops a reward casket!`, 'r');
+    const tier = e.clueTier ?? 3;
+    pickups.push({ kind: 'casket', tier, x: e.x, y: e.y, t: 0 });
+    chat(`The ${e.d.name} drops ${aAn(CLUE_TIERS[tier].name).toLowerCase()} ${CLUE_TIERS[tier].name.toLowerCase()} reward casket!`, 'r');
+    // on top of the casket: sometimes a clue one tier higher
+    if (tier < 5 && Math.random() < CLUE_UPGRADE_CHANCE * (1 + luckVal() * 0.5)) {
+      pickups.push({ kind: 'clue', tier: tier + 1, x: e.x + 50, y: e.y, t: 0 });
+      chat(`It also drops ${aAn(CLUE_TIERS[tier + 1].name).toLowerCase()} ${CLUE_TIERS[tier + 1].name.toLowerCase()} clue scroll!`, 'r');
+      sfx(1200, 0.25, 'triangle', 0.06);
+    }
     burst(e.x, e.y, '#ffd060', 30);
   } else {
     if (value > 0) coins.push({ x: e.x, y: e.y, v: value, t: 0 });
@@ -1365,7 +1379,7 @@ function killEnemy(e) {
     maybeDropPotion(e);
   }
   if (e.d.explode) burst(e.x, e.y, '#5fd34a', 20);
-  if (e.superior) { for (let i = 0; i < 5; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 100, y: e.y + (Math.random() - 0.5) * 100, v: value, t: 0 }); const bag = Object.keys(POTIONS); pickups.push({ kind: 'potion', pot: evPick(bag), x: e.x + 30, y: e.y, t: 0 }); if (Math.random() < 0.2) pickups.push({ kind: 'clue', x: e.x - 30, y: e.y, t: 0 }); }
+  if (e.superior) { for (let i = 0; i < 5; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 100, y: e.y + (Math.random() - 0.5) * 100, v: value, t: 0 }); const bag = Object.keys(POTIONS); pickups.push({ kind: 'potion', pot: evPick(bag), x: e.x + 30, y: e.y, t: 0 }); if (Math.random() < 0.2) pickups.push({ kind: 'clue', tier: Math.min(4, baseClueTier() + 1), x: e.x - 30, y: e.y, t: 0 }); }
   if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
   maybeDropArtefact(e);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
@@ -2244,7 +2258,7 @@ function updatePlayer(dt) {
     if ((pk.kind === 'potion' || pk.kind === 'pie') && pk.t > 20) { pk.got = true; continue; } // potions and pies fade after a while
     if (Math.hypot(p.x - pk.x, p.y - pk.y) < p.r + 22) {
       pk.got = true;
-      if (pk.kind === 'clue') startClue();
+      if (pk.kind === 'clue') startClue(pk.tier ?? baseClueTier());
       else if (pk.kind === 'artefact') { const g = Math.round(pk.art.gold * (1 + areaIndex() * 0.15)); addGold(g, true); chat(`You pick up an ${pk.art.name}, worth ${g.toLocaleString()} coins.`, 'g'); sfx(1100, 0.2, 'triangle', 0.06); }
       else if (pk.kind === 'pie' && inv('diet')) { chat('You are On a Diet, so you leave the pie.', 'b'); }
       else if (pk.kind === 'pie') {
@@ -2369,7 +2383,7 @@ function step(dt) {
   updateEnemyShots(dt);
   creatureFrame(dt);
   if (mode !== 'play') return;
-  if (pendingClue > 0) { pendingClue--; startClue(); }
+  if (pendingClue.length) startClue(pendingClue.shift());
   invoTick(dt);
   eventTick(dt);
   spawnTick(dt);
@@ -2530,11 +2544,12 @@ function draw() {
     const pot = pk.kind === 'potion' ? POTIONS[pk.pot] : null;
     const pie = pk.kind === 'pie';
     const art = pk.kind === 'artefact' ? pk.art : null;
-    const im = wikiImage(art ? art.file : pot ? pot.file : pie ? PIE.file : pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
+    const ct = pk.tier ?? 3;
+    const im = wikiImage(art ? art.file : pot ? pot.file : pie ? PIE.file : pk.kind === 'clue' ? clueFile(ct) : casketFile(ct));
     const w = pot ? 22 : pie ? 30 : 36;
     if (ready(im)) ctx.drawImage(im, pk.x - w / 2, pk.y - 22 + bob, w, w * im.naturalHeight / im.naturalWidth);
     else { ctx.fillStyle = pot ? '#4aa0ff' : pie ? '#c0304a' : pk.kind === 'clue' ? '#f0e0b0' : '#8a5a2a'; ctx.fillRect(pk.x - 14, pk.y - 14 + bob, 28, 22); }
-    text(art ? art.name : pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
+    text(art ? art.name : pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? `Clue scroll (${CLUE_TIERS[ct].id})` : `Reward casket (${CLUE_TIERS[ct].id})`, pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
   }
 
   for (const e of enemies) if (!e.dead && RAID_DRAW[e.d.boss]) RAID_DRAW[e.d.boss](e);
@@ -3200,11 +3215,11 @@ function renderShop() {
   nb2.focus({ preventScroll: true });
 }
 
-function renderCasket(choices) {
+function renderCasket(choices, tier = 3) {
   const s = el('div', 'sheet'); s.style.maxWidth = '720px';
   const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
-  head.appendChild(imgTag(CASKET_FILE, 'Reward casket'));
-  const t = el('div'); t.appendChild(el('h2', '', 'You open the reward casket')); t.appendChild(el('p', '', 'Pick one item to keep. It is equipped straight away. Or skip to keep your current gear.'));
+  head.appendChild(imgTag(casketFile(tier), 'Reward casket'));
+  const t = el('div'); t.appendChild(el('h2', '', `You open the ${CLUE_TIERS[tier].name.toLowerCase()} reward casket`)); t.appendChild(el('p', '', 'Pick one item to keep. It is equipped straight away. Or skip to keep your current gear.'));
   head.appendChild(t);
   s.appendChild(head);
   const g = el('div', 'grid offers'); g.style.marginTop = '12px';
@@ -4523,7 +4538,7 @@ function bossDeathMech(e) {
 window.__rr = {
   get mode() { return mode; }, get run() { return run; }, get enemies() { return enemies; }, get pickups() { return pickups; },
   start: (i) => { pickedHero = HEROES[i || 0]; begin(); }, endStage: () => endStage(),
-  skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: () => pickups.push({ kind: 'clue', x: run.p.x + 60, y: run.p.y, t: 0 }),
+  skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: (tier) => pickups.push({ kind: 'clue', tier: tier ?? 3, x: run.p.x + 60, y: run.p.y, t: 0 }),
   killAll: () => { for (const e of enemies) e.hp = 1; },
   kill: (e) => killEnemy(e),
   clearWave: () => { toSpawn = 0; run.evAt = null; run.insaneAt = null; run.circleAt = null; enemies.length = 0; },
