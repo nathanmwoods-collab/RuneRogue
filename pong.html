@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>RunePong</title>
+<style>
+  :root {
+    --stone: #3e3529;
+    --stone-dark: #2b241b;
+    --rim: #5a4b37;
+    --gold: #ffcc00;
+    --osrs-yellow: #ffff00;
+    --osrs-orange: #ff981f;
+    --chat-bg: #d6c8a5;
+    --chat-text: #000;
+    --chat-blue: #0000ff;
+    --chat-red: #9b0000;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #1a150f radial-gradient(circle at 50% 0%, #3b2f22 0%, #1a150f 70%);
+    color: var(--osrs-yellow);
+    font-family: "Trebuchet MS", Verdana, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 12px 16px; overflow: hidden;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+  }
+  #wrap {
+    width: 100%; max-width: 1100px;
+    border: 4px solid var(--rim);
+    outline: 2px solid #000;
+    background: var(--stone-dark);
+    box-shadow: 0 10px 40px #000a;
+  }
+  canvas { display: block; width: 100%; height: auto; image-rendering: auto; }
+  #chat {
+    width: 100%; max-width: 1100px; height: 92px; margin-top: 8px;
+    background: var(--chat-bg);
+    border: 4px solid var(--rim); outline: 2px solid #000;
+    color: var(--chat-text);
+    font: bold 14px/1.35 "Trebuchet MS", Verdana, sans-serif;
+    padding: 4px 8px; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  #chat .blue { color: var(--chat-blue); }
+  #chat .red { color: var(--chat-red); }
+  #help { margin-top: 6px; font-size: 12px; color: #c8b98f; text-align: center; }
+  #help a { color: var(--osrs-orange); }
+  @media (max-height: 520px) { #chat { height: 52px; } #help { display: none; } }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="960" height="540"></canvas></div>
+<div id="chat"></div>
+<div id="help">Images from the <a href="https://oldschool.runescape.wiki/" target="_blank" rel="noopener">Old School RuneScape Wiki</a> (CC BY-NC-SA 3.0), © Jagex Ltd. Fan-made, non-commercial. See CREDITS.md.</div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------- Images (loaded straight from the OSRS Wiki; every one has a drawn fallback) ----------
+const WIKI = 'https://oldschool.runescape.wiki/images/';
+const IMAGE_FILES = {
+  cannonball:   'Steel_cannonball.png',
+  runeKite:     'Rune_kiteshield_detail.png',
+  dragonKite:   'Dragon_kiteshield_detail.png',
+  dragonfire:   'Dragonfire_shield_detail.png',
+  superStr:     'Super_strength(4).png',
+  iceBarrage:   'Ice_Barrage.png',
+  protectMelee: 'Protect_from_Melee.png',
+  hitpoints:    'Hitpoints_icon.png',
+  partyhat:     'Red_partyhat.png',
+};
+const img = {};
+for (const [key, file] of Object.entries(IMAGE_FILES)) {
+  const im = new Image();
+  im.decoding = 'async';
+  im.src = WIKI + encodeURIComponent(file).replace(/%2F/g, '/');
+  img[key] = im;
+}
+const ready = (im) => im && im.complete && im.naturalWidth > 0;
+
+// ---------- Canvas & constants ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const ARENA_TOP = 64, ARENA_BOTTOM = H - 16;
+const PADDLE_W = 26, PADDLE_H = 104, PADDLE_X = 44;
+const BALL_R = 13;
+const MAX_HP = 10;
+
+const SHIELDS = [
+  { key: 'runeKite',   name: 'Rune kiteshield',   color: '#4fb3c9' },
+  { key: 'dragonKite', name: 'Dragon kiteshield', color: '#b3271e' },
+  { key: 'dragonfire', name: 'Dragonfire shield', color: '#6b6b6b' },
+];
+const OPPONENTS = [
+  { name: 'Chicken',    speed: 230, error: 70, react: 0.30 },
+  { name: 'Hill Giant', speed: 360, error: 34, react: 0.16 },
+  { name: 'TzTok-Jad',  speed: 560, error: 10, react: 0.06 },
+];
+const POWERUPS = [
+  { key: 'superStr',     name: 'Super strength',     msg: 'drinks a Super strength potion. Next hit is a smash!' },
+  { key: 'protectMelee', name: 'Protect from Melee', msg: 'prays Protect from Melee. Shield grows!' },
+  { key: 'iceBarrage',   name: 'Ice Barrage',        msg: 'casts Ice Barrage. Opponent is frozen!' },
+];
+
+// ---------- Chatbox ----------
+const chatEl = document.getElementById('chat');
+function chat(text, cls) {
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = text;
+  chatEl.appendChild(line);
+  while (chatEl.children.length > 5) chatEl.removeChild(chatEl.firstChild);
+}
+
+// ---------- Sound (tiny WebAudio blips) ----------
+let audio = null;
+function beep(freq, dur = 0.07, type = 'square', vol = 0.06) {
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
+    o.connect(g).connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + dur);
+  } catch (e) { /* audio is optional */ }
+}
+
+// ---------- State ----------
+const menu = { mode: 0, shield: [0, 1], opp: 1, row: 0 }; // mode 0 = vs computer, 1 = two players
+let state = 'menu'; // menu | serve | play | paused | over
+let players, ball, powerup, splats, particles, serveTimer, nextPowerup, winner, rally;
+
+function makePlayer(side, shieldIdx, name, ai) {
+  return {
+    side, name, ai,
+    shield: SHIELDS[shieldIdx],
+    x: side === 0 ? PADDLE_X : W - PADDLE_X - PADDLE_W,
+    y: (ARENA_TOP + ARENA_BOTTOM) / 2 - PADDLE_H / 2,
+    h: PADDLE_H, hp: MAX_HP,
+    grow: 0, frozen: 0, smash: false,
+    aiTarget: H / 2, aiTimer: 0,
+  };
+}
+
+function startGame() {
+  const vsAI = menu.mode === 0;
+  const opp = OPPONENTS[menu.opp];
+  players = [
+    makePlayer(0, menu.shield[0], vsAI ? 'You' : 'Player 1', null),
+    makePlayer(1, menu.shield[1], vsAI ? opp.name : 'Player 2', vsAI ? opp : null),
+  ];
+  splats = []; particles = []; powerup = null; winner = null;
+  nextPowerup = 6;
+  chatEl.innerHTML = '';
+  chat('Welcome to RunePong.');
+  chat(vsAI ? `You challenge ${opp.name} to a duel.` : 'Player 1 has accepted your challenge.', 'blue');
+  serve(Math.random() < 0.5 ? 0 : 1);
+}
+
+function serve(toward) {
+  rally = 0;
+  ball = { x: W / 2, y: (ARENA_TOP + ARENA_BOTTOM) / 2, vx: 0, vy: 0, spin: 0, last: -1, toward };
+  serveTimer = 1.1;
+  state = 'serve';
+}
+
+function launchBall() {
+  const speed = 380;
+  const ang = (Math.random() * 0.7 - 0.35);
+  const dir = ball.toward === 0 ? -1 : 1;
+  ball.vx = Math.cos(ang) * speed * dir;
+  ball.vy = Math.sin(ang) * speed;
+  state = 'play';
+}
+
+// ---------- Input ----------
+const keys = {};
+const touches = {}; // side -> target y
+addEventListener('keydown', (e) => {
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()] = true;
+  onKey(e.key);
+});
+addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+addEventListener('blur', () => { if (state === 'play' || state === 'serve') state = 'paused'; });
+
+function onKey(k) {
+  beep(1, 0.001, 'sine', 0.0001); // unlock audio on first key
+  if (state === 'menu') {
+    const rows = menuRows();
+    if (k === 'ArrowUp' || k === 'w' || k === 'W') menu.row = (menu.row + rows.length - 1) % rows.length;
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') menu.row = (menu.row + 1) % rows.length;
+    else if (k === 'ArrowLeft' || k === 'a' || k === 'A') rows[menu.row].change(-1);
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') rows[menu.row].change(1);
+    else if (k === 'Enter' || k === ' ') { rows[menu.row].enter ? rows[menu.row].enter() : startGame(); }
+    else return;
+    beep(520, 0.04);
+  } else if (k === 'p' || k === 'P' || k === 'Escape') {
+    if (state === 'paused') state = ball.vx === 0 ? 'serve' : 'play';
+    else if (state === 'play' || state === 'serve') state = 'paused';
+  } else if (state === 'paused' && (k === 'm' || k === 'M')) {
+    state = 'menu';
+  } else if (state === 'over' && (k === 'Enter' || k === ' ')) {
+    state = 'menu';
+  }
+}
+
+function menuRows() {
+  const rows = [
+    { label: 'Mode', value: menu.mode === 0 ? 'vs Computer' : '2 Players (same keyboard)', change: (d) => { menu.mode = (menu.mode + 2 + d) % 2; } },
+  ];
+  if (menu.mode === 0) {
+    rows.push({ label: 'Opponent', value: OPPONENTS[menu.opp].name, change: (d) => { menu.opp = (menu.opp + OPPONENTS.length + d) % OPPONENTS.length; } });
+  }
+  rows.push({ label: menu.mode === 0 ? 'Your shield' : 'Player 1 shield', shieldIdx: menu.shield[0], value: SHIELDS[menu.shield[0]].name, change: (d) => { menu.shield[0] = (menu.shield[0] + SHIELDS.length + d) % SHIELDS.length; } });
+  if (menu.mode === 1) {
+    rows.push({ label: 'Player 2 shield', shieldIdx: menu.shield[1], value: SHIELDS[menu.shield[1]].name, change: (d) => { menu.shield[1] = (menu.shield[1] + SHIELDS.length + d) % SHIELDS.length; } });
+  }
+  rows.push({ label: '', value: 'Fight!', change: () => {}, enter: startGame, button: true });
+  if (menu.row >= rows.length) menu.row = rows.length - 1;
+  return rows;
+}
+
+// Touch / mouse: drag on your half to move; tap menu rows
+function canvasPoint(clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (clientX - r.left) * W / r.width, y: (clientY - r.top) * H / r.height };
+}
+canvas.addEventListener('pointerdown', (e) => {
+  beep(1, 0.001, 'sine', 0.0001);
+  const p = canvasPoint(e.clientX, e.clientY);
+  if (state === 'menu') { menuClick(p); return; }
+  if (state === 'over') { state = 'menu'; return; }
+  if (state === 'paused') { state = ball.vx === 0 ? 'serve' : 'play'; return; }
+  canvas.setPointerCapture(e.pointerId);
+  touches[e.pointerId] = { side: p.x < W / 2 ? 0 : 1, y: p.y };
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (touches[e.pointerId]) touches[e.pointerId].y = canvasPoint(e.clientX, e.clientY).y;
+});
+const endTouch = (e) => { delete touches[e.pointerId]; };
+canvas.addEventListener('pointerup', endTouch);
+canvas.addEventListener('pointercancel', endTouch);
+
+let menuHitboxes = [];
+function menuClick(p) {
+  const rows = menuRows();
+  for (const hb of menuHitboxes) {
+    if (p.y >= hb.y && p.y <= hb.y + hb.h && p.x >= hb.x && p.x <= hb.x + hb.w) {
+      menu.row = hb.i;
+      const row = rows[hb.i];
+      if (row.enter) row.enter(); else row.change(p.x < W / 2 ? -1 : 1);
+      beep(520, 0.04);
+      return;
+    }
+  }
+}
+
+// ---------- Update ----------
+function update(dt) {
+  for (const s of splats) s.t -= dt;
+  splats = splats.filter((s) => s.t > 0);
+  for (const pt of particles) { pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vy += 400 * dt; pt.t -= dt; }
+  particles = particles.filter((pt) => pt.t > 0);
+
+  if (state === 'serve') {
+    serveTimer -= dt;
+    movePaddles(dt);
+    if (serveTimer <= 0) launchBall();
+    return;
+  }
+  if (state !== 'play') return;
+
+  movePaddles(dt);
+
+  // Power-up spawning
+  nextPowerup -= dt;
+  if (!powerup && nextPowerup <= 0) {
+    const def = POWERUPS[Math.floor(Math.random() * POWERUPS.length)];
+    powerup = { def, x: W / 2 + (Math.random() * 240 - 120), y: ARENA_TOP + 60 + Math.random() * (ARENA_BOTTOM - ARENA_TOP - 120), t: 0 };
+  }
+  if (powerup) powerup.t += dt;
+
+  // Ball
+  const steps = Math.ceil(Math.hypot(ball.vx, ball.vy) * dt / 6);
+  const sdt = dt / steps;
+  for (let i = 0; i < steps && state === 'play'; i++) stepBall(sdt);
+  ball.spin += dt * Math.hypot(ball.vx, ball.vy) / 60 * Math.sign(ball.vx || 1);
+}
+
+function movePaddles(dt) {
+  for (const p of players) {
+    p.grow = Math.max(0, p.grow - dt);
+    p.frozen = Math.max(0, p.frozen - dt);
+    const targetH = p.grow > 0 ? PADDLE_H * 1.6 : PADDLE_H;
+    const oldCenter = p.y + p.h / 2;
+    p.h += (targetH - p.h) * Math.min(1, dt * 8);
+    p.y = oldCenter - p.h / 2;
+    if (p.frozen > 0) { clampPaddle(p); continue; }
+
+    const speed = 470;
+    let dy = 0;
+    if (p.ai) {
+      dy = aiMove(p, dt);
+    } else {
+      const up = p.side === 0 ? (keys['w']) : (keys['arrowup'] || (menu.mode === 0 && keys['w']));
+      const down = p.side === 0 ? (keys['s']) : (keys['arrowdown'] || (menu.mode === 0 && keys['s']));
+      // In vs-computer mode the arrow keys also drive the human paddle
+      const upAlt = menu.mode === 0 && p.side === 0 && keys['arrowup'];
+      const downAlt = menu.mode === 0 && p.side === 0 && keys['arrowdown'];
+      if (up || upAlt) dy -= speed * dt;
+      if (down || downAlt) dy += speed * dt;
+      for (const id in touches) {
+        const t = touches[id];
+        if (t.side === p.side || (menu.mode === 0 && p.side === 0)) {
+          const diff = t.y - (p.y + p.h / 2);
+          dy += Math.sign(diff) * Math.min(Math.abs(diff), speed * 1.6 * dt);
+        }
+      }
+    }
+    p.y += dy;
+    clampPaddle(p);
+  }
+}
+function clampPaddle(p) { p.y = Math.max(ARENA_TOP, Math.min(ARENA_BOTTOM - p.h, p.y)); }
+
+function aiMove(p, dt) {
+  const o = p.ai;
+  p.aiTimer -= dt;
+  if (p.aiTimer <= 0) {
+    p.aiTimer = o.react;
+    if (ball.vx > 0) {
+      // Predict where the ball crosses the paddle line, bouncing off walls
+      const t = (p.x - ball.x) / ball.vx;
+      let y = ball.y + ball.vy * t;
+      const top = ARENA_TOP + BALL_R, span = ARENA_BOTTOM - BALL_R - top;
+      y -= top; y = ((y % (2 * span)) + 2 * span) % (2 * span); if (y > span) y = 2 * span - y; y += top;
+      p.aiTarget = y + (Math.random() * 2 - 1) * o.error;
+    } else {
+      p.aiTarget = (ARENA_TOP + ARENA_BOTTOM) / 2;
+    }
+  }
+  const diff = p.aiTarget - (p.y + p.h / 2);
+  return Math.sign(diff) * Math.min(Math.abs(diff), o.speed * dt);
+}
+
+function stepBall(dt) {
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+
+  if (ball.y - BALL_R < ARENA_TOP) { ball.y = ARENA_TOP + BALL_R; ball.vy = Math.abs(ball.vy); beep(300, 0.03); }
+  if (ball.y + BALL_R > ARENA_BOTTOM) { ball.y = ARENA_BOTTOM - BALL_R; ball.vy = -Math.abs(ball.vy); beep(300, 0.03); }
+
+  for (const p of players) {
+    const movingToward = p.side === 0 ? ball.vx < 0 : ball.vx > 0;
+    if (!movingToward) continue;
+    if (ball.x + BALL_R > p.x && ball.x - BALL_R < p.x + PADDLE_W && ball.y + BALL_R > p.y && ball.y - BALL_R < p.y + p.h) {
+      hitPaddle(p);
+    }
+  }
+
+  if (powerup && Math.hypot(ball.x - powerup.x, ball.y - powerup.y) < BALL_R + 18 && ball.last >= 0) {
+    grantPowerup(players[ball.last], powerup.def);
+    powerup = null;
+    nextPowerup = 7 + Math.random() * 6;
+  }
+
+  if (ball.x < -BALL_R * 2) scorePoint(1);
+  else if (ball.x > W + BALL_R * 2) scorePoint(0);
+}
+
+function hitPaddle(p) {
+  rally++;
+  const rel = ((ball.y - (p.y + p.h / 2)) / (p.h / 2));
+  const ang = Math.max(-1, Math.min(1, rel)) * 0.95;
+  let speed = Math.min(980, Math.hypot(ball.vx, ball.vy) * 1.05 + 8);
+  if (p.smash) {
+    speed = Math.min(1150, speed * 1.45);
+    p.smash = false;
+    chat(`${p.name} smashes the cannonball!`, 'red');
+    beep(140, 0.15, 'sawtooth', 0.08);
+    burst(ball.x, ball.y, '#ff6a00', 18);
+  } else {
+    beep(p.side === 0 ? 660 : 560, 0.05);
+  }
+  const dir = p.side === 0 ? 1 : -1;
+  ball.vx = Math.cos(ang) * speed * dir;
+  ball.vy = Math.sin(ang) * speed;
+  ball.x = p.side === 0 ? p.x + PADDLE_W + BALL_R : p.x - BALL_R;
+  ball.last = p.side;
+  burst(ball.x, ball.y, '#ffd27a', 6);
+}
+
+function grantPowerup(p, def) {
+  const other = players[1 - p.side];
+  if (def.key === 'superStr') p.smash = true;
+  if (def.key === 'protectMelee') p.grow = 8;
+  if (def.key === 'iceBarrage') other.frozen = 1.4;
+  chat(`${p.name} ${def.msg}`, 'blue');
+  beep(880, 0.12, 'triangle', 0.08);
+  burst(ball.x, ball.y, def.key === 'iceBarrage' ? '#9fe8ff' : '#7dff7d', 20);
+}
+
+function scorePoint(scorer) {
+  const victim = players[1 - scorer];
+  const speed = Math.hypot(ball.vx, ball.vy);
+  const dmg = Math.max(1, Math.min(3, Math.floor((speed - 300) / 220) + 1));
+  victim.hp = Math.max(0, victim.hp - dmg);
+  splats.push({ x: victim.side === 0 ? 92 : W - 92, y: Math.max(ARENA_TOP + 40, Math.min(ARENA_BOTTOM - 40, ball.y)), dmg, t: 1.2 });
+  beep(110, 0.2, 'sawtooth', 0.09);
+  chat(`${players[scorer].name} hit a ${dmg} on ${victim.name}${rally > 6 ? ` after a ${rally}-hit rally` : ''}.`);
+  if (victim.hp <= 0) {
+    winner = players[scorer];
+    state = 'over';
+    const vsAI = menu.mode === 0;
+    if (vsAI && victim.side === 0) chat('Oh dear, you are dead!', 'red');
+    else chat(`Congratulations! ${winner.name} ${winner.name === 'You' ? 'have' : 'has'} won the duel!`, 'blue');
+    for (let i = 0; i < 4; i++) setTimeout(() => beep(523 * [1, 1.25, 1.5, 2][i], 0.18, 'triangle', 0.08), i * 140);
+    return;
+  }
+  serve(victim.side);
+}
+
+function burst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * 220;
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0.35 + Math.random() * 0.3, color });
+  }
+}
+
+// ---------- Drawing ----------
+function osrsText(text, x, y, size, color = '#ffff00', align = 'center') {
+  ctx.font = `bold ${size}px "Trebuchet MS", Verdana, sans-serif`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#000';
+  ctx.fillText(text, x + Math.max(1, size / 14), y + Math.max(1, size / 14));
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function drawArena() {
+  // Grassy field like Lumbridge, framed by an interface-brown border
+  const g = ctx.createLinearGradient(0, ARENA_TOP, 0, ARENA_BOTTOM);
+  g.addColorStop(0, '#3f6a2a'); g.addColorStop(1, '#2f5221');
+  ctx.fillStyle = '#2b241b'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = g; ctx.fillRect(0, ARENA_TOP, W, ARENA_BOTTOM - ARENA_TOP);
+  // grass tufts (deterministic)
+  ctx.fillStyle = '#4c7d33';
+  for (let i = 0; i < 140; i++) {
+    const x = (i * 97.3) % W, y = ARENA_TOP + ((i * 53.7) % (ARENA_BOTTOM - ARENA_TOP));
+    ctx.fillRect(x, y, 3, 2);
+  }
+  // dirt path centre line
+  ctx.strokeStyle = '#8a6a3c88'; ctx.lineWidth = 4; ctx.setLineDash([14, 12]);
+  ctx.beginPath(); ctx.moveTo(W / 2, ARENA_TOP + 6); ctx.lineTo(W / 2, ARENA_BOTTOM - 6); ctx.stroke();
+  ctx.setLineDash([]);
+  // duel arena ring
+  ctx.strokeStyle = '#8a6a3c55'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(W / 2, (ARENA_TOP + ARENA_BOTTOM) / 2, 70, 0, Math.PI * 2); ctx.stroke();
+  // walls
+  ctx.fillStyle = '#5a4b37';
+  ctx.fillRect(0, ARENA_TOP - 6, W, 6); ctx.fillRect(0, ARENA_BOTTOM, W, 6);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, ARENA_TOP - 7, W, 1); ctx.fillRect(0, ARENA_BOTTOM + 6, W, 1);
+}
+
+function drawHUD() {
+  for (const p of players) {
+    const left = p.side === 0;
+    const x0 = left ? 18 : W - 18;
+    // name
+    osrsText(p.name, left ? x0 : x0, 18, 18, '#ffff00', left ? 'left' : 'right');
+    // HP bar (green over red, like the overhead health bar)
+    const bw = 260, bx = left ? x0 + 34 : x0 - 34 - bw, by = 34;
+    ctx.fillStyle = '#000'; ctx.fillRect(bx - 2, by - 2, bw + 4, 18);
+    ctx.fillStyle = '#c00000'; ctx.fillRect(bx, by, bw, 14);
+    ctx.fillStyle = '#00c000';
+    const gw = bw * p.hp / MAX_HP;
+    ctx.fillRect(left ? bx : bx + bw - gw, by, gw, 14);
+    // hitpoints icon + number
+    const ix = left ? x0 : x0 - 26;
+    if (ready(img.hitpoints)) ctx.drawImage(img.hitpoints, ix, by - 4, 23, 20);
+    else { ctx.fillStyle = '#d00'; ctx.beginPath(); ctx.arc(ix + 11, by + 6, 9, 0, 7); ctx.fill(); }
+    osrsText(`${p.hp}/${MAX_HP}`, left ? bx + bw + 10 : bx - 10, by + 7, 14, '#00ff00', left ? 'left' : 'right');
+    // status icons
+    let sx = left ? 200 : W - 200 - 22;
+    const step = left ? 26 : -26;
+    if (p.smash) { drawIcon(img.superStr, sx, 8, 16, 22, '#7b3fbf'); sx += step; }
+    if (p.grow > 0) { drawIcon(img.protectMelee, sx, 8, 22, 22, '#ddd'); sx += step; }
+    if (p.frozen > 0) { drawIcon(img.iceBarrage, sx, 8, 22, 22, '#9fe8ff'); sx += step; }
+  }
+  osrsText('RunePong', W / 2, 30, 26, '#ff981f');
+}
+
+function drawIcon(im, x, y, w, h, fallback) {
+  if (ready(im)) ctx.drawImage(im, x, y, w, h);
+  else { ctx.fillStyle = fallback; ctx.fillRect(x, y, w, h); }
+}
+
+function drawShield(shield, cx, cy, size, alpha = 1) {
+  const im = img[shield.key];
+  ctx.globalAlpha = alpha;
+  if (ready(im)) {
+    const s = size / Math.max(im.naturalWidth, im.naturalHeight);
+    ctx.drawImage(im, cx - im.naturalWidth * s / 2, cy - im.naturalHeight * s / 2, im.naturalWidth * s, im.naturalHeight * s);
+  } else {
+    // drawn kite-shield fallback
+    ctx.fillStyle = shield.color; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - size * 0.38, cy - size * 0.42);
+    ctx.lineTo(cx + size * 0.38, cy - size * 0.42);
+    ctx.lineTo(cx + size * 0.32, cy + size * 0.05);
+    ctx.lineTo(cx, cy + size * 0.48);
+    ctx.lineTo(cx - size * 0.32, cy + size * 0.05);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPaddle(p) {
+  // wooden plank with a gold trim, shield mounted on it
+  ctx.fillStyle = '#000'; ctx.fillRect(p.x - 2, p.y - 2, PADDLE_W + 4, p.h + 4);
+  const g = ctx.createLinearGradient(p.x, 0, p.x + PADDLE_W, 0);
+  g.addColorStop(0, '#6b4a26'); g.addColorStop(0.5, '#9a6c3a'); g.addColorStop(1, '#5a3c1e');
+  ctx.fillStyle = g; ctx.fillRect(p.x, p.y, PADDLE_W, p.h);
+  ctx.fillStyle = p.grow > 0 ? '#ffffff' : '#c9a227';
+  ctx.fillRect(p.x, p.y, PADDLE_W, 3); ctx.fillRect(p.x, p.y + p.h - 3, PADDLE_W, 3);
+  if (p.grow > 0) {
+    ctx.strokeStyle = `rgba(255,255,255,${0.35 + 0.25 * Math.sin(performance.now() / 120)})`;
+    ctx.lineWidth = 3; ctx.strokeRect(p.x - 5, p.y - 5, PADDLE_W + 10, p.h + 10);
+  }
+  drawShield(p.shield, p.x + PADDLE_W / 2, p.y + p.h / 2, 58);
+  if (p.smash) {
+    ctx.fillStyle = `rgba(255,100,0,${0.25 + 0.2 * Math.sin(performance.now() / 90)})`;
+    ctx.fillRect(p.x - 4, p.y - 4, PADDLE_W + 8, p.h + 8);
+  }
+  if (p.frozen > 0) {
+    ctx.fillStyle = 'rgba(150,220,255,0.55)';
+    ctx.fillRect(p.x - 6, p.y - 6, PADDLE_W + 12, p.h + 12);
+    ctx.strokeStyle = '#e8fbff'; ctx.lineWidth = 2;
+    ctx.strokeRect(p.x - 6, p.y - 6, PADDLE_W + 12, p.h + 12);
+  }
+}
+
+function drawBall() {
+  ctx.save();
+  ctx.translate(ball.x, ball.y);
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(4, 8, BALL_R, BALL_R * 0.5, 0, 0, 7); ctx.fill();
+  ctx.rotate(ball.spin);
+  if (ready(img.cannonball)) {
+    ctx.drawImage(img.cannonball, -BALL_R * 1.25, -BALL_R * 1.15, BALL_R * 2.5, BALL_R * 2.3);
+  } else {
+    const g = ctx.createRadialGradient(-4, -4, 2, 0, 0, BALL_R);
+    g.addColorStop(0, '#cfd3d6'); g.addColorStop(1, '#4a4f54');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, BALL_R, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPowerup() {
+  if (!powerup) return;
+  const bob = Math.sin(powerup.t * 4) * 4;
+  ctx.fillStyle = 'rgba(255,255,160,0.18)';
+  ctx.beginPath(); ctx.arc(powerup.x, powerup.y + bob, 24 + Math.sin(powerup.t * 6) * 3, 0, 7); ctx.fill();
+  const im = img[powerup.def.key];
+  const fallback = { superStr: '#7b3fbf', protectMelee: '#dddddd', iceBarrage: '#9fe8ff' }[powerup.def.key];
+  const w = powerup.def.key === 'superStr' ? 21 * 1.3 : 30, h = powerup.def.key === 'superStr' ? 30 * 1.3 : 30;
+  drawIcon(im, powerup.x - w / 2, powerup.y + bob - h / 2, w, h, fallback);
+}
+
+function drawSplat(s) {
+  // Red damage hitsplat, drawn in the OSRS style
+  const a = Math.min(1, s.t * 2.5);
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.translate(s.x, s.y - (1.2 - s.t) * 18);
+  ctx.fillStyle = '#b00000'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < 16; i++) {
+    const r = i % 2 ? 15 : 22, ang = i / 16 * Math.PI * 2;
+    ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+  }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  osrsText(String(s.dmg), 0, 1, 20, '#ffffff');
+  ctx.restore();
+}
+
+function drawPanel(x, y, w, h) {
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x + 6, y + 6, w, h);
+  ctx.fillStyle = '#3e3529'; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+  ctx.strokeStyle = '#5a4b37'; ctx.lineWidth = 3; ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+}
+
+function drawMenu() {
+  drawArena();
+  // floating cannonballs in the background
+  const t = performance.now() / 1000;
+  for (let i = 0; i < 6; i++) {
+    const x = (i * 173 + t * 60 * (i % 2 ? 1 : -1)) % (W + 60);
+    const y = ARENA_TOP + 40 + ((i * 89) % (ARENA_BOTTOM - ARENA_TOP - 80));
+    ctx.globalAlpha = 0.35;
+    if (ready(img.cannonball)) ctx.drawImage(img.cannonball, (x + W + 60) % (W + 60) - 30, y, 23, 21);
+    ctx.globalAlpha = 1;
+  }
+  osrsText('RunePong', W / 2, 32, 34, '#ff981f');
+
+  const rows = menuRows();
+  const pw = 560, ph = 50 + rows.length * 58, px = W / 2 - pw / 2, py = 96;
+  drawPanel(px, py, pw, ph);
+  osrsText('Duel options', W / 2, py + 30, 20, '#ff981f');
+  menuHitboxes = [];
+  rows.forEach((row, i) => {
+    const y = py + 66 + i * 58;
+    const sel = i === menu.row;
+    menuHitboxes.push({ i, x: px + 20, y: y - 24, w: pw - 40, h: 48 });
+    ctx.fillStyle = sel ? '#5a4b37' : '#2b241b';
+    ctx.fillRect(px + 20, y - 22, pw - 40, 44);
+    if (sel) { ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 1; ctx.strokeRect(px + 20.5, y - 21.5, pw - 41, 43); }
+    if (row.button) {
+      osrsText(row.value, W / 2, y, 22, sel ? '#ffffff' : '#ff981f');
+      return;
+    }
+    osrsText(row.label, px + 40, y, 17, '#ff981f', 'left');
+    osrsText(`◀  ${row.value}  ▶`, px + pw - 40 - (row.shieldIdx !== undefined ? 44 : 0), y, 17, sel ? '#ffffff' : '#ffff00', 'right');
+    if (row.shieldIdx !== undefined) drawShield(SHIELDS[row.shieldIdx], px + pw - 52, y, 38);
+  });
+
+  const helpY = py + ph + 30;
+  osrsText(menu.mode === 0 ? 'Move: W/S or ↑/↓   ·   Pause: P   ·   Touch: drag your shield'
+                           : 'Player 1: W/S   ·   Player 2: ↑/↓   ·   Pause: P   ·   Touch: drag on your side', W / 2, helpY, 15, '#c8b98f');
+  osrsText('Hit the floating icons for Super strength, Protect from Melee or Ice Barrage', W / 2, helpY + 24, 15, '#c8b98f');
+}
+
+function drawGame() {
+  drawArena();
+  drawHUD();
+  drawPowerup();
+  for (const p of players) drawPaddle(p);
+  if (state !== 'over') drawBall();
+  for (const pt of particles) { ctx.fillStyle = pt.color; ctx.globalAlpha = Math.min(1, pt.t * 3); ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4); }
+  ctx.globalAlpha = 1;
+  for (const s of splats) drawSplat(s);
+
+  if (state === 'serve' && serveTimer > 0) {
+    osrsText(serveTimer > 0.55 ? 'Ready...' : 'Fight!', W / 2, (ARENA_TOP + ARENA_BOTTOM) / 2 - 100, 30, '#ffff00');
+  }
+  if (state === 'paused') {
+    drawPanel(W / 2 - 200, H / 2 - 70, 400, 140);
+    osrsText('Paused', W / 2, H / 2 - 30, 28, '#ff981f');
+    osrsText('P to resume  ·  M for menu', W / 2, H / 2 + 20, 17, '#ffff00');
+  }
+  if (state === 'over') drawGameOver();
+}
+
+function drawGameOver() {
+  const vsAI = menu.mode === 0;
+  const lost = vsAI && winner.side === 1;
+  drawPanel(W / 2 - 260, H / 2 - 110, 520, 220);
+  if (lost) {
+    osrsText('Oh dear, you are dead!', W / 2, H / 2 - 50, 30, '#ff3030');
+    osrsText(`${winner.name} wins with ${winner.hp} hitpoints left.`, W / 2, H / 2 + 5, 17, '#ffff00');
+  } else {
+    if (ready(img.partyhat)) ctx.drawImage(img.partyhat, W / 2 - 42, H / 2 - 112, 84, 69);
+    osrsText('Congratulations!', W / 2, H / 2 - 22, 30, '#ff981f');
+    osrsText(`${winner.name} ${winner.name === 'You' ? 'won' : 'wins'} the duel and a Red partyhat.`, W / 2, H / 2 + 18, 17, '#ffff00');
+  }
+  osrsText('Press Enter or tap to return to the menu', W / 2, H / 2 + 72, 15, '#c8b98f');
+}
+
+// ---------- Loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+  if (state === 'menu') drawMenu();
+  else { update(dt); drawGame(); }
+  requestAnimationFrame(frame);
+}
+chat('Welcome to RunePong.');
+chat('Pick your duel options and press Enter.', 'blue');
+requestAnimationFrame(frame);
+
+// Exposed for automated testing only
+window.__runepong = { get state() { return state; }, get players() { return players; }, get ball() { return ball; }, menu, startGame, img };
+})();
+</script>
+</body>
+</html>
