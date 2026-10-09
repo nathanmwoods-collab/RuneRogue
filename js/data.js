@@ -1032,3 +1032,58 @@ Object.assign(QUOTES, {
   nex_contain: ['Contain this!'], nex_prison: ['Die now, in a prison of ice!'], nex_wrath: ['Taste my wrath!'],
 });
 const INCANTATION = 'Carlem... Aber... Camerinthum... Purchai... Gabindo!';
+
+// ---------- Pets (cosmetic). Each one only drops from its own boss or monsters. ----------
+const PET_MSG_NEW = "You have a funny feeling like you're being followed.";
+const PET_MSG_DUPE = 'You have a funny feeling like you would have been followed...';
+const PETS = [
+  // route bosses (about 1 in 40 per kill)
+  { id: 'beef', name: 'Beef', file: 'Beef.png', from: ['cow_boss'], src: 'The cow boss (Lumbridge)' },
+  { id: 'scurry', name: 'Scurry', file: 'Scurry.png', from: ['scurrius'], src: 'Scurrius (Varrock Sewers)' },
+  { id: 'baby_mole', name: 'Baby mole', file: 'Baby_Mole.png', from: ['giant_mole'], src: 'Giant Mole' },
+  { id: 'kalphite_princess', name: 'Kalphite princess', file: 'Kalphite_Princess.png', from: ['kalphite_queen'], src: 'Kalphite Queen' },
+  { id: 'prince_black_dragon', name: 'Prince black dragon', file: 'Prince_Black_Dragon.png', from: ['kbd'], src: 'King Black Dragon' },
+  { id: 'pet_graardor', name: 'Pet general graardor', file: 'Pet_General_Graardor.png', from: ['graardor'], src: 'General Graardor (God Wars)' },
+  { id: 'snakeling', name: 'Pet snakeling', file: 'Pet_Snakeling.png', from: ['zulrah'], src: 'Zulrah' },
+  { id: 'tzrek_jad', name: 'TzRek-Jad', file: 'TzRek-Jad.png', from: ['jad'], src: 'TzTok-Jad (Fight Caves)' },
+  { id: 'vorki', name: 'Vorki', file: 'Vorki.png', from: ['vorkath'], src: 'Vorkath' },
+  { id: 'tumekens_guardian', name: "Tumeken's guardian", file: "Tumeken's_guardian.png", from: ['wardens'], src: 'The Wardens (Tombs of Amascut)' },
+  { id: 'olmlet', name: 'Olmlet', file: 'Olmlet.png', from: ['olm'], src: 'Great Olm (Chambers of Xeric)' },
+  { id: 'lil_zik', name: "Lil' Zik", file: "Lil'_Zik.png", from: ['verzik'], src: 'Verzik Vitur (Theatre of Blood)' },
+  { id: 'nexling', name: 'Nexling', file: 'Nexling.png', from: ['nex'], src: 'Nex (Ancient Prison)' },
+  { id: 'jal_nib_rek', name: 'Jal-nib-rek', file: 'Jal-Nib-Rek.png', from: ['zuk'], src: 'TzKal-Zuk (Inferno)' },
+  // clue bosses (about 1 in 25 per kill)
+  { id: 'pet_chaos_elemental', name: 'Pet chaos elemental', file: 'Pet_chaos_elemental.png', from: ['clue_chaos_elemental', 'clue_chaos_fanatic'], src: 'Chaos Elemental or Chaos Fanatic (clue)' },
+  { id: 'callisto_cub', name: 'Callisto cub', file: 'Callisto_cub.png', from: ['clue_callisto'], src: 'Callisto (clue)' },
+  { id: 'venenatis_spiderling', name: 'Venenatis spiderling', file: 'Venenatis_spiderling.png', from: ['clue_venenatis'], src: 'Venenatis (clue)' },
+  { id: 'vetion_jr', name: "Vet'ion jr.", file: "Vet'ion_Jr..png", from: ['clue_vetion'], src: "Vet'ion (clue)" },
+  { id: 'scorpias_offspring', name: "Scorpia's offspring", file: "Scorpia's_offspring.png", from: ['clue_scorpia'], src: 'Scorpia (clue)' },
+  { id: 'pet_kraken', name: 'Pet kraken', file: 'Pet_Kraken.png', from: ['clue_kraken'], src: 'Kraken (clue)' },
+  { id: 'pet_supreme', name: 'Pet dagannoth supreme', file: 'Pet_Dagannoth_Supreme.png', from: ['clue_dagannoth_supreme'], src: 'Dagannoth Supreme (clue)' },
+  { id: 'pet_rex', name: 'Pet dagannoth rex', file: 'Pet_Dagannoth_Rex.png', from: ['clue_rex'], src: 'Dagannoth Rex (clue)' },
+  { id: 'pet_prime', name: 'Pet dagannoth prime', file: 'Pet_Dagannoth_Prime.png', from: ['clue_prime'], src: 'Dagannoth Prime (clue)' },
+  { id: 'sraracha', name: 'Sraracha', file: 'Sraracha.png', from: ['clue_sarachnis'], src: 'Sarachnis (clue)' },
+  { id: 'pet_zilyana', name: 'Pet zilyana', file: 'Pet_Zilyana.png', from: ['clue_zilyana'], src: 'Commander Zilyana (clue)' },
+  { id: 'pet_kril', name: "Pet k'ril tsutsaroth", file: "Pet_K'ril_Tsutsaroth.png", from: ['clue_kril'], src: "K'ril Tsutsaroth (clue)" },
+  { id: 'pet_kreearra', name: "Pet kree'arra", file: "Pet_Kree'arra.png", from: ['clue_kreearra'], src: "Kree'arra (clue)" },
+  { id: 'pet_dark_core', name: 'Pet dark core', file: 'Pet_dark_core.png', from: ['clue_corp'], src: 'Corporeal Beast (clue)' },
+  { id: 'hellpuppy', name: 'Hellpuppy', file: 'Hellpuppy.png', from: ['clue_cerberus'], src: 'Cerberus (clue)' },
+  { id: 'abyssal_orphan', name: 'Abyssal orphan', file: 'Abyssal_orphan.png', from: ['clue_sire'], src: 'Abyssal Sire (clue)' },
+  { id: 'ikkle_hydra', name: 'Ikkle hydra', file: 'Ikkle_Hydra_(serpentine).png', from: ['clue_hydra'], src: 'Alchemical Hydra (clue)' },
+  { id: 'pet_smoke_devil', name: 'Pet smoke devil', file: 'Pet_Smoke_Devil.png', from: ['clue_smoke_devil'], src: 'Thermonuclear smoke devil (clue)' },
+  { id: 'skotos', name: 'Skotos', file: 'Skotos.png', from: ['clue_skotizo'], src: 'Skotizo (clue)' },
+  { id: 'muphin', name: 'Muphin', file: 'Muphin_(ranged).png', from: ['clue_muspah'], src: 'Phantom Muspah (clue)' },
+  { id: 'little_nightmare', name: 'Little nightmare', file: 'Little_Nightmare.png', from: ['clue_nightmare'], src: 'The Nightmare (clue)' },
+  { id: 'baron', name: 'Baron', file: 'Baron.png', from: ['clue_sucellus'], src: 'Duke Sucellus (clue)' },
+  { id: 'lilviathan', name: "Lil'viathan", file: "Lil'viathan.png", from: ['clue_leviathan'], src: 'The Leviathan (clue)' },
+  { id: 'wisp', name: 'Wisp', file: 'Wisp.png', from: ['clue_whisperer'], src: 'The Whisperer (clue)' },
+  { id: 'butch', name: 'Butch', file: 'Butch.png', from: ['clue_vardorvis'], src: 'Vardorvis (clue)' },
+  { id: 'nid', name: 'Nid', file: 'Nid.png', from: ['clue_araxxor'], src: 'Araxxor (clue)' },
+  { id: 'moxi', name: 'Moxi', file: 'Moxi.png', from: ['clue_amoxliatl'], src: 'Amoxliatl (clue)' },
+  { id: 'huberte', name: 'Huberte', file: 'Huberte.png', from: ['clue_hueycoatl'], src: 'The Hueycoatl (clue)' },
+  { id: 'smol_heredit', name: 'Smol heredit', file: 'Smol_Heredit.png', from: ['clue_sol'], src: 'Sol Heredit (clue)' },
+  { id: 'noon', name: 'Noon', file: 'Noon.png', from: ['clue_dusk'], src: 'Grotesque Guardians (clue)' },
+  // thieves: goblins that steal your coins (about 1 in 400)
+  { id: 'rocky', name: 'Rocky', file: 'Rocky.png', from: ['goblin', 'hobgoblin', 'rev_goblin'], src: 'Goblins that steal your coins', thief: true },
+];
+const PET_RATE = { route: 1 / 40, clue: 1 / 25, thief: 1 / 400 };

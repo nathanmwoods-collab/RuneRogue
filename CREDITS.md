@@ -695,6 +695,51 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Fire battlestaff | https://oldschool.runescape.wiki/w/File:Fire_battlestaff.png |
 | Item | Fire Blast | https://oldschool.runescape.wiki/w/File:Fire_Blast.png |
 | Item | Mystic fire staff | https://oldschool.runescape.wiki/w/File:Mystic_fire_staff.png |
+| Pet | Beef | https://oldschool.runescape.wiki/w/File:Beef.png |
+| Pet | Scurry | https://oldschool.runescape.wiki/w/File:Scurry.png |
+| Pet | Baby mole | https://oldschool.runescape.wiki/w/File:Baby_Mole.png |
+| Pet | Kalphite princess | https://oldschool.runescape.wiki/w/File:Kalphite_Princess.png |
+| Pet | Prince black dragon | https://oldschool.runescape.wiki/w/File:Prince_Black_Dragon.png |
+| Pet | Pet general graardor | https://oldschool.runescape.wiki/w/File:Pet_General_Graardor.png |
+| Pet | Pet snakeling | https://oldschool.runescape.wiki/w/File:Pet_Snakeling.png |
+| Pet | TzRek-Jad | https://oldschool.runescape.wiki/w/File:TzRek-Jad.png |
+| Pet | Vorki | https://oldschool.runescape.wiki/w/File:Vorki.png |
+| Pet | Tumeken's guardian | https://oldschool.runescape.wiki/w/File:Tumeken's_guardian.png |
+| Pet | Olmlet | https://oldschool.runescape.wiki/w/File:Olmlet.png |
+| Pet | Lil' Zik | https://oldschool.runescape.wiki/w/File:Lil'_Zik.png |
+| Pet | Nexling | https://oldschool.runescape.wiki/w/File:Nexling.png |
+| Pet | Jal-nib-rek | https://oldschool.runescape.wiki/w/File:Jal-Nib-Rek.png |
+| Pet | Pet chaos elemental | https://oldschool.runescape.wiki/w/File:Pet_chaos_elemental.png |
+| Pet | Callisto cub | https://oldschool.runescape.wiki/w/File:Callisto_cub.png |
+| Pet | Venenatis spiderling | https://oldschool.runescape.wiki/w/File:Venenatis_spiderling.png |
+| Pet | Vet'ion jr. | https://oldschool.runescape.wiki/w/File:Vet'ion_Jr..png |
+| Pet | Scorpia's offspring | https://oldschool.runescape.wiki/w/File:Scorpia's_offspring.png |
+| Pet | Pet kraken | https://oldschool.runescape.wiki/w/File:Pet_Kraken.png |
+| Pet | Pet dagannoth supreme | https://oldschool.runescape.wiki/w/File:Pet_Dagannoth_Supreme.png |
+| Pet | Pet dagannoth rex | https://oldschool.runescape.wiki/w/File:Pet_Dagannoth_Rex.png |
+| Pet | Pet dagannoth prime | https://oldschool.runescape.wiki/w/File:Pet_Dagannoth_Prime.png |
+| Pet | Sraracha | https://oldschool.runescape.wiki/w/File:Sraracha.png |
+| Pet | Pet zilyana | https://oldschool.runescape.wiki/w/File:Pet_Zilyana.png |
+| Pet | Pet k'ril tsutsaroth | https://oldschool.runescape.wiki/w/File:Pet_K'ril_Tsutsaroth.png |
+| Pet | Pet kree'arra | https://oldschool.runescape.wiki/w/File:Pet_Kree'arra.png |
+| Pet | Pet dark core | https://oldschool.runescape.wiki/w/File:Pet_dark_core.png |
+| Pet | Hellpuppy | https://oldschool.runescape.wiki/w/File:Hellpuppy.png |
+| Pet | Abyssal orphan | https://oldschool.runescape.wiki/w/File:Abyssal_orphan.png |
+| Pet | Ikkle hydra | https://oldschool.runescape.wiki/w/File:Ikkle_Hydra_(serpentine).png |
+| Pet | Pet smoke devil | https://oldschool.runescape.wiki/w/File:Pet_Smoke_Devil.png |
+| Pet | Skotos | https://oldschool.runescape.wiki/w/File:Skotos.png |
+| Pet | Muphin | https://oldschool.runescape.wiki/w/File:Muphin_(ranged).png |
+| Pet | Little nightmare | https://oldschool.runescape.wiki/w/File:Little_Nightmare.png |
+| Pet | Baron | https://oldschool.runescape.wiki/w/File:Baron.png |
+| Pet | Lil'viathan | https://oldschool.runescape.wiki/w/File:Lil'viathan.png |
+| Pet | Wisp | https://oldschool.runescape.wiki/w/File:Wisp.png |
+| Pet | Butch | https://oldschool.runescape.wiki/w/File:Butch.png |
+| Pet | Nid | https://oldschool.runescape.wiki/w/File:Nid.png |
+| Pet | Moxi | https://oldschool.runescape.wiki/w/File:Moxi.png |
+| Pet | Huberte | https://oldschool.runescape.wiki/w/File:Huberte.png |
+| Pet | Smol heredit | https://oldschool.runescape.wiki/w/File:Smol_Heredit.png |
+| Pet | Noon | https://oldschool.runescape.wiki/w/File:Noon.png |
+| Pet | Rocky | https://oldschool.runescape.wiki/w/File:Rocky.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |

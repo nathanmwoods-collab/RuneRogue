@@ -1389,8 +1389,80 @@ function killEnemy(e) {
   if (e.superior) { for (let i = 0; i < 5; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 100, y: e.y + (Math.random() - 0.5) * 100, v: value, t: 0 }); const bag = Object.keys(POTIONS); pickups.push({ kind: 'potion', pot: evPick(bag), x: e.x + 30, y: e.y, t: 0 }); if (Math.random() < 0.2) pickups.push({ kind: 'clue', tier: Math.min(4, baseClueTier() + 1), x: e.x - 30, y: e.y, t: 0 }); }
   if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
   maybeDropArtefact(e);
+  maybeDropPet(e);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
   if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
+}
+
+// ---------- Pets (cosmetic only) ----------
+const PET_BY_MON = {};
+for (const pt of PETS) for (const id of pt.from) PET_BY_MON[id] = pt;
+function maybeDropPet(e) {
+  const pt = PET_BY_MON[e.id];
+  if (!pt || e.summoned) return;
+  const rate = pt.thief ? PET_RATE.thief : e.clueBoss ? PET_RATE.clue : PET_RATE.route;
+  if (Math.random() >= rate * (1 + luckVal() * 0.5)) return;
+  meta.pets = meta.pets || {};
+  if (meta.pets[pt.id]) { chat(PET_MSG_DUPE, 'r'); return; }
+  meta.pets[pt.id] = Date.now();
+  if (!meta.pet) meta.pet = pt.id;
+  saveMeta();
+  chat(PET_MSG_NEW, 'r');
+  chat(`New pet: ${pt.name}!${meta.pet === pt.id ? ' It follows you now.' : ' Equip it from the Pets screen.'}`, 'r');
+  sfx(880, 0.3, 'triangle', 0.07); setTimeout(() => sfx(1320, 0.4, 'triangle', 0.07), 180);
+  burst(e.x, e.y, '#ff8af0', 40);
+}
+function updatePet(dt) {
+  const pt = meta.pet && PETS.find((x) => x.id === meta.pet);
+  if (!pt) { run.pet = null; return; }
+  const p = run.p;
+  if (!run.pet || run.pet.id !== pt.id) run.pet = { id: pt.id, x: p.x - 50, y: p.y + 10, face: 1 };
+  const q = run.pet, dx = p.x - 48 * (Math.cos(p.face || 0) >= 0 ? 1 : -1) - q.x, dy = p.y + 8 - q.y, d = Math.hypot(dx, dy);
+  if (d > 600) { q.x = p.x - 50; q.y = p.y + 10; return; }
+  if (d > 30) { const v = Math.min(d, (120 + d * 3) * dt); q.x += dx / d * v; q.y += dy / d * v; if (Math.abs(dx) > 4) q.face = dx > 0 ? 1 : -1; }
+}
+function drawPet() {
+  const q = run.pet, pt = q && PETS.find((x) => x.id === q.id);
+  if (!pt) return;
+  drawShadow(q.x, q.y + 2, 14);
+  const im = wikiImage(pt.file);
+  if (!ready(im)) return;
+  const h = 46, w = Math.min(70, h * im.naturalWidth / im.naturalHeight), hh = w * im.naturalHeight / im.naturalWidth;
+  const bob = Math.abs(Math.sin(performance.now() / 160)) * 3;
+  ctx.save(); ctx.translate(q.x, q.y - hh - bob); if (q.face < 0) ctx.scale(-1, 1);
+  ctx.drawImage(im, -w / 2, 0, w, hh); ctx.restore();
+}
+function renderPets() {
+  if (run && mode !== 'over') return;
+  meta.pets = meta.pets || {};
+  const own = PETS.filter((pt) => meta.pets[pt.id]).length;
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Pets'));
+  head.appendChild(el('div', 'purse txt', `${own} of ${PETS.length} found`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', 'Pets are very rare drops, and each one only comes from its own boss or monster. Tap a pet you own to have it follow you. They are just for show.'));
+  const g = el('div', 'grid offers invos'); s.appendChild(g);
+  for (const pt of PETS) {
+    const has = !!meta.pets[pt.id], on = meta.pet === pt.id;
+    const c = el('button', 'card offer invo' + (on ? ' sel' : '') + (has ? '' : ' locked')); c.type = 'button';
+    const art = el('div', 'art'); const im = imgTag(pt.file, pt.name); if (!has) im.style.filter = 'brightness(0) opacity(0.45)'; art.appendChild(im); c.appendChild(art);
+    c.appendChild(el('div', 'nm', has ? pt.name : '???'));
+    c.appendChild(el('div', 'lvl', on ? 'Following you' : has ? 'Tap to equip' : 'Not found yet'));
+    c.appendChild(el('div', 'ds', `Drops from: ${pt.src}`));
+    c.addEventListener('click', () => {
+      if (!has) return;
+      meta.pet = on ? null : pt.id; saveMeta();
+      sfx(on ? 300 : 620, 0.06, 'triangle', 0.05);
+      renderPets();
+    });
+    g.appendChild(c);
+  }
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
+  s.appendChild(r);
+  $('hud').hidden = true;
+  screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
 }
 
 // ---------- Special attacks ----------
@@ -2217,6 +2289,7 @@ function updateEnemyShots(dt) {
 // ======================================================================
 function updatePlayer(dt) {
   const p = run.p, st = stats();
+  updatePet(dt);
   p.hurtT = Math.max(0, p.hurtT - dt);
   if (p.over) { p.over.t -= dt; if (p.over.t <= 0) p.over = null; }
   if (p.anim) { p.anim.t += dt; if (p.anim.t > p.anim.dur + 0.1) p.anim = null; }
@@ -2578,8 +2651,9 @@ function draw() {
   drawEvent();
   const sprites = enemies.filter((e) => e.ai.burrow <= 0).map((e) => ({ y: e.y, e }));
   sprites.push({ y: run.p.y, player: true });
+  if (run.pet) sprites.push({ y: run.pet.y, pet: true });
   sprites.sort((a, b) => a.y - b.y);
-  for (const s of sprites) s.player ? drawPlayer() : drawEnemy(s.e);
+  for (const s of sprites) s.player ? drawPlayer() : s.pet ? drawPet() : drawEnemy(s.e);
   drawCreatureExtras();
 
   if (bossAlive && !bossAlive.dead && bossAlive.ai.pillars) {
@@ -2954,6 +3028,13 @@ function renderTitle() {
   ib.appendChild(imgTag(INVO_ICON.warden, 'Invocations')); ib.appendChild(document.createTextNode(` Invocations (raid level ${rl})`));
   ib.classList.add('sticks-btn');
   r.appendChild(ib);
+  const nPets = Object.keys(meta.pets || {}).length;
+  const pb = btn('', 'btn', renderPets);
+  const shown = PETS.find((x) => x.id === meta.pet) || PETS.find((x) => (meta.pets || {})[x.id]);
+  if (shown) pb.appendChild(imgTag(shown.file, 'Pets'));
+  pb.appendChild(document.createTextNode(` Pets (${nPets}/${PETS.length})`));
+  pb.classList.add('sticks-btn');
+  r.appendChild(pb);
   const mb = btn(musicOn ? 'Music: on' : 'Music: off', 'btn', () => { toggleMusic(); mb.textContent = musicOn ? 'Music: on' : 'Music: off'; });
   r.appendChild(mb);
   r.appendChild(b);
