@@ -296,11 +296,20 @@ const WEAPON_TYPES = {
   mace: { name: 'Mace', info: 'crushing blows that stun and weaken', cd: 0.7, reach: 80, arc: 1.4, f: 1.0 },
   battleaxe: { name: 'Battleaxe', info: 'heavy chops that make enemies bleed', cd: 0.95, reach: 88, arc: 2.2, f: 1.1 },
   twoh: { name: '2h sword', info: 'a slow full spin that knocks enemies back', cd: 1.15, reach: 100, arc: 6.3, f: 1.15, knock: 60 },
+  halberd: { name: 'Halberd', info: 'slow, very long sweeps that hit everything far in front of you', cd: 1.0, reach: 150, arc: 1.5, f: 1.1 },
+  spear: { name: 'Spear', info: 'long jabs that run through a line of enemies and push them back', cd: 0.65, reach: 125, arc: 0.4, f: 1.0, knock: 25 },
+  claws: { name: 'Claws', info: 'two quick slashes per swing; the second one lands if the first misses', cd: 0.5, reach: 70, arc: 1.6, f: 0.95, hits: 2 },
+  whip: { name: 'Whip', info: 'fast lashes from far away; each hit slows the enemy a little', cd: 0.5, reach: 125, arc: 1.3, f: 1.0 },
+  xbow: { name: 'Crossbow', info: 'heavy bolts that pierce several enemies' },
+  knife: { name: 'Throwing knife', info: 'very fast throws at short range' },
+  dart: { name: 'Dart', info: 'the fastest throws in the game, but very short range' },
+  thrownaxe: { name: 'Thrownaxe', info: 'each axe bounces on to a second enemy' },
+  chin: { name: 'Chinchompa', info: 'explodes and hits every enemy around the target' },
   short: { name: 'Shortbow', info: 'rapid fire; every 4th shot looses two arrows' },
   long: { name: 'Longbow', info: 'slow, long range; arrows hit harder the further they fly' },
 };
 const METALS = [['bronze', 'Bronze', 0], ['iron', 'Iron', 0], ['steel', 'Steel', 1], ['black', 'Black', 1], ['mithril', 'Mithril', 2], ['adamant', 'Adamant', 3], ['rune', 'Rune', 4], ['dragon', 'Dragon', 5]];
-const METAL_NAMES = { dagger: 'dagger', sword: 'sword', scimitar: 'scimitar', longsword: 'longsword', mace: 'mace', battleaxe: 'battleaxe', twoh: '2h sword' };
+const METAL_NAMES = { dagger: 'dagger', sword: 'sword', scimitar: 'scimitar', longsword: 'longsword', mace: 'mace', battleaxe: 'battleaxe', twoh: '2h sword', halberd: 'halberd', spear: 'spear', claws: 'claws' };
 METALS.forEach(([mid, mname, tier], m) => {
   const dps = 8 * Math.pow(1.22, m);
   for (const [wt, suffix] of Object.entries(METAL_NAMES)) {
@@ -309,9 +318,46 @@ METALS.forEach(([mid, mname, tier], m) => {
     const T = WEAPON_TYPES[wt];
     const w = { kind: 'swing', wt, dmg: Math.max(3, Math.round(dps * T.f * T.cd)), cd: T.cd, reach: T.reach, arc: T.arc };
     if (T.knock) w.knock = T.knock;
+    if (T.hits) { w.hits = T.hits; w.dmg = Math.max(2, Math.round(w.dmg / 1.6)); }
     item(id, `${mname} ${suffix}`, 'melee', 'weapon', tier, 'common', { w });
   }
 });
+// Thrown weapons: knives, darts and thrownaxes (no black thrownaxe exists), plus chinchompas
+METALS.forEach(([mid, mname, tier], m) => {
+  const dps = 8.5 * Math.pow(1.22, m);
+  const T = { knife: [0.34, 300, 1], dart: [0.24, 230, 1], thrownaxe: [0.55, 330, 1] };
+  for (const [wt, [cd, range, pierce]] of Object.entries(T)) {
+    if (wt === 'thrownaxe' && mid === 'black') continue;
+    const id = `${mid}_${wt}`;
+    if (ITEMS[id]) continue;
+    item(id, `${mname} ${wt}`, 'ranged', 'weapon', tier, 'common', { w: { kind: 'shot', wt, dmg: Math.max(2, Math.round(dps * cd * (wt === 'thrownaxe' ? 0.85 : 1))), cd, range, speed: 900, pierce, count: 1, dart: wt === 'dart', bounce: wt === 'thrownaxe' ? 1 : 0 } });
+  }
+});
+[['chinchompa', 'Chinchompa', 2, 14], ['red_chinchompa', 'Red chinchompa', 4, 22], ['black_chinchompa', 'Black chinchompa', 7, 36]].forEach(([id, name, tier, dmg]) =>
+  item(id, name, 'ranged', 'weapon', tier, 'uncommon', { w: { kind: 'shot', wt: 'chin', dmg, cd: 0.9, range: 360, speed: 700, pierce: 1, count: 1, splash: 80 } }));
+// Crossbows bronze to dragon (rune and dragon exist above)
+[['bronze', 'Bronze', 0], ['iron', 'Iron', 0], ['steel', 'Steel', 1], ['mithril', 'Mithril', 2], ['adamant', 'Adamant', 3]].forEach(([mid, mname, tier], m) =>
+  item(`${mid}_crossbow`, `${mname} crossbow`, 'ranged', 'weapon', tier, 'common', { w: { kind: 'shot', wt: 'xbow', dmg: Math.round(9 * Math.pow(1.22, m * 1.4) * 0.85), cd: 0.85, range: 430, speed: 1000, pierce: 3, count: 1, bolt: true } }));
+for (const id of ['rune_crossbow', 'dragon_crossbow', 'dragon_hunter_crossbow', 'armadyl_crossbow', 'zaryte_crossbow', 'karils_crossbow', 'dorgeshuun_crossbow']) if (ITEMS[id]) ITEMS[id].w.wt = 'xbow';
+for (const id of ['abyssal_whip', 'abyssal_tentacle']) if (ITEMS[id]) ITEMS[id].w.wt = 'whip';
+if (ITEMS.dragon_claws) ITEMS.dragon_claws.w.wt = 'claws';
+// God staves and god spells (Mage Arena). Charge makes god spells hit 50% harder, like 20 to 30 max hit in the game.
+const GOD_SPELLS = {
+  saradomin: { spell: 'Saradomin Strike', icon: 'Saradomin_Strike.png', color: '#ffe680', info: 'each hit restores 1 prayer point' },
+  guthix: { spell: 'Claws of Guthix', icon: 'Claws_of_Guthix.png', color: '#5fd04a', info: 'hits lower the enemy\'s defence: +10% damage taken for 4 sec' },
+  zamorak: { spell: 'Flames of Zamorak', icon: 'Flames_of_Zamorak.png', color: '#ff4a2a', info: 'hits lower the enemy\'s Magic: it hits you 20% softer for 4 sec' },
+};
+for (const [id, name, god, tier, dmg, cd] of [
+  ['saradomin_staff', 'Saradomin staff', 'saradomin', 3, 24, 0.85], ['guthix_staff', 'Guthix staff', 'guthix', 3, 24, 0.85], ['zamorak_staff', 'Zamorak staff', 'zamorak', 3, 24, 0.85],
+  ['staff_of_balance', 'Staff of balance', 'guthix', 5, 32, 0.78], ['staff_of_light', 'Staff of light', 'saradomin', 6, 34, 0.72], ['staff_of_the_dead', 'Staff of the dead', 'zamorak', 6, 38, 0.78],
+]) {
+  const G = GOD_SPELLS[god];
+  item(id, name, 'magic', 'weapon', tier, tier >= 5 ? 'uncommon' : 'common', { w: { kind: 'spell', god, spell: G.spell, icon: G.icon, dmg, cd, range: 410, speed: 640, splash: 56, color: G.color } },
+    { staff_of_balance: 'Staff_of_Balance.png', staff_of_light: 'Staff_of_Light.png', staff_of_the_dead: 'Staff_of_the_Dead.png' }[id]);
+}
+item('saradomin_cape', 'Saradomin cape', 'magic', 'cape', 3, 'common', { dmg: 0.06, def: 1 });
+item('guthix_cape', 'Guthix cape', 'magic', 'cape', 3, 'common', { dmg: 0.06, def: 1 });
+item('zamorak_cape', 'Zamorak cape', 'magic', 'cape', 3, 'common', { dmg: 0.06, def: 1 });
 // Bows: normal, oak, willow, maple, yew and magic, short and long
 const WOODS = [['', 'Shortbow', 'Longbow', 0], ['oak', 'Oak shortbow', 'Oak longbow', 0], ['willow', 'Willow shortbow', 'Willow longbow', 1], ['maple', 'Maple shortbow', 'Maple longbow', 1], ['yew', 'Yew shortbow', 'Yew longbow', 2], ['magic', 'Magic shortbow', 'Magic longbow', 3]];
 WOODS.forEach(([wid, sname, lname, tier], i) => {
@@ -975,7 +1021,13 @@ const BOONS = [
   { id: 'thorns', name: 'Retribution', file: 'Retribution.png', max: 3, info: 'Enemies that hit you take 50% of the damage back' },
   { id: 'crit', name: 'Deadeye', file: 'Deadeye.png', max: 3, info: '+8% critical chance and crits hit 50% harder' },
   { id: 'haste', name: 'Incredible Reflexes', file: 'Incredible_Reflexes.png', max: 4, info: '15% faster attacks' },
-  { id: 'might', name: 'Piety', file: 'Piety.png', max: 4, info: '15% more damage' },
+  { id: 'might', name: 'Piety', file: 'Piety.png', max: 4, info: '+20% melee damage and take 5% less damage' },
+  { id: 'rigour', name: 'Rigour', file: 'Rigour.png', max: 4, info: '+20% ranged damage and take 5% less damage' },
+  { id: 'augury', name: 'Augury', file: 'Augury.png', max: 4, info: '+20% magic damage and take 5% less damage' },
+  { id: 'chivalry', name: 'Chivalry', file: 'Chivalry.png', max: 3, info: '+10% damage with every style' },
+  { id: 'protitem', name: 'Protect Item', file: 'Protect_Item.png', max: 1, info: 'Keep your best item when you cheat death while skulled' },
+  { id: 'restore', name: 'Rapid Restore', file: 'Rapid_Restore.png', max: 3, info: 'Regain 0.4 prayer points a second' },
+  { id: 'thickskin', name: 'Rock Skin', file: 'Rock_Skin.png', max: 2, info: '+6 defence' },
   { id: 'skin', name: 'Steel Skin', file: 'Steel_Skin.png', max: 4, info: 'Take 10% less damage' },
   { id: 'heal', name: 'Rapid Heal', file: 'Rapid_Heal.png', max: 3, info: 'Regenerate 1.5 hitpoints a second' },
   { id: 'greed', name: 'Greed', file: 'Coins_10000.png', max: 3, info: '25% more gold and coins fly to you from further away' },
@@ -1149,7 +1201,7 @@ const SPELLBOOKS = {
   ancient: { name: 'Ancient Magicks', area: 12 },
 };
 const SPELLS = [
-  { id: 'charge', book: 'standard', name: 'Charge', file: 'Charge.png', cd: 30, info: '+40% damage for 10 sec' },
+  { id: 'charge', book: 'standard', name: 'Charge', file: 'Charge.png', cd: 30, info: '+40% damage for 10 sec, and god spells hit 50% harder on top' },
   { id: 'entangle', book: 'standard', name: 'Entangle', file: 'Entangle.png', cd: 22, info: 'Holds every normal enemy near you in place for 3 sec' },
   { id: 'thrall', book: 'arceuus', name: 'Resurrect Greater Ghost', file: 'Resurrect_Greater_Ghost.png', cd: 40, info: 'A ghostly thrall fights beside you for 20 sec' },
   { id: 'mark', book: 'arceuus', name: 'Mark of Darkness', file: 'Mark_of_Darkness.png', cd: 35, info: 'Enemies take +25% damage from you for 15 sec' },
@@ -1181,4 +1233,17 @@ const SLAYER_UNLOCKS = [
   { id: 'masq', name: 'Malevolent masquerade', file: 'Slayer_helmet.png', cost: 80, info: 'Slayer helmets turn up in shops: +16% damage to your task' },
   { id: 'bigger', name: 'Bigger and Badder', file: 'Slayer_icon.png', cost: 30, info: 'Task monsters are 5× as likely to become superiors' },
   { id: 'boss', name: 'Like a boss', file: 'Slayer_icon.png', cost: 40, info: 'Each area boss you beat also counts as a task: +10 points, plus 2 per area' },
+];
+
+// ---------- Area modifiers: each one has a 50% chance to be on for its area in a run ----------
+const AREA_MOD_CHANCE = 0.5;
+const AREA_MODS = [
+  { id: 'gobwar', area: 0, name: 'Goblin war', info: 'Red and green goblins fight each other, and you.' },
+  { id: 'fog', area: 1, name: 'Fog', info: 'A thick fog: enemies stay hidden until they are close.' },
+  { id: 'flood', area: 3, name: 'Sewer flood', info: 'Flood water slows you down while you wade through it.' },
+  { id: 'riot', area: 4, name: 'Knight riots', info: 'White Knights and Black Knights fight each other, and you.' },
+  { id: 'lava', area: 5, name: 'Lava', info: 'Pools of lava burn you. More bubble up as the fight goes on.' },
+  { id: 'swarm', area: 6, name: 'Kalphite swarm', info: 'A Kalphite Guardian keeps calling workers until you kill it.' },
+  { id: 'faction', area: 8, name: 'Bandos army', info: 'Wear a Bandos item and his army leaves you alone until you hit it. Without one, they hit 25% harder.' },
+  { id: 'frost', area: 12, name: 'Frost', info: 'Stand still too long and the cold freezes you solid.' },
 ];

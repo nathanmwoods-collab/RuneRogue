@@ -767,6 +767,101 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Spell | Shadow Barrage | https://oldschool.runescape.wiki/w/File:Shadow_Barrage.png |
 | Item | Leaf-bladed sword | https://oldschool.runescape.wiki/w/File:Leaf-bladed_sword.png |
 | Item | Leaf-bladed battleaxe | https://oldschool.runescape.wiki/w/File:Leaf-bladed_battleaxe.png |
+| Item | Green d'hide body | https://oldschool.runescape.wiki/w/File:Green_d'hide_body.png |
+| Item | Black d'hide body | https://oldschool.runescape.wiki/w/File:Black_d'hide_body.png |
+| Item | Green d'hide chaps | https://oldschool.runescape.wiki/w/File:Green_d'hide_chaps.png |
+| Item | Black d'hide chaps | https://oldschool.runescape.wiki/w/File:Black_d'hide_chaps.png |
+| Item | Green d'hide vambraces | https://oldschool.runescape.wiki/w/File:Green_d'hide_vambraces.png |
+| Item | Black d'hide vambraces | https://oldschool.runescape.wiki/w/File:Black_d'hide_vambraces.png |
+| Item | Ava's attractor | https://oldschool.runescape.wiki/w/File:Ava's_attractor.png |
+| Item | Ava's accumulator | https://oldschool.runescape.wiki/w/File:Ava's_accumulator.png |
+| Item | Ava's assembler | https://oldschool.runescape.wiki/w/File:Ava's_assembler.png |
+| Item | Dizana's quiver | https://oldschool.runescape.wiki/w/File:Dizana's_quiver.png |
+| Item | Ahrim's hood | https://oldschool.runescape.wiki/w/File:Ahrim's_hood.png |
+| Item | Ahrim's robetop | https://oldschool.runescape.wiki/w/File:Ahrim's_robetop.png |
+| Item | Ahrim's robeskirt | https://oldschool.runescape.wiki/w/File:Ahrim's_robeskirt.png |
+| Item | Mage's book | https://oldschool.runescape.wiki/w/File:Mage's_book.png |
+| Item | Rada's blessing 4 | https://oldschool.runescape.wiki/w/File:Rada's_blessing_4.png |
+| Item | Bronze halberd | https://oldschool.runescape.wiki/w/File:Bronze_halberd.png |
+| Item | Bronze spear | https://oldschool.runescape.wiki/w/File:Bronze_spear.png |
+| Item | Bronze claws | https://oldschool.runescape.wiki/w/File:Bronze_claws.png |
+| Item | Iron halberd | https://oldschool.runescape.wiki/w/File:Iron_halberd.png |
+| Item | Iron spear | https://oldschool.runescape.wiki/w/File:Iron_spear.png |
+| Item | Iron claws | https://oldschool.runescape.wiki/w/File:Iron_claws.png |
+| Item | Steel halberd | https://oldschool.runescape.wiki/w/File:Steel_halberd.png |
+| Item | Steel spear | https://oldschool.runescape.wiki/w/File:Steel_spear.png |
+| Item | Steel claws | https://oldschool.runescape.wiki/w/File:Steel_claws.png |
+| Item | Black halberd | https://oldschool.runescape.wiki/w/File:Black_halberd.png |
+| Item | Black spear | https://oldschool.runescape.wiki/w/File:Black_spear.png |
+| Item | Black claws | https://oldschool.runescape.wiki/w/File:Black_claws.png |
+| Item | Mithril halberd | https://oldschool.runescape.wiki/w/File:Mithril_halberd.png |
+| Item | Mithril spear | https://oldschool.runescape.wiki/w/File:Mithril_spear.png |
+| Item | Mithril claws | https://oldschool.runescape.wiki/w/File:Mithril_claws.png |
+| Item | Adamant halberd | https://oldschool.runescape.wiki/w/File:Adamant_halberd.png |
+| Item | Adamant spear | https://oldschool.runescape.wiki/w/File:Adamant_spear.png |
+| Item | Adamant claws | https://oldschool.runescape.wiki/w/File:Adamant_claws.png |
+| Item | Rune halberd | https://oldschool.runescape.wiki/w/File:Rune_halberd.png |
+| Item | Rune spear | https://oldschool.runescape.wiki/w/File:Rune_spear.png |
+| Item | Rune claws | https://oldschool.runescape.wiki/w/File:Rune_claws.png |
+| Item | Dragon halberd | https://oldschool.runescape.wiki/w/File:Dragon_halberd.png |
+| Item | Dragon spear | https://oldschool.runescape.wiki/w/File:Dragon_spear.png |
+| Item | Bronze knife | https://oldschool.runescape.wiki/w/File:Bronze_knife.png |
+| Item | Bronze dart | https://oldschool.runescape.wiki/w/File:Bronze_dart.png |
+| Item | Bronze thrownaxe | https://oldschool.runescape.wiki/w/File:Bronze_thrownaxe.png |
+| Item | Iron knife | https://oldschool.runescape.wiki/w/File:Iron_knife.png |
+| Item | Iron dart | https://oldschool.runescape.wiki/w/File:Iron_dart.png |
+| Item | Iron thrownaxe | https://oldschool.runescape.wiki/w/File:Iron_thrownaxe.png |
+| Item | Steel knife | https://oldschool.runescape.wiki/w/File:Steel_knife.png |
+| Item | Steel dart | https://oldschool.runescape.wiki/w/File:Steel_dart.png |
+| Item | Steel thrownaxe | https://oldschool.runescape.wiki/w/File:Steel_thrownaxe.png |
+| Item | Black knife | https://oldschool.runescape.wiki/w/File:Black_knife.png |
+| Item | Black dart | https://oldschool.runescape.wiki/w/File:Black_dart.png |
+| Item | Mithril knife | https://oldschool.runescape.wiki/w/File:Mithril_knife.png |
+| Item | Mithril dart | https://oldschool.runescape.wiki/w/File:Mithril_dart.png |
+| Item | Mithril thrownaxe | https://oldschool.runescape.wiki/w/File:Mithril_thrownaxe.png |
+| Item | Adamant knife | https://oldschool.runescape.wiki/w/File:Adamant_knife.png |
+| Item | Adamant dart | https://oldschool.runescape.wiki/w/File:Adamant_dart.png |
+| Item | Adamant thrownaxe | https://oldschool.runescape.wiki/w/File:Adamant_thrownaxe.png |
+| Item | Rune knife | https://oldschool.runescape.wiki/w/File:Rune_knife.png |
+| Item | Rune dart | https://oldschool.runescape.wiki/w/File:Rune_dart.png |
+| Item | Rune thrownaxe | https://oldschool.runescape.wiki/w/File:Rune_thrownaxe.png |
+| Item | Dragon knife | https://oldschool.runescape.wiki/w/File:Dragon_knife.png |
+| Item | Dragon dart | https://oldschool.runescape.wiki/w/File:Dragon_dart.png |
+| Item | Dragon thrownaxe | https://oldschool.runescape.wiki/w/File:Dragon_thrownaxe.png |
+| Item | Chinchompa | https://oldschool.runescape.wiki/w/File:Chinchompa.png |
+| Item | Red chinchompa | https://oldschool.runescape.wiki/w/File:Red_chinchompa.png |
+| Item | Black chinchompa | https://oldschool.runescape.wiki/w/File:Black_chinchompa.png |
+| Item | Bronze crossbow | https://oldschool.runescape.wiki/w/File:Bronze_crossbow.png |
+| Item | Iron crossbow | https://oldschool.runescape.wiki/w/File:Iron_crossbow.png |
+| Item | Steel crossbow | https://oldschool.runescape.wiki/w/File:Steel_crossbow.png |
+| Item | Mithril crossbow | https://oldschool.runescape.wiki/w/File:Mithril_crossbow.png |
+| Item | Adamant crossbow | https://oldschool.runescape.wiki/w/File:Adamant_crossbow.png |
+| Item | Saradomin staff | https://oldschool.runescape.wiki/w/File:Saradomin_staff.png |
+| Item | Guthix staff | https://oldschool.runescape.wiki/w/File:Guthix_staff.png |
+| Item | Zamorak staff | https://oldschool.runescape.wiki/w/File:Zamorak_staff.png |
+| Item | Staff of balance | https://oldschool.runescape.wiki/w/File:Staff_of_Balance.png |
+| Item | Staff of light | https://oldschool.runescape.wiki/w/File:Staff_of_Light.png |
+| Item | Staff of the dead | https://oldschool.runescape.wiki/w/File:Staff_of_the_Dead.png |
+| Item | Guthix cape | https://oldschool.runescape.wiki/w/File:Guthix_cape.png |
+| Item | Zamorak cape | https://oldschool.runescape.wiki/w/File:Zamorak_cape.png |
+| Item | Dharok's helm | https://oldschool.runescape.wiki/w/File:Dharok's_helm.png |
+| Item | Inquisitor's great helm | https://oldschool.runescape.wiki/w/File:Inquisitor's_great_helm.png |
+| Item | Karil's coif | https://oldschool.runescape.wiki/w/File:Karil's_coif.png |
+| Item | Dharok's platebody | https://oldschool.runescape.wiki/w/File:Dharok's_platebody.png |
+| Item | Inquisitor's hauberk | https://oldschool.runescape.wiki/w/File:Inquisitor's_hauberk.png |
+| Item | Blue d'hide body | https://oldschool.runescape.wiki/w/File:Blue_d'hide_body.png |
+| Item | Karil's leathertop | https://oldschool.runescape.wiki/w/File:Karil's_leathertop.png |
+| Item | Karil's leatherskirt | https://oldschool.runescape.wiki/w/File:Karil's_leatherskirt.png |
+| Item | Explorer's ring 1 | https://oldschool.runescape.wiki/w/File:Explorer's_ring_1.png |
+| Prayer | Rigour | https://oldschool.runescape.wiki/w/File:Rigour.png |
+| Prayer | Augury | https://oldschool.runescape.wiki/w/File:Augury.png |
+| Prayer | Chivalry | https://oldschool.runescape.wiki/w/File:Chivalry.png |
+| Prayer | Protect Item | https://oldschool.runescape.wiki/w/File:Protect_Item.png |
+| Prayer | Rapid Restore | https://oldschool.runescape.wiki/w/File:Rapid_Restore.png |
+| Prayer | Rock Skin | https://oldschool.runescape.wiki/w/File:Rock_Skin.png |
+| Spell | Saradomin Strike | https://oldschool.runescape.wiki/w/File:Saradomin_Strike.png |
+| Spell | Claws of Guthix | https://oldschool.runescape.wiki/w/File:Claws_of_Guthix.png |
+| Spell | Flames of Zamorak | https://oldschool.runescape.wiki/w/File:Flames_of_Zamorak.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |
