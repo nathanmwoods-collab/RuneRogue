@@ -421,7 +421,7 @@ const SKILLS = [
   { id: 'prayer', name: 'Prayer', file: 'Prayer_icon.png', lane: 'any', start: 1, info: '+2 prayer, slower drain' },
   { id: 'agility', name: 'Agility', file: 'Agility_icon.png', lane: 'any', start: 1, info: '+0.6% run speed' },
   { id: 'thieving', name: 'Thieving', file: 'Thieving_icon.png', lane: 'any', start: 1, info: '+2% gold from kills' },
-  { id: 'slayer', name: 'Slayer', file: 'Slayer_icon.png', lane: 'any', start: 1, info: '+0.5% critical hits' },
+  { id: 'slayer', name: 'Slayer', file: 'Slayer_icon.png', lane: 'any', start: 1, info: '+0.5% critical hits. Real slayer drops need their Slayer level' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -1140,4 +1140,24 @@ const SPELLS = [
   { id: 'blood_barrage', book: 'ancient', name: 'Blood Barrage', file: 'Blood_Barrage.png', cd: 16, info: 'Big hit on a group that heals you for part of the damage', color: '#c0203a' },
   { id: 'smoke_barrage', book: 'ancient', name: 'Smoke Barrage', file: 'Smoke_Barrage.png', cd: 16, info: 'Big hit on a group that poisons them', color: '#9a9a8a' },
   { id: 'shadow_barrage', book: 'ancient', name: 'Shadow Barrage', file: 'Shadow_Barrage.png', cd: 16, info: 'Big hit on a group that makes them hit you 20% softer for 6 sec', color: '#5a4a7a' },
+];
+
+// ---------- Slayer ----------
+// Real slayer drops need their real Slayer level before the shop or a casket will hand them over.
+item('leaf_bladed_sword', 'Leaf-bladed sword', 'melee', 'weapon', 3, 'uncommon', { w: { kind: 'swing', wt: 'sword', dmg: 17, cd: 0.55, reach: 86, arc: 1.7 } });
+item('leaf_bladed_battleaxe', 'Leaf-bladed battleaxe', 'melee', 'weapon', 4, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 30, cd: 0.8, reach: 90, arc: 2.2 } });
+item('slayer_helmet', 'Slayer helmet', 'any', 'head', 4, 'uncommon', { def: 7, task: 0.16, info: '+16% damage to your Slayer task' });
+const SLAYER_REQ = {
+  leaf_bladed_sword: [55, 'kurask'], leaf_bladed_battleaxe: [55, 'kurask'], neitiznot_faceguard: [60, 'basilisk knights'],
+  granite_maul: [75, 'gargoyles'], granite_ring: [75, 'the Grotesque Guardians'], dragon_boots: [83, 'spiritual mages'],
+  abyssal_whip: [85, 'abyssal demons'], abyssal_bludgeon: [85, 'the Abyssal Sire'], abyssal_tentacle: [87, 'the Kraken'],
+  trident_of_the_seas: [87, 'cave krakens'], dark_bow: [90, 'dark beasts'], occult_necklace: [93, 'smoke devils'],
+  ferocious_gloves: [95, 'Alchemical Hydra leather'],
+};
+for (const id in SLAYER_REQ) if (ITEMS[id]) { ITEMS[id].slayer = SLAYER_REQ[id][0]; ITEMS[id].slayerSrc = SLAYER_REQ[id][1]; }
+// Slayer reward shop unlocks, bought with slayer points from finished tasks. Names are the real Slayer rewards.
+const SLAYER_UNLOCKS = [
+  { id: 'masq', name: 'Malevolent masquerade', file: 'Slayer_helmet.png', cost: 80, info: 'Slayer helmets turn up in shops: +16% damage to your task' },
+  { id: 'bigger', name: 'Bigger and Badder', file: 'Slayer_icon.png', cost: 30, info: 'Task monsters are 5× as likely to become superiors' },
+  { id: 'boss', name: 'Like a boss', file: 'Slayer_icon.png', cost: 40, info: 'Each area boss you beat also counts as a task: +10 points, plus 2 per area' },
 ];

@@ -303,6 +303,7 @@ function startStage() {
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false; run.door = null;
+  if (!isBoss && !area.raid && !run.task) assignTask();
   run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.thiefTold = false;
   endEvent();
   if (subIndex() === 0) run.phoenixUsed = false;
@@ -464,7 +465,7 @@ function spawnTick(dt) {
     if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
     if (run.quartet && area.elites.length) { run.quartet = false; id = area.elites[Math.floor(Math.random() * area.elites.length)]; }
     const m = spawnMonster(id, pos.x, pos.y);
-    if (!isBoss && !m.d.elite && Math.random() < SUPERIOR_CHANCE * (1 + luckVal())) makeSuperior(m);
+    if (!isBoss && !m.d.elite && Math.random() < SUPERIOR_CHANCE * (1 + luckVal()) * (run.task && run.task.id === id && slayUnlocked('bigger') ? 5 : 1)) makeSuperior(m);
     if (inv('duo') && m.d.elite && !isBoss) { const p2 = spreadSpawn(); spawnMonster(id, p2.x, p2.y); }
     if (!isBoss && a >= 1 && !m.d.caster && Math.random() < Math.min(0.45, 0.2 + a * 0.02)) mixStyle(m);
     burst(pos.x, pos.y, '#d8c8a0', 8);
@@ -1275,7 +1276,7 @@ function openCasket(pk) {
   const a = areaIndex(), tier = pk.tier ?? 3, T = CLUE_TIERS[tier];
   // higher tier caskets reach further up the item list and lean rarer; a master casket can hold a mega rare anywhere
   const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
-    it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id);
+    it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id && (it.id !== 'slayer_helmet' || slayUnlocked('masq')));
   const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 / T.weight : 1.5 * T.weight) }));
   // A Barrows brother's casket always offers one piece of his own set you aren't wearing yet.
   if (pk.barrows) {
@@ -1316,6 +1317,7 @@ function rollDamage(base, target, st) {
   if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
   if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   if (run.sp.mark > 0) dmg *= 1.25;
+  if (run.task && target.id === run.task.id) dmg *= 1 + gearItems().reduce((x, it) => x + (it.task || 0), 0);
   if (barrowsSet() === 'dharok') dmg *= 1 + 0.6 * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
@@ -1416,9 +1418,76 @@ function killEnemy(e) {
   if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
   maybeDropArtefact(e);
   maybeDropPet(e);
+  slayerKill(e);
   if (run.sp.dcharge > 0 && !e.summoned) run.spec = Math.min(100, run.spec + 15);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
   if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
+}
+
+// ---------- Slayer ----------
+function slayUnlocked(id) { return !!(meta.slay || {})[id]; }
+function slayLocked(it) { return !!(it.slayer && run && run.skills.slayer < it.slayer); }
+function assignTask() {
+  const elite = area.elites.length && Math.random() < 0.3;
+  const id = evPick(elite ? area.elites : area.hordes);
+  const need = elite ? 4 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 11);
+  run.task = { id, name: MONSTERS[id].name, need, got: 0, elite };
+  chat(`New Slayer task: kill ${need} × ${MONSTERS[id].name}.`, 'b');
+}
+function slayerPoints(n, why) {
+  meta.slayPts = (meta.slayPts || 0) + n; saveMeta();
+  const lv = Math.min(99, run.skills.slayer + 3) - run.skills.slayer;
+  run.skills.slayer += lv;
+  chat(`${why} +${n} Slayer points (${meta.slayPts} total)${lv ? `, +${lv} Slayer levels` : ''}.`, 'r');
+  sfx(660, 0.2, 'triangle', 0.06); setTimeout(() => sfx(990, 0.3, 'triangle', 0.06), 150);
+}
+function slayerKill(e) {
+  if (e.summoned) return;
+  if (e.d.boss && !e.raidBoss && !e.clueBoss && isBoss && slayUnlocked('boss') && e.id === area.boss) slayerPoints(10 + 2 * areaIndex(), `Boss task done: ${e.d.name}.`);
+  const t = run.task;
+  if (!t || e.id !== t.id) return;
+  t.got++;
+  if (t.got < t.need) return;
+  run.task = null;
+  run.tasksDone = (run.tasksDone || 0) + 1;
+  meta.tasks = (meta.tasks || 0) + 1;
+  slayerPoints(Math.round((t.elite ? 12 : 8) + areaIndex() * 3), `Slayer task complete: ${t.need} × ${t.name}.`);
+}
+function renderSlayer() {
+  if (run && mode !== 'over') return;
+  meta.slay = meta.slay || {};
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Slayer rewards'));
+  head.appendChild(el('div', 'purse txt', `${(meta.slayPts || 0).toLocaleString()} Slayer points`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', `During a run you get Slayer tasks: kill a number of one monster from the area. Each finished task gives Slayer points (kept forever) and +3 Slayer levels. Real slayer drops like the abyssal whip need their real Slayer level before you can take them. Tasks done so far: ${meta.tasks || 0}.`));
+  const g = el('div', 'grid offers invos'); s.appendChild(g);
+  for (const u of SLAYER_UNLOCKS) {
+    const has = !!meta.slay[u.id], can = !has && (meta.slayPts || 0) >= u.cost;
+    const c = el('button', 'card offer invo' + (has ? ' sel' : '') + (has || can ? '' : ' locked')); c.type = 'button';
+    const art = el('div', 'art'); art.appendChild(imgTag(u.file, u.name)); c.appendChild(art);
+    c.appendChild(el('div', 'nm', u.name));
+    c.appendChild(el('div', 'lvl', has ? 'Unlocked' : `${u.cost} points`));
+    c.appendChild(el('div', 'ds', u.info));
+    c.addEventListener('click', () => { if (!can) return; meta.slayPts -= u.cost; meta.slay[u.id] = true; saveMeta(); sfx(620, 0.1, 'triangle', 0.06); renderSlayer(); });
+    g.appendChild(c);
+  }
+  const h2 = el('div', 'sec-title', 'Slayer level needed for slayer drops'); h2.style.marginTop = '14px'; s.appendChild(h2);
+  const g2 = el('div', 'grid offers invos'); s.appendChild(g2);
+  for (const id of Object.keys(SLAYER_REQ).filter((x) => ITEMS[x]).sort((a, b) => ITEMS[a].slayer - ITEMS[b].slayer)) {
+    const it = ITEMS[id], c = el('div', 'card offer invo');
+    const art = el('div', 'art'); art.appendChild(imgTag(it.file, it.name)); c.appendChild(art);
+    c.appendChild(el('div', 'nm', it.name));
+    c.appendChild(el('div', 'lvl', `Level ${it.slayer} Slayer`));
+    c.appendChild(el('div', 'ds', `Dropped by ${it.slayerSrc}`));
+    g2.appendChild(c);
+  }
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
+  s.appendChild(r);
+  $('hud').hidden = true;
+  screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
 }
 
 // ---------- Spellbooks ----------
@@ -3038,7 +3107,7 @@ function drawHud() {
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
   const T = timeLimit(), tl = Math.max(0, Math.ceil(T - run.stageT));
   const timer = T ? (run.enraged ? ' · Enraged!' : ` · ${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')} left`) : '';
-  $('waveSub').textContent = run.bonus ? `Bonus round · ${left} left` : `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '');
+  $('waveSub').textContent = run.bonus ? `Bonus round · ${left} left` : `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '') + (run.task ? ` · Task: ${run.task.name} ${run.task.got}/${run.task.need}` : '');
   $('goldTxt').textContent = run.gold.toLocaleString();
   drawGearBar();
   $('sharkN').textContent = '×' + run.inv.shark;
@@ -3155,6 +3224,10 @@ function renderTitle() {
   ib.appendChild(imgTag(INVO_ICON.warden, 'Invocations')); ib.appendChild(document.createTextNode(` Invocations (raid level ${rl})`));
   ib.classList.add('sticks-btn');
   r.appendChild(ib);
+  const slb = btn('', 'btn', renderSlayer);
+  slb.appendChild(imgTag('Slayer_icon.png', 'Slayer')); slb.appendChild(document.createTextNode(` Slayer (${(meta.slayPts || 0).toLocaleString()} points)`));
+  slb.classList.add('sticks-btn');
+  r.appendChild(slb);
   const spl = btn('', 'btn', renderSpells);
   spl.appendChild(imgTag(currentSpell().file, 'Spellbook')); spl.appendChild(document.createTextNode(` Spellbook (${currentSpell().name})`));
   spl.classList.add('sticks-btn');
@@ -3192,6 +3265,7 @@ function rollOffers(fresh) {
     if (it.start || it.price <= 0) return false;
     if (it.tier > a + 1) return false;
     if (it.rarity === 'mega' && a < 10) return false;
+    if (it.id === 'slayer_helmet' && !slayUnlocked('masq')) return false;
     if (it.slot !== 'food') {
       const cur = run.gear[it.slot] ? ITEMS[run.gear[it.slot]] : null;
       // Skip downgrades, but still offer weapons of another style so you can switch.
@@ -3248,6 +3322,7 @@ function itemStatsText(it) {
     const S = SPECS[it.id];
     if (S) bits.push(`<b>Special: ${S.name}</b> (${S.cost}% energy): ${S.info}`);
   }
+  if (it.slayer) bits.push(`Needs level ${it.slayer} Slayer (dropped by ${it.slayerSrc})`);
   if (it.barrows) { const B = BARROWS_SETS[it.barrows]; bits.push(`<b>${B.name} set (${B.effect})</b>, all 4 pieces: ${B.info}`); }
   if (it.proc) bits.push(`<b>${BOLT_PROCS[it.proc].name}</b>: ${BOLT_PROCS[it.proc].info}`);
   if (it.def) bits.push(`${it.def > 0 ? '+' : ''}${it.def} defence`);
@@ -3274,7 +3349,7 @@ function equip(it) {
 
 function buy(offer) {
   const it = offer.it;
-  if (run.gold < it.price) return;
+  if (run.gold < it.price || slayLocked(it)) return;
   if (it.slot === 'food') {
     if (run.inv[it.id] >= 5) { chat('You can\'t carry more than 5 of those.', 'r'); return; }
     run.inv[it.id]++;
@@ -3363,6 +3438,7 @@ function offerCard(it, priceLabel, onClick, sold) {
   const slotTxt = it.slot === 'food' ? 'Supply' : `${SLOT_NAME[it.slot]}${cur ? ` (replaces ${cur})` : ''}`;
   c.appendChild(el('div', 'ds', `<b style="color:var(--yellow)">${slotTxt}</b><br>${itemStatsText(it)}`));
   if (!sold && it.slot !== 'food') c.appendChild(el('div', 'ds cmp', compareText(it)));
+  if (it.slayer && !sold) { c.appendChild(el('div', 'unlock', slayLocked(it) ? `Needs level ${it.slayer} Slayer (yours: ${run.skills.slayer})` : `Slayer ${it.slayer} ✓`)); if (slayLocked(it)) c.classList.add('locked'); }
   const pr = el('div', 'price');
   if (priceLabel !== 'Free') pr.appendChild(imgTag('Coins_10000.png', 'Coins'));
   pr.appendChild(document.createTextNode(priceLabel));
@@ -3434,7 +3510,7 @@ function renderShop() {
   const of = el('div', 'grid offers');
   for (const o of offers) {
     const c = offerCard(o.it, o.sold ? 'Bought' : `${o.it.price.toLocaleString()} gp`, () => buy(o), o.sold);
-    c.disabled = o.sold || run.gold < o.it.price;
+    c.disabled = o.sold || run.gold < o.it.price || slayLocked(o.it);
     of.appendChild(c);
   }
   right.appendChild(of);
@@ -3465,6 +3541,7 @@ function renderCasket(choices, tier = 3) {
   const g = el('div', 'grid offers'); g.style.marginTop = '12px';
   for (const it of choices) {
     g.appendChild(offerCard(it, 'Free', () => {
+      if (slayLocked(it)) return;
       equip(it);
       chat(`You take the ${it.name} from the casket.`, 'g');
       achEvent('gear', it);

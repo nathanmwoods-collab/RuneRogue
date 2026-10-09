@@ -765,6 +765,8 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Spell | Blood Barrage | https://oldschool.runescape.wiki/w/File:Blood_Barrage.png |
 | Spell | Smoke Barrage | https://oldschool.runescape.wiki/w/File:Smoke_Barrage.png |
 | Spell | Shadow Barrage | https://oldschool.runescape.wiki/w/File:Shadow_Barrage.png |
+| Item | Leaf-bladed sword | https://oldschool.runescape.wiki/w/File:Leaf-bladed_sword.png |
+| Item | Leaf-bladed battleaxe | https://oldschool.runescape.wiki/w/File:Leaf-bladed_battleaxe.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |
