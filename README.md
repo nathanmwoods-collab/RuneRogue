@@ -17,6 +17,7 @@ An Old School RuneScape roguelike. Images and music load live from the OSRS Wiki
 - **Clue scrolls:** a rare drop. Reading one summons one of 45 bosses from outside the route (Barrows brothers, wilderness bosses, God Wars generals, Corp, Cerberus, Hydra, the Desert Treasure II bosses and more), each with its signature mechanic, scaled to how far you are. It drops a reward casket where you pick 1 of 3 items.
 - **Boons:** after every boss you pick 1 of 3 run-only bonuses, like multishot, ricochet, lifesteal, thorns, crits or an extra life. Some stack.
 - **Yama's contracts:** at the end of a round Yama may offer a contract: a big boost for the rest of the run at a steep price (no protection prayers, less max hitpoints, no healing, harder-hitting or tougher enemies). At most two per run, and always one by round 13.
+- **Achievements:** 68 combat tasks across Easy to Grandmaster tiers, named after OSRS lore and r/2007scape memes. Each one pops up with the real combat-task jingle and pays trading sticks once. View them from the home screen.
 - **Trading sticks:** every run earns them, even if you die. Spend them on permanent upgrades (damage, gold, luck, hitpoints and more) or on heroes.
 - **Controls:** WASD or arrows (touch: drag anywhere). Attacks are automatic. Prayers 1/2/3, shark E, prayer potion Q, music M, pause P.
 

@@ -195,6 +195,26 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
 .equip .gap { width: 52px; height: 52px; }
 .rar { font-family: var(--font-display); font-size: 12px; letter-spacing: .5px; }
 .rar.common { color: #b8b8b8; } .rar.uncommon { color: #7dff7d; } .rar.rare { color: #5ab4ff; } .rar.ultra { color: var(--orange); } .rar.mega { color: #e07dff; animation: glow 1.4s ease-in-out infinite; }
+.ach-pop { position: fixed; left: 50%; top: 14%; transform: translateX(-50%); z-index: 50; pointer-events: none;
+  min-width: 260px; max-width: 92vw; padding: 10px 18px 12px; text-align: center;
+  background: #2b2419; border: 2px solid #000; outline: 2px solid #6b5a3a; outline-offset: -5px; box-shadow: 0 6px 24px rgba(0,0,0,.6);
+  animation: achIn .35s ease-out; transition: opacity .5s, transform .5s; }
+.ach-pop.out { opacity: 0; transform: translate(-50%, -12px); }
+.ach-pop .ach-title { font: 700 18px var(--font-display); color: #ff981f; text-shadow: 1px 1px 0 #000; }
+.ach-pop .ach-body { margin-top: 4px; color: #fff; font: 600 13px var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.ach-pop .ach-body img { width: 22px; height: 21px; }
+.ach-pop .ach-name { margin-top: 4px; color: #ffff00; font: 700 15px var(--font-body); text-shadow: 1px 1px 0 #000; }
+.ach-pop .ach-reward { margin-top: 2px; color: #6fdc4f; font: 600 12px var(--font-body); }
+@keyframes achIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.ach-tier { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+.ach-tier img { width: 22px; height: 21px; }
+.ach-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+.ach-row { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; background: var(--stone-dark); border: 1px solid var(--ink); padding: 6px 8px; }
+.ach-row .ach-check { color: #6fdc4f; font-weight: bold; font-size: 16px; }
+.ach-row .ach-nm { color: var(--muted); font-weight: bold; font-size: 13px; }
+.ach-row .ach-ds { color: var(--muted); font-size: 12px; opacity: .8; }
+.ach-row.done .ach-nm { color: var(--yellow); }
+.ach-row.done { border-color: #3f6a2a; }
 .yama-art img { width: 96px; height: 120px; object-fit: contain; }
 .yama-quote { font-style: italic; color: #ff9a8a; }
 .card.contract { outline: 2px solid #8a1a1a; background: #2a1414; text-align: left; }
@@ -245,6 +265,7 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
 </div>
 
 <script src="js/data.js"></script>
+<script src="js/achievements.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

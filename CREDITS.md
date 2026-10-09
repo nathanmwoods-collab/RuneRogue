@@ -33,6 +33,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | The Inferno | https://oldschool.runescape.wiki/w/File:Inferno.ogg |
 | Title screen | https://oldschool.runescape.wiki/w/File:Scape_Main.ogg |
 | Shop | https://oldschool.runescape.wiki/w/File:Sea_Shanty_2.ogg |
+| Achievement jingle | https://oldschool.runescape.wiki/w/File:The_Fight_Continues_(Fight_Cave).ogg |
 
 ## Images
 
@@ -459,6 +460,12 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | NPC | Yama | https://oldschool.runescape.wiki/w/File:Yama.png |
+| Achievement tier | Easy | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_easy_tier_icon.png |
+| Achievement tier | Medium | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_medium_tier_icon.png |
+| Achievement tier | Hard | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_hard_tier_icon.png |
+| Achievement tier | Elite | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_elite_tier_icon.png |
+| Achievement tier | Master | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_master_tier_icon.png |
+| Achievement tier | Grandmaster | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_grandmaster_tier_icon.png |
 | Boon | Multishot | https://oldschool.runescape.wiki/w/File:Eagle_Eye.png |
 | Boon | Piercing | https://oldschool.runescape.wiki/w/File:Hawk_Eye.png |
 | Boon | Ricochet | https://oldschool.runescape.wiki/w/File:Sharp_Eye.png |

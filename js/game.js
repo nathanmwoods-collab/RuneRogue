@@ -133,6 +133,47 @@ function sfx(freq, dur = 0.08, type = 'square', vol = 0.04) {
 // ======================================================================
 let meta = { sticks: 0, up: {}, heroes: [], cleared: -1 };
 try { meta = Object.assign(meta, JSON.parse(localStorage.getItem('runerogue.meta') || '{}')); } catch (e) { /* optional */ }
+// ---------- Achievements ----------
+function achEvent(on, x) {
+  if (!run && on !== 'win') return;
+  meta.ach = meta.ach || {};
+  for (const a of ACHIEVEMENTS) {
+    if (a.on !== on || meta.ach[a.id]) continue;
+    let ok = false;
+    try { ok = a.test(x); } catch (e) { ok = false; }
+    if (ok) completeAch(a);
+  }
+}
+const achQueue = [];
+function completeAch(a) {
+  const t = ACH_TIERS[a.tier];
+  meta.ach[a.id] = Date.now();
+  meta.sticks += t.sticks;
+  saveMeta();
+  chat(`Congratulations, you've completed ${/^[aeiou]/i.test(t.name) ? 'an' : 'a'} ${t.name.toLowerCase()} combat task: ${a.name}. (+${t.sticks} trading sticks)`, 'r');
+  achQueue.push(a);
+  if (achQueue.length === 1) showAch();
+}
+const jingle = new Audio();
+function showAch() {
+  const a = achQueue[0];
+  if (!a) return;
+  const t = ACH_TIERS[a.tier];
+  if (musicOn) {
+    jingle.onerror = () => { if (!jingle._retry) { jingle._retry = true; jingle.src = WIKI_REDIRECT + enc(ACH_JINGLE); jingle.play().catch(() => {}); } };
+    jingle._retry = false; jingle.src = WIKI + enc(ACH_JINGLE); jingle.volume = 0.8; jingle.play().catch(() => {});
+  }
+  const box = document.createElement('div');
+  box.className = 'ach-pop';
+  box.innerHTML = `<div class="ach-title">Combat Task Completed!</div><div class="ach-body"></div><div class="ach-name"></div><div class="ach-reward">+${t.sticks} trading sticks</div>`;
+  box.querySelector('.ach-body').appendChild(imgTag(t.file, t.name));
+  box.querySelector('.ach-body').appendChild(document.createTextNode(` ${t.name} task`));
+  box.querySelector('.ach-name').textContent = a.name;
+  document.body.appendChild(box);
+  setTimeout(() => box.classList.add('out'), 4200);
+  setTimeout(() => { box.remove(); achQueue.shift(); showAch(); }, 4700);
+}
+
 function saveMeta() { try { localStorage.setItem('runerogue.meta', JSON.stringify(meta)); } catch (e) { /* optional */ } }
 function heroUnlocked(h) {
   if (!h.unlock) return true;
@@ -173,11 +214,12 @@ function newRun(hero) {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
-    spec: 100, contracts: {}, yamaSeen: 0, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
+    spec: 100, contracts: {}, yamaSeen: 0, killsBy: {}, bossHurt: false, prayedEver: false, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
   };
   run.p.hp = stats().maxHp; run.p.pp = stats().maxPp;
+  setTimeout(() => achEvent('start'), 600);
   chatClear();
   chat(`Welcome to RuneRogue, ${hero.name}.`);
   chat(`${AREAS.length} areas stand between you and the end. Good luck.`, 'b');
@@ -246,7 +288,7 @@ function startStage() {
   area = AREAS[areaIndex()];
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
-  bossAlive = null; stageEnding = 0;
+  bossAlive = null; stageEnding = 0; run.bossHurt = false;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
   run.prayer = null;
@@ -398,6 +440,7 @@ function endStage() {
   if (!ycon('breath')) run.p.hp = Math.min(st.maxHp, run.p.hp + Math.round(st.maxHp * 0.5));
   run.p.hp = Math.min(st.maxHp, run.p.hp);
   chat(`${isBoss ? `${area.name} cleared!` : 'Wave cleared.'} Bonus: ${bonus} coins.`, 'g');
+  achEvent('stage', { area: areaIndex(), boss: isBoss });
   if (isBoss && areaIndex() > meta.cleared) {
     meta.cleared = areaIndex(); saveMeta();
     for (const h of HEROES) if (h.unlock && h.unlock.area === meta.cleared) chat(`New hero unlocked: ${h.name}!`, 'r');
@@ -447,6 +490,7 @@ function renderYama(next) {
       if (c.id === 'severance') run.prayer = null;
       run.p.hp = Math.min(stats().maxHp, run.p.hp);
       chat(`You sign the ${c.name}. Yama: “${YAMA.quotes[2]}”`, 'r');
+      achEvent('yama', 'sign');
       sfx(90, 0.5, 'sawtooth', 0.08);
       next();
     });
@@ -454,7 +498,7 @@ function renderYama(next) {
   }
   s.appendChild(g);
   const r = el('div', 'row'); r.style.marginTop = '14px';
-  r.appendChild(btn('Refuse the contract', 'btn', () => { chat('You refuse Yama. He watches you leave.', 'b'); next(); }));
+  r.appendChild(btn('Refuse the contract', 'btn', () => { chat('You refuse Yama. He watches you leave.', 'b'); achEvent('yama', 'refuse'); next(); }));
   s.appendChild(r);
   showScreen(s);
 }
@@ -479,6 +523,7 @@ function renderBoons() {
       run.boons[b.id] = bv(b.id) + 1;
       if (b.id === 'life') run.lives++;
       chat(`Boon gained: ${b.name}.`, 'g');
+      achEvent('boon', b);
       sfx(784, 0.15, 'triangle', 0.06);
       mode = 'shop'; renderShop();
     });
@@ -527,6 +572,8 @@ function startClue() {
   const id = pool[Math.floor(Math.random() * pool.length)];
   run.clueSeen.push(id);
   run.clues++;
+  meta.clues = (meta.clues || 0) + 1; saveMeta();
+  setTimeout(() => achEvent('clue'), 50);
   const pos = spreadSpawn();
   // keep the whole sprite and its health bar on screen
   pos.y = clamp(pos.y, 130 + MONSTERS[id].size, WORLD_H - 40);
@@ -537,6 +584,7 @@ function startClue() {
 }
 function openCasket(pk) {
   mode = 'casket';
+  achEvent('casket');
   const choices = [];
   const a = areaIndex();
   const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
@@ -604,6 +652,9 @@ function killEnemy(e) {
   if (e.dead) return;
   e.dead = true;
   run.kills++;
+  run.killsBy[e.id] = (run.killsBy[e.id] || 0) + 1;
+  achEvent('kill', e);
+  if (e.d.boss && !e.summoned) achEvent('boss', e);
   const st = stats();
   const value = Math.max(1, Math.round(e.d.gold * st.goldMult * (0.8 + Math.random() * 0.4) * (e.summoned ? 0.3 : 1)));
   if (e.d.boss) {
@@ -680,6 +731,7 @@ function specialAttack() {
   sfx(180, 0.25, 'sawtooth', 0.07); setTimeout(() => sfx(360, 0.2, 'square', 0.05), 80);
   burst(p.x, p.y - 30, '#ffd23a', 16);
   chat(`Special attack: ${S.name}.`, 'g');
+  achEvent('spec', run.gear.weapon);
 }
 
 function playerAttack(dt) {
@@ -793,7 +845,7 @@ function hurtPlayer(raw, style, opts = {}) {
   p.hp -= dmg;
   p.hurtT = 0.15;
   splats.push({ x: p.x + (Math.random() - 0.5) * 14, y: p.y - 70, v: dmg, t: 0.8, kind: dmg === 0 ? 'miss' : 'hit' });
-  if (dmg > 0) sfx(130, 0.08, 'sawtooth', 0.04);
+  if (dmg > 0) { sfx(130, 0.08, 'sawtooth', 0.04); if (isBoss) run.bossHurt = true; } else if (dmg === 0) achEvent('zero');
   if (opts.freeze) p.frozen = Math.max(p.frozen, opts.freeze);
   if (opts.poison && !(run.hero.mods || {}).poisonImmune) p.poison = Math.max(p.poison, opts.poison);
   if (opts.drain) p.pp = Math.max(0, p.pp - opts.drain);
@@ -802,6 +854,7 @@ function hurtPlayer(raw, style, opts = {}) {
   if (p.hp <= 0 && run.lives > 0) {
     run.lives--; p.hp = Math.round(st.maxHp / 2);
     chat(`${run.hero.name} cheats death!`, 'r'); burst(p.x, p.y, '#ffd060', 30);
+    achEvent('revive');
   }
   if (p.hp <= 0) die();
 }
@@ -1325,12 +1378,14 @@ function updatePlayer(dt) {
         const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal);
         p.hp = Math.min(max, p.hp + heal);
         chat(`You eat the Redberry pie. It heals ${heal} hitpoints.`, 'g');
+        achEvent('pie');
         burst(p.x, p.y - 20, '#ff4a6a', 12);
         sfx(620, 0.15, 'sine', 0.06);
       } else if (pk.kind === 'potion') {
         const pot = POTIONS[pk.pot];
         run.buffs[pot.stat] = { t: pot.secs, amount: pot.amount, name: pot.name, file: pot.file };
         chat(`You drink a ${pot.name}: ${pot.info} for ${pot.secs} seconds.`, 'g');
+        achEvent('potion', pot);
         sfx(520, 0.15, 'sine', 0.06);
       } else { sfx(700, 0.2, 'triangle', 0.06); openCasket(pk); }
     }
@@ -1340,6 +1395,7 @@ function updatePlayer(dt) {
 
 function addGold(v, sound) {
   run.gold += v; run.totalGold += v;
+  achEvent('gold');
   if (sound) sfx(1200 + Math.random() * 200, 0.03, 'square', 0.015);
 }
 
@@ -1347,7 +1403,7 @@ function togglePrayer(style) {
   if (!run || mode !== 'play') return;
   if (run.prayer === style) run.prayer = null;
   else if (ycon('severance')) { chat('Your Contract of Divine Severance forbids protection prayers.', 'r'); return; }
-  else if (run.p.pp > 0) run.prayer = style;
+  else if (run.p.pp > 0) { run.prayer = style; run.prayedEver = true; achEvent('pray'); }
   else chat('You need to recharge your prayer.', 'r');
   sfx(run.prayer ? 520 : 300, 0.06, 'sine', 0.05);
   updatePrayerButtons();
@@ -1359,6 +1415,7 @@ function useItem(kind) {
   if (!run || mode !== 'play' || run.inv[kind] <= 0) return;
   const st = stats();
   run.inv[kind]--;
+  if (kind === 'shark') achEvent('eat');
   if (kind === 'shark') { if (ycon('breath')) chat('You eat the shark, but your contract with Yama stops it healing you.', 'r'); else { run.p.hp = Math.min(st.maxHp, run.p.hp + 20); chat('You eat the shark. It heals some health.'); } }
   else { run.p.pp = Math.min(st.maxPp, run.p.pp + 20); chat('You drink some of your prayer potion.'); }
   sfx(400, 0.1, 'sine', 0.05);
@@ -1368,12 +1425,14 @@ function die() {
   if (mode !== 'play') return;
   mode = 'over';
   chat('Oh dear, you are dead!', 'r');
+  achEvent('death');
   sfx(110, 0.6, 'sawtooth', 0.08);
   saveBest();
   setTimeout(renderGameOver, 700);
 }
 function victory() {
   mode = 'over'; run.won = true;
+  achEvent('win');
   saveBest(true);
   renderVictory();
 }
@@ -1894,6 +1953,11 @@ function renderTitle() {
   ub.appendChild(imgTag(STICKS_FILE, 'Trading sticks')); ub.appendChild(document.createTextNode(` Upgrades (${meta.sticks.toLocaleString()} sticks)`));
   ub.classList.add('sticks-btn');
   r.appendChild(ub);
+  const nDone = ACHIEVEMENTS.filter((a) => (meta.ach || {})[a.id]).length;
+  const ab = btn('', 'btn', renderAchievements);
+  ab.appendChild(imgTag(ACH_TIERS.elite.file, 'Achievements')); ab.appendChild(document.createTextNode(` Achievements (${nDone}/${ACHIEVEMENTS.length})`));
+  ab.classList.add('sticks-btn');
+  r.appendChild(ab);
   const mb = btn(musicOn ? 'Music: on' : 'Music: off', 'btn', () => { toggleMusic(); mb.textContent = musicOn ? 'Music: on' : 'Music: off'; });
   r.appendChild(mb);
   r.appendChild(b);
@@ -2006,6 +2070,7 @@ function buy(offer) {
   } else equip(it);
   run.gold -= it.price;
   offer.sold = true;
+  achEvent('buy', it); achEvent('gear', it);
   chat(`You buy ${it.name}.`, 'g');
   sfx(900, 0.08, 'triangle', 0.05);
   renderShop();
@@ -2026,6 +2091,7 @@ function trainSkill(sk) {
   const st0 = stats();
   run.gold -= cost;
   run.skills[sk.id] += n;
+  achEvent('train', sk);
   const st1 = stats();
   run.p.hp += Math.max(0, st1.maxHp - st0.maxHp);
   chat(`Congratulations, you've just advanced your ${sk.name} level. You are now level ${run.skills[sk.id]}.`, 'b');
@@ -2190,6 +2256,7 @@ function renderCasket(choices) {
     g.appendChild(offerCard(it, 'Free', () => {
       equip(it);
       chat(`You take the ${it.name} from the casket.`, 'g');
+      achEvent('gear', it);
       sfx(900, 0.15, 'triangle', 0.06);
       mode = 'play'; showScreen(null);
     }));
@@ -2199,6 +2266,7 @@ function renderCasket(choices) {
   const r = el('div', 'row'); r.style.marginTop = '14px';
   r.appendChild(btn(choices.length ? 'Skip, keep my gear' : 'Close', 'btn', () => {
     chat('You leave the casket items behind.', 'b');
+    achEvent('skipCasket');
     mode = 'play'; showScreen(null);
   }));
   s.appendChild(r);
@@ -2241,6 +2309,37 @@ function sticksLine() {
 }
 
 // Permanent upgrades bought with trading sticks
+function renderAchievements() {
+  if (run && mode !== 'over') return;
+  const done = meta.ach || {};
+  const n = ACHIEVEMENTS.filter((a) => done[a.id]).length;
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Combat achievements'));
+  head.appendChild(el('div', 'purse txt', `${n} / ${ACHIEVEMENTS.length} done`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', 'Each one pays out trading sticks once. Bigger tiers pay more.'));
+  for (const [tid, t] of Object.entries(ACH_TIERS)) {
+    const list = ACHIEVEMENTS.filter((a) => a.tier === tid);
+    const got = list.filter((a) => done[a.id]).length;
+    const sec = el('div', 'sec-title ach-tier'); sec.appendChild(imgTag(t.file, t.name));
+    sec.appendChild(document.createTextNode(` ${t.name} (${got}/${list.length}) · ${t.sticks} sticks each`));
+    s.appendChild(sec);
+    const g = el('div', 'ach-list');
+    for (const a of list) {
+      const row = el('div', 'ach-row' + (done[a.id] ? ' done' : ''));
+      row.appendChild(el('div', 'ach-check', done[a.id] ? '✓' : ''));
+      const txt = el('div'); txt.appendChild(el('div', 'ach-nm', a.name)); txt.appendChild(el('div', 'ach-ds', a.desc));
+      row.appendChild(txt);
+      g.appendChild(row);
+    }
+    s.appendChild(g);
+  }
+  const back = btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); });
+  const r = el('div', 'row'); r.style.marginTop = '14px'; r.appendChild(back); s.appendChild(r);
+  showScreen(s);
+}
+
 function renderUpgrades() {
   if (run && mode !== 'over') return;
   const s = el('div', 'sheet');
@@ -2314,6 +2413,7 @@ renderTitle();
 requestAnimationFrame(frame);
 
 // Test hook
+window.RR = { get run() { return run; }, get meta() { return meta; } };
 window.__rr = {
   get mode() { return mode; }, get run() { return run; }, get enemies() { return enemies; }, get pickups() { return pickups; },
   start: (i) => { pickedHero = HEROES[i || 0]; begin(); }, endStage: () => endStage(),
@@ -2323,6 +2423,8 @@ window.__rr = {
   rollOffers: () => { rollOffers(true); return offers; },
   yama: () => renderYama(() => { mode = 'shop'; renderShop(); }),
   yamaShows: () => yamaShows(),
+  achEvent: (o, x) => achEvent(o, x),
+  get meta() { return meta; },
   dropPie: () => pickups.push({ kind: 'pie', x: run.p.x + 60, y: run.p.y, t: 0 }),
 };
 })();
