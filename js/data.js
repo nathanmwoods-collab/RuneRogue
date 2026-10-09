@@ -58,7 +58,7 @@ const HEROES = [
 const SLOTS = ['head', 'cape', 'neck', 'ammo', 'weapon', 'body', 'shield', 'legs', 'hands', 'feet', 'ring'];
 const SLOT_NAME = { head: 'Head', cape: 'Cape', neck: 'Neck', ammo: 'Ammo', weapon: 'Weapon', body: 'Body', shield: 'Shield', legs: 'Legs', hands: 'Hands', feet: 'Feet', ring: 'Ring' };
 const RARITY_MULT = { common: 1, uncommon: 1.4, rare: 2.6, ultra: 4, mega: 6 };
-const RARITY_WEIGHT = { common: 1, uncommon: 0.6, rare: 0.2, ultra: 0.025, mega: 0.012 };
+const RARITY_WEIGHT = { common: 1, uncommon: 0.6, rare: 0.2, ultra: 0.012, mega: 0.012 };
 // How much each rarity's odds grow from the first wave (x1) to the last (x(1+n)).
 const RARITY_GROWTH = { common: 0, uncommon: 1, rare: 3, ultra: 6, mega: 10 };
 const RARITY_NAME = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', ultra: 'Ultra rare', mega: 'Mega rare' };
@@ -66,7 +66,10 @@ const RARITY_NAME = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', ultr
 const ITEMS = {};
 function item(id, name, lane, slot, tier, rarity, stats, file) {
   const base = Math.round(28 * Math.pow(1.36, tier));
-  if (rarity === 'rare' && tier >= 11) rarity = 'ultra';
+  // Rarity is at least what the item's tier implies: raid and top boss gear is ultra rare, mid-game boss gear rare.
+  const RANK = ['common', 'uncommon', 'rare', 'ultra', 'mega'];
+  const byTier = tier >= 10 ? 'ultra' : tier >= 7 ? 'rare' : tier >= 4 ? 'uncommon' : 'common';
+  if (RANK.indexOf(byTier) > RANK.indexOf(rarity)) rarity = byTier;
   ITEMS[id] = { id, name, lane, slot, tier, rarity, ...stats, file: file || name.replace(/ /g, '_') + '.png',
     price: stats.price !== undefined ? stats.price : Math.round(base * RARITY_MULT[rarity] / 5) * 5 };
 }
@@ -467,7 +470,7 @@ const AREAS = [
   { name: 'Crandor', map: [0, 0, 2845, 3260, 1], bg: 'Crandor.png', music: 'The_Shadow.ogg', hordes: ['skeleton', 'moss_giant'], elites: ['lesser_demon'], boss: 'elvarg', look: ['#5a4a3a', '#4b3c2f', '#6b3a22'] },
   { name: 'Kalphite Lair', map: [0, 0, 3230, 3110, 1], bg: 'Fighting_Kalphite_Queen.png', music: 'Insect_Queen.ogg', hordes: ['kalphite_worker', 'kalphite_soldier'], elites: ['kalphite_guardian'], boss: 'kalphite_queen', look: ['#7a6440', '#6a5434', '#8a744e'] },
   { name: 'Wilderness', map: [0, 0, 3110, 3790, 1], bg: 'Wilderness.png', music: 'Attack_5.ogg', hordes: ['ankou', 'green_dragon', 'skeleton'], elites: ['greater_demon', 'black_demon'], boss: 'kbd', look: ['#5a4a32', '#4b3d29', '#6b5a3f'] },
-  { name: 'God Wars Dungeon', map: [7, 2, 2876, 5378, 1.3], bg: 'God_Wars_Dungeon_Entrance.png', music: 'Bandos_Battalion.ogg', hordes: ['goblin', 'hobgoblin', 'ork', 'ogre'], elites: ['sergeant_strongstack'], boss: 'graardor', look: ['#5a4232', '#4a3628', '#6a5040'] },
+  { name: 'God Wars Dungeon', map: [7, 2, 2878, 5318, 1.3], bg: 'God_Wars_Dungeon_Entrance.png', music: 'Bandos_Battalion.ogg', hordes: ['goblin', 'hobgoblin', 'ork', 'ogre'], elites: ['sergeant_strongstack'], boss: 'graardor', look: ['#5a4232', '#4a3628', '#6a5040'] },
   { name: 'Zul-Andra', map: [0, 0, 2250, 3090, 1], bg: 'Zul-Andra.png', music: 'Coil.ogg', hordes: ['snakeling', 'lizardman'], elites: ['lizardman_brute'], boss: 'zulrah', look: ['#2e5a4a', '#244a3c', '#3a6a58'] },
   { name: 'Fight Caves', map: [23, 0, 2440, 5150, 1], bg: 'TzHaar_Fight_Cave.png', music: 'TzHaar!.ogg', hordes: ['tz_kih', 'tz_kek', 'tok_xil'], elites: ['yt_mejkot', 'ket_zek'], boss: 'jad', look: ['#3a1a10', '#2b130b', '#6b2a0e'] },
   { name: 'Ungael', map: [0, 0, 2273, 4078, 1.6], bg: 'Ungael.png', music: 'On_Thin_Ice.ogg', hordes: ['zombie', 'skeleton'], elites: ['brutal_black_dragon'], boss: 'vorkath', look: ['#5a6a7a', '#4a5a6a', '#6a7a8a'] },
@@ -510,6 +513,46 @@ mon('clue_dagannoth_supreme', 'Dagannoth Supreme', 'Dagannoth_Supreme.png', 303,
 mon('clue_pestilent_bloat', 'Pestilent Bloat', 'Pestilent_Bloat.png', 312, 0, 70, 0, 130, 60, 'melee', { clue: true, clueMult: 1.4 });
 mon('clue_umbra', 'Umbra', 'Umbra.png', 285, 0, 90, 0, 90, 60, 'magic', { clue: true, clueMult: 1.1, caster: MAGIC_BOLT('#333') });
 mon('clue_cruor', 'Cruor', 'Cruor.png', 285, 0, 90, 0, 90, 60, 'magic', { clue: true, clueMult: 1.1, caster: MAGIC_BOLT('#c01a1a') });
+// More clue bosses (images and signature mechanics from each boss's wiki page). mech drives their special:
+// slam (default), bombs (scattered blasts), volley (projectile fan), summon (minions), bind (roots you),
+// pierce (hits through prayer), drain (prayer drain), leech (heals on hit), rage (hits harder as it weakens), gaze (huge unblockable hit you must dodge).
+const MB = (c) => ({ range: 360, cd: 1.7, color: c, speed: 380 });
+mon('clue_dharok', 'Dharok the Wretched', 'Dharok_the_Wretched.png', 115, 0, 95, 0, 100, 60, 'melee', { clue: true, clueMult: 1.3, mech: 'rage' });
+mon('clue_ahrim', 'Ahrim the Blighted', 'Ahrim_the_Blighted.png', 98, 0, 75, 0, 100, 60, 'magic', { clue: true, clueMult: 1.1, mech: 'volley', caster: MB('#7a3aff') });
+mon('clue_karil', 'Karil the Tainted', 'Karil_the_Tainted.png', 98, 0, 80, 0, 100, 60, 'ranged', { clue: true, clueMult: 1.1, mech: 'volley', caster: MB('#c8a060') });
+mon('clue_verac', 'Verac the Defiled', 'Verac_the_Defiled.png', 115, 0, 90, 0, 100, 60, 'melee', { clue: true, clueMult: 1.2, mech: 'pierce', noPray: true });
+mon('clue_guthan', 'Guthan the Infested', 'Guthan_the_Infested.png', 115, 0, 90, 0, 100, 60, 'melee', { clue: true, clueMult: 1.2, mech: 'leech' });
+mon('clue_torag', 'Torag the Corrupted', 'Torag_the_Corrupted.png', 115, 0, 85, 0, 100, 60, 'melee', { clue: true, clueMult: 1.3, mech: 'slam' });
+mon('clue_sarachnis', 'Sarachnis', 'Sarachnis.png', 318, 0, 85, 0, 130, 60, 'melee', { clue: true, clueMult: 1.4, mech: 'bind', summons: 'scarab_swarm' });
+mon('clue_venenatis', 'Venenatis', 'Venenatis.png', 464, 0, 90, 0, 150, 60, 'magic', { clue: true, clueMult: 1.5, mech: 'drain', caster: MB('#5fd34a') });
+mon('clue_vetion', "Vet'ion", "Vet'ion.png", 454, 0, 85, 0, 150, 60, 'magic', { clue: true, clueMult: 1.5, mech: 'bombs' });
+mon('clue_scorpia', 'Scorpia', 'Scorpia.png', 225, 0, 100, 0, 120, 60, 'melee', { clue: true, clueMult: 1.3, mech: 'drain' });
+mon('clue_chaos_fanatic', 'Chaos Fanatic', 'Chaos_Fanatic.png', 202, 0, 70, 0, 100, 60, 'magic', { clue: true, clueMult: 1.2, mech: 'bombs', caster: MB('#5fd34a') });
+mon('clue_crazy_arch', 'Crazy archaeologist', 'Crazy_archaeologist.png', 204, 0, 70, 0, 100, 60, 'ranged', { clue: true, clueMult: 1.2, mech: 'bombs', say: 'Rain of knowledge!', caster: MB('#c8a060') });
+mon('clue_zilyana', 'Commander Zilyana', 'Commander_Zilyana.png', 596, 0, 140, 0, 120, 60, 'melee', { clue: true, clueMult: 1.6, mech: 'fast' });
+mon('clue_kril', "K'ril Tsutsaroth", "K'ril_Tsutsaroth.png", 650, 0, 90, 0, 170, 60, 'melee', { clue: true, clueMult: 1.7, mech: 'pierce' });
+mon('clue_kreearra', "Kree'arra", "Kree'arra.png", 580, 0, 70, 0, 170, 60, 'ranged', { clue: true, clueMult: 1.7, mech: 'volley', caster: MB('#9fd8ff') });
+mon('clue_corp', 'Corporeal Beast', 'Corporeal_Beast.png', 785, 0, 60, 0, 190, 60, 'magic', { clue: true, clueMult: 2.2, mech: 'pierce', caster: MB('#d8f4ff') });
+mon('clue_cerberus', 'Cerberus', 'Cerberus.png', 318, 0, 95, 0, 160, 60, 'melee', { clue: true, clueMult: 1.6, mech: 'summon', summons: 'spiritual_warrior' });
+mon('clue_sire', 'Abyssal Sire', 'Abyssal_Sire_(phase_1).png', 350, 0, 40, 0, 180, 60, 'melee', { clue: true, clueMult: 1.8, mech: 'summon', summons: 'black_demon' });
+mon('clue_hydra', 'Alchemical Hydra', 'Alchemical_Hydra_(serpentine).png', 426, 0, 70, 0, 170, 60, 'ranged', { clue: true, clueMult: 1.8, mech: 'volley', caster: MB('#5fd34a') });
+mon('clue_smoke_devil', 'Thermonuclear smoke devil', 'Thermonuclear_smoke_devil.png', 301, 0, 70, 0, 120, 60, 'magic', { clue: true, clueMult: 1.3, mech: 'volley', caster: MB('#888888') });
+mon('clue_rex', 'Dagannoth Rex', 'Dagannoth_Rex.png', 303, 0, 95, 0, 130, 60, 'melee', { clue: true, clueMult: 1.4, mech: 'slam' });
+mon('clue_prime', 'Dagannoth Prime', 'Dagannoth_Prime.png', 303, 0, 70, 0, 130, 60, 'magic', { clue: true, clueMult: 1.4, mech: 'bombs', caster: MB('#3fd0ff') });
+mon('clue_skotizo', 'Skotizo', 'Skotizo.png', 321, 0, 85, 0, 160, 60, 'melee', { clue: true, clueMult: 1.6, mech: 'summon', summons: 'lesser_demon' });
+mon('clue_muspah', 'Phantom Muspah', 'Phantom_Muspah_(ranged).png', 541, 0, 70, 0, 160, 60, 'ranged', { clue: true, clueMult: 1.8, mech: 'bombs', caster: MB('#7a5aff') });
+mon('clue_nightmare', 'The Nightmare', 'The_Nightmare.png', 814, 0, 70, 0, 190, 60, 'magic', { clue: true, clueMult: 2.2, mech: 'bombs', caster: MB('#9a5aff') });
+mon('clue_sucellus', 'Duke Sucellus', 'Duke_Sucellus.png', 1131, 0, 0, 0, 190, 60, 'magic', { clue: true, clueMult: 2.2, mech: 'gaze', caster: MB('#5fd34a') });
+mon('clue_leviathan', 'The Leviathan', 'The_Leviathan.png', 1062, 0, 0, 0, 200, 60, 'ranged', { clue: true, clueMult: 2.2, mech: 'volley', caster: MB('#3fa0ff') });
+mon('clue_whisperer', 'The Whisperer', 'The_Whisperer.png', 1035, 0, 60, 0, 190, 60, 'magic', { clue: true, clueMult: 2.2, mech: 'volley', caster: MB('#2a8aff') });
+mon('clue_vardorvis', 'Vardorvis', 'Vardorvis.png', 1110, 0, 110, 0, 160, 60, 'melee', { clue: true, clueMult: 2.2, mech: 'drain' });
+mon('clue_hespori', 'Hespori', 'Hespori.png', 284, 0, 0, 0, 170, 60, 'magic', { clue: true, clueMult: 1.4, mech: 'bind', caster: MB('#5fd34a') });
+mon('clue_tormented', 'Tormented Demon', 'Tormented_Demon_(1).png', 450, 0, 90, 0, 150, 60, 'melee', { clue: true, clueMult: 1.6, mech: 'bind' });
+mon('clue_araxxor', 'Araxxor', 'Araxxor.png', 1025, 0, 85, 0, 190, 60, 'melee', { clue: true, clueMult: 2.1, mech: 'bombs', summons: 'scarab_swarm' });
+mon('clue_amoxliatl', 'Amoxliatl', 'Amoxliatl.png', 300, 0, 85, 0, 140, 60, 'magic', { clue: true, clueMult: 1.5, mech: 'pierce', caster: MB('#9fe8ff') });
+mon('clue_hueycoatl', 'The Hueycoatl', 'The_Hueycoatl.png', 666, 0, 0, 0, 200, 60, 'magic', { clue: true, clueMult: 1.9, mech: 'bombs', caster: MB('#5fd3ff') });
+mon('clue_sol', 'Sol Heredit', 'Sol_Heredit.png', 1003, 0, 100, 0, 170, 60, 'melee', { clue: true, clueMult: 2.4, mech: 'pierce' });
+mon('clue_dusk', 'Dusk', 'Dusk.png', 328, 0, 90, 0, 150, 60, 'melee', { clue: true, clueMult: 1.6, mech: 'gaze' });
 const CLUE_BOSSES = Object.keys(MONSTERS).filter((id) => MONSTERS[id].clue);
 const CLUE_FILE = 'Clue_scroll_(hard).png';
 const CASKET_FILE = 'Reward_casket_(hard).png';

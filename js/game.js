@@ -282,6 +282,8 @@ function bossIntro(b) {
   if (lines.length) say(b, lines[0], 4);
 }
 
+// Global boss toughness (Nathan: bosses were too easy).
+const BOSS_TEMPO = 1.3, BOSS_HP = 1.5, BOSS_DMG = 1.35;
 function stageScale() { return 1 + 0.085 * run.stage + 0.004 * run.stage * run.stage; }
 
 const SAFE_SPAWN = 260; // nothing appears closer than this to the player
@@ -303,10 +305,16 @@ function spawnMonster(id, x, y, opts = {}) {
   const sc = d.boss ? 1 : stageScale();
   const e = {
     id, d, x, y, r: d.size * 0.36, hp: Math.round(hp * (d.boss ? 1 : sc)), maxHp: 0,
-    dmg: d.clue ? 3.2 * stageScale() * (d.clueMult || 1) : d.dmg * (d.boss ? 1 : 1 + 0.03 * run.stage),
+    dmg: d.clue ? 3.2 * stageScale() * (d.clueMult || 1) * BOSS_DMG : d.dmg * (d.boss ? BOSS_DMG : 1 + 0.03 * run.stage),
     hitCd: 0, frozen: 0, castT: 1 + Math.random() * 2, kx: 0, ky: 0, flash: 0, over: null,
     ai: { t: 2.5 + Math.random(), phase: 0, burrow: 0 }, ...opts,
   };
+  if (d.boss || d.clue) {
+    e.hp = Math.round(e.hp * BOSS_HP);
+    // Bosses scale to your damage so a strong build can't melt them: a fight lasts at least ~35-60s (clue bosses ~20-35s).
+    const a = areaIndex(), ttk = d.boss ? 35 + 1.6 * a : 20 + a;
+    e.hp = Math.max(e.hp, Math.round(effectiveDps() * ttk));
+  }
   if (ycon('glyphic')) e.hp = Math.round(e.hp * 1.4);
   e.maxHp = e.hp;
   enemies.push(e);
@@ -813,7 +821,7 @@ function updateEnemies(dt) {
     if (e.dead || e.ai.burrow > 0) continue;
     if (e.d.clue) { // clue bosses: a telegraphed special on top of their normal attack
       e.ai.t -= dt;
-      if (e.ai.t <= 0) { e.ai.t = 3.2 + Math.random(); slam(p.x, p.y, 75, 1.1, e.dmg * 1.6, e.d.style, '#ff981f', 'Special!'); }
+      if (e.ai.t <= 0) { e.ai.t = (3.2 + Math.random()) / BOSS_TEMPO; clueSpecial(e); }
     }
     if (e.d.spd === 0 && !e.d.caster) continue; // stationary bosses
 
@@ -912,10 +920,49 @@ function bossPhaseOnDeath(e) {
   return false;
 }
 
+// Clue boss specials, by the mechanic each boss is known for on the wiki.
+function clueSpecial(e) {
+  const p = run.p, m = e.d.mech || 'slam', dmg = e.dmg;
+  const np = { noPray: true };
+  if (m === 'bombs') {
+    for (let i = 0; i < 5; i++) slam(p.x + (i ? (Math.random() - 0.5) * 300 : 0), p.y + (i ? (Math.random() - 0.5) * 240 : 0), 60, 1.0 + i * 0.15, dmg * 1.4, e.d.style, '#ff981f', i ? '' : 'Special!');
+  } else if (m === 'volley') {
+    fan(e, 7, 0.14, 420, e.d.style === 'melee' ? 'ranged' : e.d.style, (e.d.caster && e.d.caster.color) || '#ff981f', dmg);
+  } else if (m === 'summon') {
+    summon(e, e.d.summons || 'lesser_demon', 2);
+    if (e.d.id === 'clue_cerberus') { summon(e, 'spiritual_ranger', 1); summon(e, 'spiritual_mage', 1); }
+    say(e, 'Rise!');
+  } else if (m === 'bind') {
+    slam(p.x, p.y, 70, 0.9, dmg * 1.2, e.d.style, '#5fd34a', 'Bind!');
+    setTimeout(() => { if (!e.dead && run && Math.hypot(p.x - e.x, p.y - e.y) < 900) { p.frozen = Math.max(p.frozen, 1.2); chat(`${e.d.name} binds you in place!`, 'r'); } }, 900);
+    if (e.d.summons) summon(e, e.d.summons, 2);
+  } else if (m === 'pierce') {
+    slam(p.x, p.y, 85, 1.0, dmg * 2, e.d.style, '#ff3a1a', 'Prayer won\'t help!', np);
+  } else if (m === 'drain') {
+    fan(e, 5, 0.18, 400, e.d.style === 'melee' ? 'magic' : e.d.style, '#5fd34a', dmg, { drain: 6 });
+    if (e.d.caster == null) slam(p.x, p.y, 75, 1.0, dmg * 1.5, e.d.style, '#5fd34a', 'Special!');
+  } else if (m === 'leech') {
+    slam(p.x, p.y, 75, 1.0, dmg * 1.6, e.d.style, '#c01a1a', 'Infest!');
+    e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.06);
+  } else if (m === 'rage') {
+    const missing = 1 - e.hp / e.maxHp;
+    slam(p.x, p.y, 80, 1.0, dmg * (1.4 + 2.5 * missing), e.d.style, '#c01a1a', 'Special!');
+  } else if (m === 'fast') {
+    for (let i = 0; i < 3; i++) setTimeout(() => { if (!e.dead && run) slam(p.x, p.y, 65, 0.6, dmg * 1.1, e.d.style, '#ffd23a', i ? '' : 'Special!'); }, i * 350);
+  } else if (m === 'gaze') {
+    // a huge unblockable hit: get out of the circle
+    slam(p.x, p.y, 140, 1.6, dmg * 3.2, e.d.style, '#a0ff3a', 'Gaze! Move!', np);
+  } else {
+    slam(p.x, p.y, 75, 1.1, dmg * 1.6, e.d.style, '#ff981f', 'Special!');
+  }
+}
+
 function bossAI(e, dt) {
   const p = run.p, k = e.d.boss;
-  e.ai.t -= dt;
   const hpf = e.hp / e.maxHp;
+  // bosses act faster than their base pattern, and faster still below half health
+  if (hpf < 0.5 && !e.ai.enraged) { e.ai.enraged = true; chat(`${e.d.name} is enraged!`, 'r'); burst(e.x, e.y, '#ff3a1a', 30); }
+  e.ai.t -= dt * BOSS_TEMPO * (e.ai.enraged ? 1.3 : 1);
   if (k === 'cow') {
     // Cow Boss: charges across the field and calls the herd
     if (e.ai.t <= 0) {
@@ -1997,6 +2044,11 @@ function equipmentPanel() {
 }
 
 // What changes if you wear this instead of what you have now.
+// Rough real damage per second against one target, counting crits, multishot and boss bonuses.
+function effectiveDps() {
+  const st = stats();
+  return weaponDps(st) * 0.75 * (1 + st.crit * (1 + 0.5 * bv('crit'))) * (1 + 0.6 * bv('multi')) * (1 + 0.25 * bv('giant')) * ((run.hero.mods || {}).bossDmg || 1);
+}
 function weaponDps(st) { const w = st.weapon; return w.dmg * (w.hits || 1) * (w.count || 1) / w.cd * st.dmgMult * st.aspd; }
 function compareText(it) {
   if (it.slot === 'food') return '';

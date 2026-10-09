@@ -14,7 +14,7 @@ An Old School RuneScape roguelike. Images and music load live from the OSRS Wiki
 - **Redberry pie:** a separate drop that heals a quarter of your hitpoints. It turns up twice as often when you are below half health.
 - **Combat triangle:** melee armour lowers magic damage, magic armour lowers ranged damage, and ranged armour lowers melee damage.
 - **Maps:** each area is drawn top-down from the OSRS Wiki world map.
-- **Clue scrolls:** a rare drop. Reading one summons a random boss from outside the route, scaled to how far you are. It drops a reward casket where you pick 1 of 3 items.
+- **Clue scrolls:** a rare drop. Reading one summons one of 45 bosses from outside the route (Barrows brothers, wilderness bosses, God Wars generals, Corp, Cerberus, Hydra, the Desert Treasure II bosses and more), each with its signature mechanic, scaled to how far you are. It drops a reward casket where you pick 1 of 3 items.
 - **Boons:** after every boss you pick 1 of 3 run-only bonuses, like multishot, ricochet, lifesteal, thorns, crits or an extra life. Some stack.
 - **Yama's contracts:** at the end of a round Yama may offer a contract: a big boost for the rest of the run at a steep price (no protection prayers, less max hitpoints, no healing, harder-hitting or tougher enemies). At most two per run, and always one by round 13.
 - **Trading sticks:** every run earns them, even if you die. Spend them on permanent upgrades (damage, gold, luck, hitpoints and more) or on heroes.

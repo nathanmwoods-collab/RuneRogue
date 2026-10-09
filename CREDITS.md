@@ -373,6 +373,42 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Clue boss | Pestilent Bloat | https://oldschool.runescape.wiki/w/File:Pestilent_Bloat.png |
 | Clue boss | Umbra | https://oldschool.runescape.wiki/w/File:Umbra.png |
 | Clue boss | Cruor | https://oldschool.runescape.wiki/w/File:Cruor.png |
+| Clue boss | Dharok the Wretched | https://oldschool.runescape.wiki/w/File:Dharok_the_Wretched.png |
+| Clue boss | Ahrim the Blighted | https://oldschool.runescape.wiki/w/File:Ahrim_the_Blighted.png |
+| Clue boss | Karil the Tainted | https://oldschool.runescape.wiki/w/File:Karil_the_Tainted.png |
+| Clue boss | Verac the Defiled | https://oldschool.runescape.wiki/w/File:Verac_the_Defiled.png |
+| Clue boss | Guthan the Infested | https://oldschool.runescape.wiki/w/File:Guthan_the_Infested.png |
+| Clue boss | Torag the Corrupted | https://oldschool.runescape.wiki/w/File:Torag_the_Corrupted.png |
+| Clue boss | Sarachnis | https://oldschool.runescape.wiki/w/File:Sarachnis.png |
+| Clue boss | Venenatis | https://oldschool.runescape.wiki/w/File:Venenatis.png |
+| Clue boss | Vet'ion | https://oldschool.runescape.wiki/w/File:Vet%27ion.png |
+| Clue boss | Scorpia | https://oldschool.runescape.wiki/w/File:Scorpia.png |
+| Clue boss | Chaos Fanatic | https://oldschool.runescape.wiki/w/File:Chaos_Fanatic.png |
+| Clue boss | Crazy archaeologist | https://oldschool.runescape.wiki/w/File:Crazy_archaeologist.png |
+| Clue boss | Commander Zilyana | https://oldschool.runescape.wiki/w/File:Commander_Zilyana.png |
+| Clue boss | K'ril Tsutsaroth | https://oldschool.runescape.wiki/w/File:K%27ril_Tsutsaroth.png |
+| Clue boss | Kree'arra | https://oldschool.runescape.wiki/w/File:Kree%27arra.png |
+| Clue boss | Corporeal Beast | https://oldschool.runescape.wiki/w/File:Corporeal_Beast.png |
+| Clue boss | Cerberus | https://oldschool.runescape.wiki/w/File:Cerberus.png |
+| Clue boss | Abyssal Sire | https://oldschool.runescape.wiki/w/File:Abyssal_Sire_(phase_1).png |
+| Clue boss | Alchemical Hydra | https://oldschool.runescape.wiki/w/File:Alchemical_Hydra_(serpentine).png |
+| Clue boss | Thermonuclear smoke devil | https://oldschool.runescape.wiki/w/File:Thermonuclear_smoke_devil.png |
+| Clue boss | Dagannoth Rex | https://oldschool.runescape.wiki/w/File:Dagannoth_Rex.png |
+| Clue boss | Dagannoth Prime | https://oldschool.runescape.wiki/w/File:Dagannoth_Prime.png |
+| Clue boss | Skotizo | https://oldschool.runescape.wiki/w/File:Skotizo.png |
+| Clue boss | Phantom Muspah | https://oldschool.runescape.wiki/w/File:Phantom_Muspah_(ranged).png |
+| Clue boss | The Nightmare | https://oldschool.runescape.wiki/w/File:The_Nightmare.png |
+| Clue boss | Duke Sucellus | https://oldschool.runescape.wiki/w/File:Duke_Sucellus.png |
+| Clue boss | The Leviathan | https://oldschool.runescape.wiki/w/File:The_Leviathan.png |
+| Clue boss | The Whisperer | https://oldschool.runescape.wiki/w/File:The_Whisperer.png |
+| Clue boss | Vardorvis | https://oldschool.runescape.wiki/w/File:Vardorvis.png |
+| Clue boss | Hespori | https://oldschool.runescape.wiki/w/File:Hespori.png |
+| Clue boss | Tormented Demon | https://oldschool.runescape.wiki/w/File:Tormented_Demon_(1).png |
+| Clue boss | Araxxor | https://oldschool.runescape.wiki/w/File:Araxxor.png |
+| Clue boss | Amoxliatl | https://oldschool.runescape.wiki/w/File:Amoxliatl.png |
+| Clue boss | The Hueycoatl | https://oldschool.runescape.wiki/w/File:The_Hueycoatl.png |
+| Clue boss | Sol Heredit | https://oldschool.runescape.wiki/w/File:Sol_Heredit.png |
+| Clue boss | Dusk | https://oldschool.runescape.wiki/w/File:Dusk.png |
 | Boss | Zulrah (magma) | https://oldschool.runescape.wiki/w/File:Zulrah_(magma).png |
 | Boss | Zulrah (tanzanite) | https://oldschool.runescape.wiki/w/File:Zulrah_(tanzanite).png |
 | Background | Lumbridge | https://oldschool.runescape.wiki/w/File:Lumbridge.png |
