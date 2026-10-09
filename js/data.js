@@ -308,7 +308,6 @@ item('bandos_cloak', 'Bandos cloak', 'any', 'cape', 8, 'common', { def: 3, pp: 3
 item('ardougne_cloak_4', 'Ardougne cloak 4', 'any', 'cape', 7, 'uncommon', { def: 3, dmg: 0.04, pp: 6 });
 // Third age: its own rarity, a quarter as likely as ultra rare, in shops and caskets from area 10.
 const TA = (extra) => extra;
-item('3rd_age_cloak', '3rd Age cloak', 'any', 'cape', 10, 'thirdage', TA({ def: 7, pp: 5, hp: 15 }));
 item('3rd_age_full_helmet', '3rd Age full helmet', 'melee', 'head', 10, 'thirdage', TA({ def: 12, hp: 10 }));
 item('3rd_age_platebody', '3rd Age platebody', 'melee', 'body', 10, 'thirdage', TA({ def: 22, hp: 20 }));
 item('3rd_age_platelegs', '3rd Age platelegs', 'melee', 'legs', 10, 'thirdage', TA({ def: 17, hp: 10 }));
@@ -327,11 +326,7 @@ item('3rd_age_amulet', '3rd Age amulet', 'magic', 'neck', 10, 'thirdage', TA({ d
 item('3rd_age_wand', '3rd Age wand', 'magic', 'weapon', 10, 'thirdage', TA({ w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 44, cd: 0.7, range: 430, speed: 700, splash: 60, color: '#ff7a1a' } }));
 item('3rd_age_druidic_robe_top', '3rd Age druidic robe top', 'any', 'body', 10, 'thirdage', TA({ def: 6, pp: 8, hp: 10 }));
 item('3rd_age_druidic_robe_bottoms', '3rd Age druidic robe bottoms', 'any', 'legs', 10, 'thirdage', TA({ def: 5, pp: 6 }));
-item('3rd_age_druidic_cloak', '3rd Age druidic cloak', 'any', 'cape', 10, 'thirdage', TA({ def: 4, pp: 5 }));
 item('3rd_age_druidic_staff', '3rd Age druidic staff', 'magic', 'weapon', 10, 'thirdage', TA({ w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 36, cd: 0.7, range: 420, speed: 680, splash: 55, color: '#d8c060' }, pp: 6 }));
-item('3rd_age_axe', '3rd Age axe', 'melee', 'weapon', 10, 'thirdage', TA({ w: { kind: 'swing', dmg: 28, cd: 0.6, reach: 85, arc: 1.9 } }));
-item('3rd_age_felling_axe', '3rd Age felling axe', 'melee', 'weapon', 10, 'thirdage', TA({ w: { kind: 'swing', dmg: 50, cd: 0.9, reach: 100, arc: 2.4 } }));
-item('3rd_age_pickaxe', '3rd Age pickaxe', 'melee', 'weapon', 10, 'thirdage', TA({ w: { kind: 'swing', dmg: 28, cd: 0.6, reach: 85, arc: 1.7 } }));
 item('ring_of_3rd_age', 'Ring of 3rd Age', 'any', 'ring', 10, 'thirdage', TA({ def: 2, gold: 0.3 }));
 // Neck
 item('amulet_of_accuracy', 'Amulet of accuracy', 'any', 'neck', 0, 'common', { dmg: 0.03 });

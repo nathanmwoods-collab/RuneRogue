@@ -270,7 +270,6 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Mythical cape | https://oldschool.runescape.wiki/w/File:Mythical_cape.png |
 | Item | Bandos cloak | https://oldschool.runescape.wiki/w/File:Bandos_cloak.png |
 | Item | Ardougne cloak 4 | https://oldschool.runescape.wiki/w/File:Ardougne_cloak_4.png |
-| Item | 3rd Age cloak | https://oldschool.runescape.wiki/w/File:3rd_Age_cloak.png |
 | Item | Amulet of accuracy | https://oldschool.runescape.wiki/w/File:Amulet_of_accuracy.png |
 | Item | Amulet of defence | https://oldschool.runescape.wiki/w/File:Amulet_of_defence.png |
 | Item | Holy symbol | https://oldschool.runescape.wiki/w/File:Holy_symbol.png |
@@ -613,11 +612,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | 3rd Age wand | https://oldschool.runescape.wiki/w/File:3rd_Age_wand.png |
 | Item | 3rd Age druidic robe top | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_robe_top.png |
 | Item | 3rd Age druidic robe bottoms | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_robe_bottoms.png |
-| Item | 3rd Age druidic cloak | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_cloak.png |
 | Item | 3rd Age druidic staff | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_staff.png |
-| Item | 3rd Age axe | https://oldschool.runescape.wiki/w/File:3rd_Age_axe.png |
-| Item | 3rd Age felling axe | https://oldschool.runescape.wiki/w/File:3rd_Age_felling_axe.png |
-| Item | 3rd Age pickaxe | https://oldschool.runescape.wiki/w/File:3rd_Age_pickaxe.png |
 | Item | Ring of 3rd Age | https://oldschool.runescape.wiki/w/File:Ring_of_3rd_Age.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
