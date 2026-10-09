@@ -26,22 +26,22 @@ const HEROES = [
   { id: 'arianwyn', name: 'Arianwyn', file: 'Arianwyn.png', lane: 'ranged', weapon: 'shortbow',
     perk: 'Elf scout from Regicide. Moves 15% faster and shoots 20% further.', mods: { speed: 1.15, range: 1.2 },
     skills: { ranged: 8, agility: 5 }, quotes: ['Not yet, I will try to send word if we find out anything new.'] },
-  { id: 'lowe', name: 'Lowe', file: 'Lowe.png', lane: 'ranged', weapon: 'shortbow',
-    perk: 'Owner of Lowe\'s Archery Emporium in Varrock. 15% extra critical hit chance and 20% more gold.', mods: { crit: 0.15, gold: 1.2 },
-    skills: { ranged: 10 }, quotes: ["Welcome to Lowe's Archery Emporium. Do you want to see my wares?", 'Humph, philistine.'] },
+  { id: 'islwyn', name: 'Islwyn', file: 'Islwyn.png', lane: 'ranged', weapon: 'shortbow',
+    perk: 'Elven bowyer who sells the crystal bow. 15% extra critical hit chance and arrows fly 15% further.', mods: { crit: 0.15, range: 1.15 },
+    skills: { ranged: 10 }, quotes: [] },
   // Unlockable heroes. unlock.area: clear that area's boss once. unlock.sticks: buy with trading sticks.
-  { id: 'nemarti', name: 'Nemarti', file: 'Ranged_combat_tutor.png', lane: 'ranged', weapon: 'shortbow', unlock: { area: 0 },
-    perk: 'The ranged combat tutor of Lumbridge. Shoots 25% further and skill levels cost 15% less.', mods: { range: 1.25, skillCost: 0.85 },
-    skills: { ranged: 8, defence: 4 }, quotes: [] },
+  { id: 'zanik', name: 'Zanik', file: 'Zanik.png', lane: 'ranged', weapon: 'dorgeshuun_crossbow', unlock: { area: 0 },
+    perk: 'Cave goblin heroine of the Dorgeshuun, found under Lumbridge in The Lost Tribe. Moves 10% faster and takes 10% less damage.', mods: { speed: 1.1, taken: 0.9 },
+    skills: { ranged: 8, agility: 6 }, quotes: [] },
   { id: 'amik', name: 'Sir Amik Varze', file: 'Sir_Amik_Varze.png', lane: 'melee', weapon: 'rune_scimitar', unlock: { area: 4 },
     perk: 'Leader of the White Knights of Falador. +20 max hitpoints and prayer drains 30% slower.', mods: { hp: 20, ppDrain: 0.7 },
     skills: { attack: 10, strength: 10, defence: 10 }, quotes: [] },
-  { id: 'kolodion', name: 'Kolodion', file: 'Kolodion.png', lane: 'magic', weapon: 'staff_of_fire', unlock: { area: 7 },
-    perk: 'Battle mage of the Mage Arena in the Wilderness. Spells splash 20% wider and hit bosses 25% harder.', mods: { splash: 1.2, bossDmg: 1.25 },
-    skills: { magic: 20, hitpoints: 15 }, quotes: ["However, a wizard of your level wouldn't stand a chance."] },
   { id: 'osmumten', name: 'Osmumten', file: 'Osmumten.png', lane: 'melee', weapon: 'abyssal_tentacle', unlock: { area: 12 },
     perk: 'The archaeologist of the Tombs of Amascut. Dragonfire and other magic hit 30% softer, and +30 max hitpoints.', mods: { magicTaken: 0.7, hp: 30 },
     skills: { attack: 30, strength: 30, defence: 20 }, quotes: [] },
+  { id: 'merlin', name: 'Merlin', file: 'Merlin.png', lane: 'magic', weapon: 'staff_of_fire', unlock: { sticks: 300 },
+    perk: 'The great wizard of Camelot from Merlin\'s Crystal. Spells splash 20% wider and hit bosses 25% harder.', mods: { splash: 1.2, bossDmg: 1.25 },
+    skills: { magic: 16 }, quotes: [] },
   { id: 'nieve', name: 'Nieve', file: 'Nieve.png', lane: 'ranged', weapon: 'magic_shortbow', unlock: { sticks: 250 },
     perk: 'Slayer master of the Gnome Stronghold. 10% extra critical hits and Slayer starts at 10.', mods: { crit: 0.1 },
     skills: { ranged: 12, slayer: 10 }, quotes: [] },
@@ -87,6 +87,7 @@ item('elder_maul', 'Elder maul', 'melee', 'weapon', 13, 'rare', { w: { kind: 'sw
 item('scythe_of_vitur', 'Scythe of Vitur', 'melee', 'weapon', 13, 'mega', { w: { kind: 'swing', dmg: 70, cd: 0.6, reach: 140, arc: 3.2, hits: 3 } });
 // --- Ranged weapons
 item('shortbow', 'Shortbow', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 5, cd: 0.6, range: 380, speed: 760, pierce: 1, count: 1 } });
+item('dorgeshuun_crossbow', 'Dorgeshuun crossbow', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 8, cd: 0.8, range: 400, speed: 950, pierce: 2, count: 1, bolt: true } });
 item('magic_shortbow', 'Magic shortbow', 'ranged', 'weapon', 1, 'common', { w: { kind: 'shot', dmg: 8, cd: 0.36, range: 420, speed: 900, pierce: 1, count: 1 } });
 item('rune_crossbow', 'Rune crossbow', 'ranged', 'weapon', 3, 'common', { w: { kind: 'shot', dmg: 22, cd: 0.8, range: 460, speed: 1050, pierce: 3, count: 1, bolt: true } });
 item('dark_bow', 'Dark bow', 'ranged', 'weapon', 4, 'uncommon', { w: { kind: 'shot', dmg: 21, cd: 0.95, range: 430, speed: 900, pierce: 2, count: 2, spread: 0.14 } });

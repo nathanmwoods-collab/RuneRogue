@@ -43,11 +43,11 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Hero | Wise Old Man | https://oldschool.runescape.wiki/w/File:Wise_Old_Man.png |
 | Hero | Archmage Sedridor | https://oldschool.runescape.wiki/w/File:Archmage_Sedridor.png |
 | Hero | Arianwyn | https://oldschool.runescape.wiki/w/File:Arianwyn.png |
-| Hero | Lowe | https://oldschool.runescape.wiki/w/File:Lowe.png |
-| Hero | Nemarti | https://oldschool.runescape.wiki/w/File:Ranged_combat_tutor.png |
+| Hero | Islwyn | https://oldschool.runescape.wiki/w/File:Islwyn.png |
+| Hero | Zanik | https://oldschool.runescape.wiki/w/File:Zanik.png |
 | Hero | Sir Amik Varze | https://oldschool.runescape.wiki/w/File:Sir_Amik_Varze.png |
-| Hero | Kolodion | https://oldschool.runescape.wiki/w/File:Kolodion.png |
 | Hero | Osmumten | https://oldschool.runescape.wiki/w/File:Osmumten.png |
+| Hero | Merlin | https://oldschool.runescape.wiki/w/File:Merlin.png |
 | Hero | Nieve | https://oldschool.runescape.wiki/w/File:Nieve.png |
 | Hero | Bob the Jagex cat | https://oldschool.runescape.wiki/w/File:Bob_the_Jagex_cat.png |
 | Item | Bronze sword | https://oldschool.runescape.wiki/w/File:Bronze_sword.png |
@@ -64,6 +64,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Elder maul | https://oldschool.runescape.wiki/w/File:Elder_maul.png |
 | Item | Scythe of Vitur | https://oldschool.runescape.wiki/w/File:Scythe_of_Vitur.png |
 | Item | Shortbow | https://oldschool.runescape.wiki/w/File:Shortbow.png |
+| Item | Dorgeshuun crossbow | https://oldschool.runescape.wiki/w/File:Dorgeshuun_crossbow.png |
 | Item | Magic shortbow | https://oldschool.runescape.wiki/w/File:Magic_shortbow.png |
 | Item | Rune crossbow | https://oldschool.runescape.wiki/w/File:Rune_crossbow.png |
 | Item | Dark bow | https://oldschool.runescape.wiki/w/File:Dark_bow.png |
