@@ -52,17 +52,21 @@ const HEROES = [
 
 // ---------------------------------------------------------------------------
 // Items. tier = the area index where it starts appearing in shops.
-// rarity: common | uncommon | rare | mega. Price follows tier and rarity.
+// rarity: common | uncommon | rare | ultra | mega. Price follows tier and rarity.
 // Slots match the OSRS Worn Equipment screen.
 // ---------------------------------------------------------------------------
 const SLOTS = ['head', 'cape', 'neck', 'ammo', 'weapon', 'body', 'shield', 'legs', 'hands', 'feet', 'ring'];
 const SLOT_NAME = { head: 'Head', cape: 'Cape', neck: 'Neck', ammo: 'Ammo', weapon: 'Weapon', body: 'Body', shield: 'Shield', legs: 'Legs', hands: 'Hands', feet: 'Feet', ring: 'Ring' };
-const RARITY_MULT = { common: 1, uncommon: 1.4, rare: 2.6, mega: 6 };
-const RARITY_WEIGHT = { common: 1, uncommon: 0.7, rare: 0.22, mega: 0.035 };
+const RARITY_MULT = { common: 1, uncommon: 1.4, rare: 2.6, ultra: 4, mega: 6 };
+const RARITY_WEIGHT = { common: 1, uncommon: 0.6, rare: 0.2, ultra: 0.025, mega: 0.012 };
+// How much each rarity's odds grow from the first wave (x1) to the last (x(1+n)).
+const RARITY_GROWTH = { common: 0, uncommon: 1, rare: 3, ultra: 6, mega: 10 };
+const RARITY_NAME = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', ultra: 'Ultra rare', mega: 'Mega rare' };
 
 const ITEMS = {};
 function item(id, name, lane, slot, tier, rarity, stats, file) {
   const base = Math.round(28 * Math.pow(1.36, tier));
+  if (rarity === 'rare' && tier >= 11) rarity = 'ultra';
   ITEMS[id] = { id, name, lane, slot, tier, rarity, ...stats, file: file || name.replace(/ /g, '_') + '.png',
     price: stats.price !== undefined ? stats.price : Math.round(base * RARITY_MULT[rarity] / 5) * 5 };
 }

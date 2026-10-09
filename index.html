@@ -166,7 +166,7 @@ img.wiki { image-rendering: auto; }
 .offers { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .offer .art { height: 64px; }
 .offer .art img { max-height: 56px; }
-.offer .price { font-family: var(--font-display); color: var(--yellow); font-size: 16px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.offer .price { font-family: var(--font-body); font-weight: bold; color: var(--yellow); font-size: 16px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .offer .price img { width: 20px; height: 18px; }
 .offer.sold { opacity: .4; pointer-events: none; }
 .gear { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -186,9 +186,11 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
 .equip .slot.empty { opacity: .55; }
 .equip .gap { width: 52px; height: 52px; }
 .rar { font-family: var(--font-display); font-size: 12px; letter-spacing: .5px; }
-.rar.uncommon { color: #7dff7d; } .rar.rare { color: var(--orange); } .rar.mega { color: #e07dff; animation: glow 1.4s ease-in-out infinite; }
-.card.mega { outline: 2px solid #b44be0; background: #3a2742; }
-.card.rare-card { outline: 1px solid var(--orange); }
+.rar.common { color: #b8b8b8; } .rar.uncommon { color: #7dff7d; } .rar.rare { color: #5ab4ff; } .rar.ultra { color: var(--orange); } .rar.mega { color: #e07dff; animation: glow 1.4s ease-in-out infinite; }
+.card.r-uncommon { outline: 1px solid #3f9a3f; }
+.card.r-rare { outline: 1px solid #5ab4ff; }
+.card.r-ultra { outline: 2px solid var(--orange); background: #3d2d1c; }
+.card.r-mega { outline: 2px solid #b44be0; background: #3a2742; }
 @keyframes glow { 50% { text-shadow: 0 0 10px #e07dff; } }
 .hudbtns { display: flex; gap: 6px; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

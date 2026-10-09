@@ -363,10 +363,11 @@ function spawnTick(dt) {
 function checkStageDone(dt) {
   if (stageEnding > 0) { stageEnding -= dt; if (stageEnding <= 0) endStage(); return; }
   const bossDone = !isBoss || !bossAlive || bossAlive.dead;
-  // a reward casket on the ground keeps the round open until you pick it up
-  const casketWaiting = pickups.some((pk) => pk.kind === 'casket');
+  // a reward casket or clue scroll on the ground keeps the round open until you pick it up
+  const waitPk = pickups.find((pk) => pk.kind === 'casket' || pk.kind === 'clue');
+  const casketWaiting = !!waitPk;
   if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0) {
-    if (casketWaiting) { if (!run.casketNag) { run.casketNag = true; chat('Pick up the reward casket to finish the round.', 'r'); } return; }
+    if (casketWaiting) { if (!run.casketNag) { run.casketNag = true; chat(`Pick up the ${waitPk.kind === 'clue' ? 'clue scroll' : 'reward casket'} to finish the round.`, 'r'); } return; }
     run.casketNag = false;
     stageEnding = 1.2;
   }
@@ -375,8 +376,6 @@ function checkStageDone(dt) {
 function endStage() {
   for (const c of coins) addGold(c.v, false);
   coins = [];
-  // unopened clue scrolls on the ground still count
-  for (const pk of pickups) if (pk.kind === 'clue') startClue();
   pickups = [];
   run.buffs = {};
   const st = stats();
@@ -469,10 +468,14 @@ function openCasket(pk) {
   const choices = [];
   const a = areaIndex();
   const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
-    it.tier <= a + 3 && it.rarity !== 'mega' && run.gear[it.slot] !== it.id);
-  while (choices.length < 3 && pool.length) {
-    const i = Math.floor(Math.random() * pool.length);
-    choices.push(pool.splice(i, 1)[0]);
+    it.tier <= a + 3 && (it.rarity !== 'mega' || a >= 10) && run.gear[it.slot] !== it.id);
+  // casket loot leans rarer than the shop
+  const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 : 1.5) }));
+  while (choices.length < 3 && bag.length) {
+    const total = bag.reduce((x, b) => x + b.wt, 0);
+    let r = Math.random() * total, i = 0;
+    while (i < bag.length - 1 && r > bag[i].wt) { r -= bag[i].wt; i++; }
+    choices.push(bag.splice(i, 1)[0].it);
   }
   renderCasket(choices);
 }
@@ -1696,6 +1699,13 @@ function begin() { sfx(440, 0.1, 'triangle', 0.05); newRun(pickedHero); }
 
 // ---------- Shop ----------
 let offers = [];
+// Rarer items get likelier the further into the run you are (every wave counts), and with the luck upgrade.
+function rarityWeight(it) {
+  const prog = run.stage / Math.max(1, TOTAL_STAGES - 1);
+  let wt = RARITY_WEIGHT[it.rarity] * (1 + RARITY_GROWTH[it.rarity] * prog);
+  if (it.rarity !== 'common') wt *= 1 + upVal('luck') * (it.rarity === 'uncommon' ? 0.5 : 1);
+  return wt;
+}
 function itemScore(it) { return it ? it.price + it.tier * 10 : -1; }
 function rollOffers(fresh) {
   const style = weaponStyle(), a = areaIndex();
@@ -1714,8 +1724,7 @@ function rollOffers(fresh) {
   // Weight: items near your area's tier are likeliest; rarity makes top items scarce.
   const bag = pool.map((it) => {
     const gap = a - it.tier;
-    let wt = Math.exp(-((gap - 0.5) * (gap - 0.5)) / 6) * RARITY_WEIGHT[it.rarity];
-    if (it.rarity !== 'common') wt *= 1 + upVal('luck') * (it.rarity === 'uncommon' ? 0.5 : 1);
+    let wt = Math.max(0.04, Math.exp(-((gap - 0.5) * (gap - 0.5)) / 6)) * rarityWeight(it);
     if (it.lane === style) wt *= 1.6; // gear for the weapon you hold turns up more often
     if (it.slot === 'food') wt = 0.5;
     if (!run.gear[it.slot] && it.slot !== 'food') wt *= 1.4;
@@ -1854,10 +1863,10 @@ function compareText(it) {
   return out.length ? out.join('<br>') : '<span style="color:var(--muted)">No change for your current weapon</span>';
 }
 function offerCard(it, priceLabel, onClick, sold) {
-  const c = el('button', `card offer${sold ? ' sold' : ''}${it.rarity === 'mega' ? ' mega' : it.rarity === 'rare' ? ' rare-card' : ''}`); c.type = 'button';
+  const c = el('button', `card offer${sold ? ' sold' : ''} r-${it.rarity}`); c.type = 'button';
   const art = el('div', 'art'); art.appendChild(imgTag(it.file, it.name)); c.appendChild(art);
   c.appendChild(el('div', 'nm', it.name));
-  if (it.rarity !== 'common') c.appendChild(el('div', `rar ${it.rarity}`, it.rarity === 'mega' ? 'Mega rare' : it.rarity === 'rare' ? 'Rare' : 'Uncommon'));
+  c.appendChild(el('div', `rar ${it.rarity}`, RARITY_NAME[it.rarity]));
   const cur = it.slot !== 'food' && run.gear[it.slot] ? ITEMS[run.gear[it.slot]].name : null;
   const slotTxt = it.slot === 'food' ? 'Supply' : `${SLOT_NAME[it.slot]}${cur ? ` (replaces ${cur})` : ''}`;
   c.appendChild(el('div', 'ds', `<b style="color:var(--yellow)">${slotTxt}</b><br>${itemStatsText(it)}`));
@@ -2094,5 +2103,6 @@ window.__rr = {
   skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: () => pickups.push({ kind: 'clue', x: run.p.x + 60, y: run.p.y, t: 0 }),
   killAll: () => { for (const e of enemies) e.hp = 1; },
   die: () => die(),
+  rollOffers: () => { rollOffers(true); return offers; },
 };
 })();
