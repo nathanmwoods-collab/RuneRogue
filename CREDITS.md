@@ -359,6 +359,22 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Monster | Jal-ImKot | https://oldschool.runescape.wiki/w/File:Jal-ImKot.png |
 | Monster | Jal-Xil | https://oldschool.runescape.wiki/w/File:Jal-Xil.png |
 | Monster | Jal-Zek | https://oldschool.runescape.wiki/w/File:Jal-Zek.png |
+| PKer | Revenant knight | https://oldschool.runescape.wiki/w/File:Revenant_knight.png |
+| PKer | Dark warrior | https://oldschool.runescape.wiki/w/File:Dark_warrior.png |
+| PKer | Rogue | https://oldschool.runescape.wiki/w/File:Rogue.png |
+| Wilderness | Skull | https://oldschool.runescape.wiki/w/File:Skull_(status)_icon.png |
+| Invocation | Attempts | https://oldschool.runescape.wiki/w/File:Invocations_-_attempts_icon.png |
+| Invocation | Time limit | https://oldschool.runescape.wiki/w/File:Invocations_-_time_limit_icon.png |
+| Invocation | Helpful spirit | https://oldschool.runescape.wiki/w/File:Invocations_-_helpful_spirit_icon.png |
+| Invocation | Prayer | https://oldschool.runescape.wiki/w/File:Invocations_-_prayer_effectiveness_icon.png |
+| Invocation | On a Diet | https://oldschool.runescape.wiki/w/File:Invocations_-_On_a_Diet_icon.png |
+| Invocation | Dehydration | https://oldschool.runescape.wiki/w/File:Invocations_-_Dehydration_icon.png |
+| Invocation | Overly Draining | https://oldschool.runescape.wiki/w/File:Invocations_-_Overly_Draining_icon.png |
+| Invocation | Kephri | https://oldschool.runescape.wiki/w/File:Kephri_icon.png |
+| Invocation | Zebak | https://oldschool.runescape.wiki/w/File:Zebak_icon.png |
+| Invocation | Akkha | https://oldschool.runescape.wiki/w/File:Akkha_icon.png |
+| Invocation | Ba-Ba | https://oldschool.runescape.wiki/w/File:Ba-Ba_icon.png |
+| Invocation | Tumeken's Warden | https://oldschool.runescape.wiki/w/File:Tumeken's_Warden_icon.png |
 | Boss | Brutus | https://oldschool.runescape.wiki/w/File:Brutus.png |
 | Boss | Count Draynor | https://oldschool.runescape.wiki/w/File:Count_Draynor.png |
 | Boss | Delrith | https://oldschool.runescape.wiki/w/File:Delrith.png |

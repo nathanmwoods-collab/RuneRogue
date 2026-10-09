@@ -648,6 +648,55 @@ const CONTRACTS = [
   { id: 'clouding', name: 'Contract of Sensory Clouding', gain: '+2 Multishot', cost: 'Enemies hit 35% harder' },
   { id: 'glyphic', name: 'Contract of Glyphic Attenuation', gain: '+25% critical hit chance and a full special attack bar', cost: 'Enemies have 40% more hitpoints' },
 ];
+// Invocations, after the Tombs of Amascut (names, raid levels and icons from the wiki's Invocations page).
+// Picked on the title screen before a run. Each adds raid levels; the total raises trading sticks and luck.
+// group: only one invocation per group can be on. needs: another invocation that must be on first.
+const INVO_ICON = {
+  attempts: 'Invocations_-_attempts_icon.png', time: 'Invocations_-_time_limit_icon.png', help: 'Invocations_-_helpful_spirit_icon.png',
+  prayer: 'Invocations_-_prayer_effectiveness_icon.png', diet: 'Invocations_-_On_a_Diet_icon.png', dehy: 'Invocations_-_Dehydration_icon.png',
+  drain: 'Invocations_-_Overly_Draining_icon.png', kephri: 'Kephri_icon.png', zebak: 'Zebak_icon.png', akkha: 'Akkha_icon.png', baba: 'Ba-Ba_icon.png', warden: "Tumeken's_Warden_icon.png",
+};
+const INVOCATIONS = [
+  { id: 'softcore', name: 'Softcore Run', lvl: 15, icon: 'attempts', group: 'attempts', info: 'You can cheat death at most once' },
+  { id: 'hardcore', name: 'Hardcore Run', lvl: 25, icon: 'attempts', group: 'attempts', info: 'No cheating death at all, not even Bob\'s nine lives' },
+  { id: 'walk', name: 'Walk for It', lvl: 10, icon: 'time', group: 'time', secs: 150, info: 'Each wave has 2:30 (bosses 5:00). After that, enemies enrage' },
+  { id: 'jog', name: 'Jog for It', lvl: 15, icon: 'time', group: 'time', secs: 120, info: 'Each wave has 2:00 (bosses 4:00). After that, enemies enrage' },
+  { id: 'run', name: 'Run for It', lvl: 20, icon: 'time', group: 'time', secs: 90, info: 'Each wave has 1:30 (bosses 3:00). After that, enemies enrage' },
+  { id: 'sprint', name: 'Sprint for It', lvl: 25, icon: 'time', group: 'time', secs: 70, info: 'Each wave has 1:10 (bosses 2:20). After that, enemies enrage' },
+  { id: 'help1', name: 'Need Some Help?', lvl: 15, icon: 'help', group: 'help', supply: 0.66, info: 'Sharks, prayer potions and pies: 66% as many, in your pack, drops and shops' },
+  { id: 'help2', name: 'Need Less Help?', lvl: 25, icon: 'help', group: 'help', supply: 0.33, info: 'Sharks, prayer potions and pies: 33% as many, in your pack, drops and shops' },
+  { id: 'help3', name: 'No Help Needed', lvl: 40, icon: 'help', group: 'help', supply: 0.1, info: 'Almost no sharks, prayer potions or pies' },
+  { id: 'quiet', name: 'Quiet Prayers', lvl: 20, icon: 'prayer', info: 'Protection prayers block half the damage instead of 70%' },
+  { id: 'deadly', name: 'Deadly Prayers', lvl: 20, icon: 'prayer', info: 'Every hit you take drains prayer by 20% of its damage' },
+  { id: 'diet', name: 'On a Diet', lvl: 15, icon: 'diet', info: 'You can\'t eat sharks or pies' },
+  { id: 'dehydration', name: 'Dehydration', lvl: 30, icon: 'dehy', info: 'You can\'t drink prayer potions' },
+  { id: 'draining', name: 'Overly Draining', lvl: 15, icon: 'drain', info: 'Every special attack uses all of your energy' },
+  { id: 'medic', name: 'Medic!', lvl: 15, icon: 'kephri', info: 'Scarab swarms join every wave' },
+  { id: 'overlords', name: 'More Overlords', lvl: 15, icon: 'kephri', info: 'Waves have 40% more enemies, with more alive at once' },
+  { id: 'aerial', name: 'Aerial Assault', lvl: 10, icon: 'kephri', info: 'Kephri\'s dung bombs fall where you stand during waves' },
+  { id: 'upset', name: 'Upset Stomach', lvl: 15, icon: 'zebak', info: 'Slain enemies sometimes leave a pool of acid' },
+  { id: 'arterial', name: 'Arterial Spray', lvl: 10, icon: 'zebak', info: 'Enemies heal for the damage they deal you' },
+  { id: 'boulder', name: 'Boulderdash', lvl: 10, icon: 'baba', info: 'Ba-Ba\'s boulders roll across the arena' },
+  { id: 'vigilant', name: 'Stay Vigilant', lvl: 15, icon: 'akkha', info: 'Archers and casters swap attack style at random, so one prayer won\'t cover them' },
+  { id: 'haste', name: 'Ancient Haste', lvl: 10, icon: 'warden', info: 'All enemies move 20% faster' },
+  { id: 'penetration', name: 'Penetration', lvl: 10, icon: 'warden', info: 'During boss fights, an obelisk switches your protection prayer off every 12 seconds' },
+  { id: 'oc1', name: 'Overclocked', lvl: 10, icon: 'warden', info: 'Bosses attack 15% faster' },
+  { id: 'oc2', name: 'Overclocked 2', lvl: 10, icon: 'warden', needs: 'oc1', info: 'Bosses attack another 15% faster' },
+  { id: 'insanity', name: 'Insanity', lvl: 50, icon: 'warden', needs: 'oc2', info: 'Bosses from all over Gielinor tear into normal waves at random' },
+];
+// Raid level bands from the Tombs of Amascut.
+function raidMode(lvl) { return lvl >= 300 ? 'Expert' : lvl >= 150 ? 'Normal' : 'Entry'; }
+
+// The Wilderness skull. Choose it when you enter the Wilderness; it lasts until you leave.
+const SKULL = { file: 'Skull_(status)_icon.png', gold: 2, luck: 0.75 };
+// PKers hunt skulled players. They switch attack styles like real PKers, freeze you with Ice Barrage and dump special attacks.
+// Durial321 is left out when you are playing as him.
+const PKERS = ['pk_durial', 'pk_revenant', 'pk_dark_warrior', 'pk_rogue'];
+mon('pk_durial', 'Durial321', 'Durial321.png', 82, 260, 175, 13, 64, 40, 'melee', { elite: true, pker: true });
+mon('pk_revenant', 'Revenant knight', 'Revenant_knight.png', 126, 300, 140, 14, 72, 40, 'melee', { elite: true, pker: true });
+mon('pk_dark_warrior', 'Dark warrior', 'Dark_warrior.png', 62, 220, 160, 12, 62, 30, 'melee', { elite: true, pker: true });
+mon('pk_rogue', 'Rogue', 'Rogue.png', 15, 180, 185, 10, 60, 25, 'melee', { elite: true, pker: true });
+
 // Enchanted bolt effects (OSRS names and odds from the wiki).
 const BOLT_PROCS = {
   dragonstone: { name: "Dragon's breath", chance: 0.06, info: "6%: dragonfire for extra damage based on your Ranged level" },
