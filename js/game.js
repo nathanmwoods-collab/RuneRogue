@@ -313,7 +313,9 @@ function spawnMonster(id, x, y, opts = {}) {
     e.hp = Math.round(e.hp * BOSS_HP);
     // Bosses scale to your damage so a strong build can't melt them: a fight lasts at least ~35-60s (clue bosses ~20-35s).
     const a = areaIndex(), ttk = d.boss ? 35 + 1.6 * a : 20 + a;
-    e.hp = Math.max(e.hp, Math.round(effectiveDps() * ttk));
+    e.hp = Math.max(e.hp, Math.round(effectiveDps(d) * ttk));
+    // Safety net for builds the estimate misses: a boss can't lose more than its HP over ~70% of that time.
+    e.capRate = e.hp / (ttk * 0.7); e.capBank = e.capRate * 2;
   }
   if (ycon('glyphic')) e.hp = Math.round(e.hp * 1.4);
   e.maxHp = e.hp;
@@ -578,6 +580,7 @@ function damageEnemy(e, dmg, crit, opts = {}) {
   if (e.immune) { dmg = 0; }
   else if (e.resist && e.resist[weaponStyle()]) dmg = Math.round(dmg * e.resist[weaponStyle()]);
   if (e.weakT > 0 && dmg > 0) dmg = Math.round(dmg * (1 + e.weak));
+  if (e.capRate && dmg > 0) { dmg = Math.min(dmg, Math.max(1, Math.floor(e.capBank))); e.capBank -= dmg; }
   e.hp -= dmg;
   e.flash = 0.12;
   e.aggro = true;
@@ -814,6 +817,7 @@ function updateEnemies(dt) {
     e.flash = Math.max(0, e.flash - dt);
     e.hitCd = Math.max(0, e.hitCd - dt);
     if (e.weakT > 0) e.weakT -= dt;
+    if (e.capRate) e.capBank = Math.min(e.capRate * 2, e.capBank + e.capRate * dt);
     if (e.over) { e.over.t -= dt; if (e.over.t <= 0) e.over = null; }
     e.x += e.kx * dt; e.y += e.ky * dt; e.kx *= 0.85; e.ky *= 0.85;
     if (e.frozen > 0) { e.frozen -= dt; continue; }
@@ -2045,9 +2049,10 @@ function equipmentPanel() {
 
 // What changes if you wear this instead of what you have now.
 // Rough real damage per second against one target, counting crits, multishot and boss bonuses.
-function effectiveDps() {
-  const st = stats();
-  return weaponDps(st) * 0.75 * (1 + st.crit * (1 + 0.5 * bv('crit'))) * (1 + 0.6 * bv('multi')) * (1 + 0.25 * bv('giant')) * ((run.hero.mods || {}).bossDmg || 1);
+function effectiveDps(d) {
+  const st = stats(), w = st.weapon;
+  const tb = w.tbow && d ? 1 + Math.min(1.2, d.lvl / 400) : 1;
+  return weaponDps(st) * 0.8 * tb * (1 + st.crit * (1 + 0.5 * bv('crit'))) * (1 + bv('multi')) * (1 + 0.25 * bv('giant')) * ((run.hero.mods || {}).bossDmg || 1);
 }
 function weaponDps(st) { const w = st.weapon; return w.dmg * (w.hits || 1) * (w.count || 1) / w.cd * st.dmgMult * st.aspd; }
 function compareText(it) {
