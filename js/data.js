@@ -306,7 +306,35 @@ item('cape_of_legends', 'Cape of Legends', 'any', 'cape', 3, 'common', { def: 5 
 item('mythical_cape', 'Mythical cape', 'melee', 'cape', 6, 'common', { def: 6, dmg: 0.03 });
 item('bandos_cloak', 'Bandos cloak', 'any', 'cape', 8, 'common', { def: 3, pp: 3 });
 item('ardougne_cloak_4', 'Ardougne cloak 4', 'any', 'cape', 7, 'uncommon', { def: 3, dmg: 0.04, pp: 6 });
-item('3rd_age_cloak', '3rd Age cloak', 'any', 'cape', 12, 'rare', { def: 7, pp: 5, hp: 15 });
+// Third-age: mega rares found only in hard, elite and master clue caskets (see THIRD_AGE_CHANCE), never in shops.
+const TA = (extra) => ({ clueOnly: true, ...extra });
+item('3rd_age_cloak', '3rd Age cloak', 'any', 'cape', 10, 'mega', TA({ def: 7, pp: 5, hp: 15 }));
+item('3rd_age_full_helmet', '3rd Age full helmet', 'melee', 'head', 10, 'mega', TA({ def: 12, hp: 10 }));
+item('3rd_age_platebody', '3rd Age platebody', 'melee', 'body', 10, 'mega', TA({ def: 22, hp: 20 }));
+item('3rd_age_platelegs', '3rd Age platelegs', 'melee', 'legs', 10, 'mega', TA({ def: 17, hp: 10 }));
+item('3rd_age_plateskirt', '3rd Age plateskirt', 'melee', 'legs', 10, 'mega', TA({ def: 17, hp: 10 }));
+item('3rd_age_kiteshield', '3rd Age kiteshield', 'melee', 'shield', 10, 'mega', TA({ def: 16, hp: 10 }));
+item('3rd_age_longsword', '3rd Age longsword', 'melee', 'weapon', 10, 'mega', TA({ w: { kind: 'swing', dmg: 44, cd: 0.55, reach: 105, arc: 1.8 } }));
+item('3rd_age_range_coif', '3rd Age range coif', 'ranged', 'head', 10, 'mega', TA({ def: 6, dmg: 0.06 }));
+item('3rd_age_range_top', '3rd Age range top', 'ranged', 'body', 10, 'mega', TA({ def: 12, dmg: 0.14, hp: 10 }));
+item('3rd_age_range_legs', '3rd Age range legs', 'ranged', 'legs', 10, 'mega', TA({ def: 9, dmg: 0.08 }));
+item('3rd_age_vambraces', '3rd Age vambraces', 'ranged', 'hands', 10, 'mega', TA({ def: 4, dmg: 0.1 }));
+item('3rd_age_bow', '3rd Age bow', 'ranged', 'weapon', 10, 'mega', TA({ w: { kind: 'shot', dmg: 38, cd: 0.5, range: 480, speed: 1100, pierce: 2, count: 1 } }));
+item('3rd_age_mage_hat', '3rd Age mage hat', 'magic', 'head', 10, 'mega', TA({ def: 5, dmg: 0.06 }));
+item('3rd_age_robe_top', '3rd Age robe top', 'magic', 'body', 10, 'mega', TA({ def: 8, dmg: 0.14, hp: 10 }));
+item('3rd_age_robe', '3rd Age robe', 'magic', 'legs', 10, 'mega', TA({ def: 6, dmg: 0.1 }));
+item('3rd_age_amulet', '3rd Age amulet', 'magic', 'neck', 10, 'mega', TA({ def: 3, dmg: 0.12 }));
+item('3rd_age_wand', '3rd Age wand', 'magic', 'weapon', 10, 'mega', TA({ w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 44, cd: 0.7, range: 430, speed: 700, splash: 60, color: '#ff7a1a' } }));
+item('3rd_age_druidic_robe_top', '3rd Age druidic robe top', 'any', 'body', 10, 'mega', TA({ def: 6, pp: 8, hp: 10 }));
+item('3rd_age_druidic_robe_bottoms', '3rd Age druidic robe bottoms', 'any', 'legs', 10, 'mega', TA({ def: 5, pp: 6 }));
+item('3rd_age_druidic_cloak', '3rd Age druidic cloak', 'any', 'cape', 10, 'mega', TA({ def: 4, pp: 5 }));
+item('3rd_age_druidic_staff', '3rd Age druidic staff', 'magic', 'weapon', 10, 'mega', TA({ w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 36, cd: 0.7, range: 420, speed: 680, splash: 55, color: '#d8c060' }, pp: 6 }));
+item('3rd_age_axe', '3rd Age axe', 'melee', 'weapon', 10, 'mega', TA({ w: { kind: 'swing', dmg: 28, cd: 0.6, reach: 85, arc: 1.9 } }));
+item('3rd_age_felling_axe', '3rd Age felling axe', 'melee', 'weapon', 10, 'mega', TA({ w: { kind: 'swing', dmg: 50, cd: 0.9, reach: 100, arc: 2.4 } }));
+item('3rd_age_pickaxe', '3rd Age pickaxe', 'melee', 'weapon', 10, 'mega', TA({ w: { kind: 'swing', dmg: 28, cd: 0.6, reach: 85, arc: 1.7 } }));
+item('ring_of_3rd_age', 'Ring of 3rd Age', 'any', 'ring', 10, 'mega', TA({ def: 2, gold: 0.3 }));
+// Chance per casket that one of its picks is a third-age piece (luck raises it)
+const THIRD_AGE_CHANCE = { hard: 1 / 150, elite: 1 / 80, master: 1 / 40 };
 // Neck
 item('amulet_of_accuracy', 'Amulet of accuracy', 'any', 'neck', 0, 'common', { dmg: 0.03 });
 item('amulet_of_defence', 'Amulet of defence', 'any', 'neck', 0, 'common', { def: 4 });

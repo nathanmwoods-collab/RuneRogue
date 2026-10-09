@@ -595,6 +595,30 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Icon | Reward casket (elite) | https://oldschool.runescape.wiki/w/File:Reward_casket_(elite).png |
 | Icon | Clue scroll (master) | https://oldschool.runescape.wiki/w/File:Clue_scroll_(master).png |
 | Icon | Reward casket (master) | https://oldschool.runescape.wiki/w/File:Reward_casket_(master).png |
+| Item | 3rd Age full helmet | https://oldschool.runescape.wiki/w/File:3rd_Age_full_helmet.png |
+| Item | 3rd Age platebody | https://oldschool.runescape.wiki/w/File:3rd_Age_platebody.png |
+| Item | 3rd Age platelegs | https://oldschool.runescape.wiki/w/File:3rd_Age_platelegs.png |
+| Item | 3rd Age plateskirt | https://oldschool.runescape.wiki/w/File:3rd_Age_plateskirt.png |
+| Item | 3rd Age kiteshield | https://oldschool.runescape.wiki/w/File:3rd_Age_kiteshield.png |
+| Item | 3rd Age longsword | https://oldschool.runescape.wiki/w/File:3rd_Age_longsword.png |
+| Item | 3rd Age range coif | https://oldschool.runescape.wiki/w/File:3rd_Age_range_coif.png |
+| Item | 3rd Age range top | https://oldschool.runescape.wiki/w/File:3rd_Age_range_top.png |
+| Item | 3rd Age range legs | https://oldschool.runescape.wiki/w/File:3rd_Age_range_legs.png |
+| Item | 3rd Age vambraces | https://oldschool.runescape.wiki/w/File:3rd_Age_vambraces.png |
+| Item | 3rd Age bow | https://oldschool.runescape.wiki/w/File:3rd_Age_bow.png |
+| Item | 3rd Age mage hat | https://oldschool.runescape.wiki/w/File:3rd_Age_mage_hat.png |
+| Item | 3rd Age robe top | https://oldschool.runescape.wiki/w/File:3rd_Age_robe_top.png |
+| Item | 3rd Age robe | https://oldschool.runescape.wiki/w/File:3rd_Age_robe.png |
+| Item | 3rd Age amulet | https://oldschool.runescape.wiki/w/File:3rd_Age_amulet.png |
+| Item | 3rd Age wand | https://oldschool.runescape.wiki/w/File:3rd_Age_wand.png |
+| Item | 3rd Age druidic robe top | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_robe_top.png |
+| Item | 3rd Age druidic robe bottoms | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_robe_bottoms.png |
+| Item | 3rd Age druidic cloak | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_cloak.png |
+| Item | 3rd Age druidic staff | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_staff.png |
+| Item | 3rd Age axe | https://oldschool.runescape.wiki/w/File:3rd_Age_axe.png |
+| Item | 3rd Age felling axe | https://oldschool.runescape.wiki/w/File:3rd_Age_felling_axe.png |
+| Item | 3rd Age pickaxe | https://oldschool.runescape.wiki/w/File:3rd_Age_pickaxe.png |
+| Item | Ring of 3rd Age | https://oldschool.runescape.wiki/w/File:Ring_of_3rd_Age.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | NPC | Yama | https://oldschool.runescape.wiki/w/File:Yama.png |
