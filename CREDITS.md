@@ -740,6 +740,33 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Pet | Smol heredit | https://oldschool.runescape.wiki/w/File:Smol_Heredit.png |
 | Pet | Noon | https://oldschool.runescape.wiki/w/File:Noon.png |
 | Pet | Rocky | https://oldschool.runescape.wiki/w/File:Rocky.png |
+| Item | Dharok's platelegs | https://oldschool.runescape.wiki/w/File:Dharok's_platelegs.png |
+| Item | Dharok's greataxe | https://oldschool.runescape.wiki/w/File:Dharok's_greataxe.png |
+| Item | Guthan's helm | https://oldschool.runescape.wiki/w/File:Guthan's_helm.png |
+| Item | Guthan's platebody | https://oldschool.runescape.wiki/w/File:Guthan's_platebody.png |
+| Item | Guthan's chainskirt | https://oldschool.runescape.wiki/w/File:Guthan's_chainskirt.png |
+| Item | Guthan's warspear | https://oldschool.runescape.wiki/w/File:Guthan's_warspear.png |
+| Item | Verac's helm | https://oldschool.runescape.wiki/w/File:Verac's_helm.png |
+| Item | Verac's brassard | https://oldschool.runescape.wiki/w/File:Verac's_brassard.png |
+| Item | Verac's plateskirt | https://oldschool.runescape.wiki/w/File:Verac's_plateskirt.png |
+| Item | Verac's flail | https://oldschool.runescape.wiki/w/File:Verac's_flail.png |
+| Item | Torag's helm | https://oldschool.runescape.wiki/w/File:Torag's_helm.png |
+| Item | Torag's platebody | https://oldschool.runescape.wiki/w/File:Torag's_platebody.png |
+| Item | Torag's platelegs | https://oldschool.runescape.wiki/w/File:Torag's_platelegs.png |
+| Item | Torag's hammers | https://oldschool.runescape.wiki/w/File:Torag's_hammers.png |
+| Item | Karil's crossbow | https://oldschool.runescape.wiki/w/File:Karil's_crossbow.png |
+| Item | Ahrim's staff | https://oldschool.runescape.wiki/w/File:Ahrim's_staff.png |
+| Spell | Charge | https://oldschool.runescape.wiki/w/File:Charge.png |
+| Spell | Entangle | https://oldschool.runescape.wiki/w/File:Entangle.png |
+| Spell | Mark of Darkness | https://oldschool.runescape.wiki/w/File:Mark_of_Darkness.png |
+| Spell | Ward of Arceuus | https://oldschool.runescape.wiki/w/File:Ward_of_Arceuus.png |
+| Spell | Death Charge | https://oldschool.runescape.wiki/w/File:Death_Charge.png |
+| Spell | Heal Group | https://oldschool.runescape.wiki/w/File:Heal_Group.png |
+| Spell | Blood Barrage | https://oldschool.runescape.wiki/w/File:Blood_Barrage.png |
+| Spell | Smoke Barrage | https://oldschool.runescape.wiki/w/File:Smoke_Barrage.png |
+| Spell | Shadow Barrage | https://oldschool.runescape.wiki/w/File:Shadow_Barrage.png |
+| Item | Leaf-bladed sword | https://oldschool.runescape.wiki/w/File:Leaf-bladed_sword.png |
+| Item | Leaf-bladed battleaxe | https://oldschool.runescape.wiki/w/File:Leaf-bladed_battleaxe.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |

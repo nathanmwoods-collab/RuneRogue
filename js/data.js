@@ -14,38 +14,58 @@ const HEROES = [
   { id: 'newb', name: 'Level 3 Newb', file: 'Wooden_shield_equipped.png', lane: 'melee', weapon: 'bronze_sword',
     perk: 'Fresh off Tutorial Island in starter clothes. Skill levels cost 25% less.', mods: { skillCost: 0.75 },
     skills: { attack: 3, strength: 3, defence: 3 }, quotes: [] },
-  { id: 'durial', name: 'Durial321', file: 'Durial321.png', lane: 'melee', weapon: 'rune_scimitar',
+  { id: 'durial', name: 'Durial321', file: 'Durial321.png', lane: 'melee', weapon: 'rune_scimitar', unlock: { area: 2 }, gear: { head: 'iron_full_helm', body: 'black_platebody' },
     perk: 'Star of the Falador Massacre. Deals 30% more damage but takes 15% more.', mods: { dmg: 1.3, taken: 1.15 },
     skills: { attack: 8, strength: 10 }, quotes: [] },
-  { id: 'wom', name: 'Wise Old Man', file: 'Wise_Old_Man.png', lane: 'magic', weapon: 'staff_of_air',
+  { id: 'wom', name: 'Wise Old Man', file: 'Wise_Old_Man.png', lane: 'magic', weapon: 'staff_of_air', unlock: { area: 1 }, gear: { head: 'blue_wizard_hat' },
     perk: 'Once robbed Draynor bank. Earns 40% more gold.', mods: { gold: 1.4 },
     skills: { magic: 10 }, quotes: ["Less of the 'old' man, if you please!", 'Deary deary me...', "I'm an old man! I walk with a stick!"] },
-  { id: 'sedridor', name: 'Archmage Sedridor', file: 'Archmage_Sedridor.png', lane: 'magic', weapon: 'staff_of_air',
+  { id: 'sedridor', name: 'Archmage Sedridor', file: 'Archmage_Sedridor.png', lane: 'magic', weapon: 'staff_of_air', unlock: { area: 5 }, gear: { head: 'mystic_hat', body: 'mystic_robe_top', legs: 'mystic_robe_bottom', neck: 'amulet_of_magic' },
     perk: 'Head of the Wizards\' Tower from Rune Mysteries. Spells splash 40% wider.', mods: { splash: 1.4 },
     skills: { magic: 12 }, quotes: ['Senventior disthine molenko!', 'Strange and powerful magicks lurk here.', 'Nothing more than Zamorakian hearsay!'] },
-  { id: 'arianwyn', name: 'Arianwyn', file: 'Arianwyn.png', lane: 'ranged', weapon: 'shortbow',
+  { id: 'arianwyn', name: 'Arianwyn', file: 'Arianwyn.png', lane: 'ranged', weapon: 'shortbow', unlock: { area: 9 },
+    kits: [
+      { name: 'Elven scout', weapon: 'magic_longbow', gear: { head: 'robin_hood_hat', body: 'hardleather_body', legs: 'leather_chaps', feet: 'ranger_boots', ammo: 'rune_arrow', ring: 'archers_ring' } },
+      { name: 'Crossbow sniper', weapon: 'rune_crossbow', gear: { head: 'coif', body: 'hardleather_body', hands: 'leather_vambraces', feet: 'snakeskin_boots', neck: 'amulet_of_glory', cape: 'cape_of_legends' } },
+    ],
     perk: 'Elf scout from Regicide. Moves 15% faster and shoots 20% further.', mods: { speed: 1.15, range: 1.2 },
     skills: { ranged: 8, agility: 5 }, quotes: ['Not yet, I will try to send word if we find out anything new.'] },
-  { id: 'sandwich', name: 'Sandwich lady', file: 'Sandwich_lady.png', lane: 'ranged', weapon: 'sandwich_tray',
+  { id: 'sandwich', name: 'Sandwich lady', file: 'Sandwich_lady.png', lane: 'ranged', weapon: 'sandwich_tray', unlock: { area: 3 }, gear: { feet: 'leather_boots', neck: 'amulet_of_power' },
     perk: 'The random event who will not take no for an answer. Throws sandwiches, finds pies twice as often and they heal 50% more.', mods: { pieChance: 2, pieHeal: 1.5 },
     skills: { ranged: 9, hitpoints: 12 }, quotes: ["Hey, I didn't say you could have that!", 'Maybe later.'] },
-  // Unlockable heroes. unlock.area: clear that area's boss once. unlock.sticks: buy with trading sticks.
-  { id: 'zanik', name: 'Zanik', file: 'Zanik.png', lane: 'ranged', weapon: 'dorgeshuun_crossbow', unlock: { area: 0 },
+  // Every run starts as the Level 3 Newb until you progress. unlock.area: clear that area's boss once to unlock.
+  // Later heroes start with more gear, and the hardest to reach let you pick a starting kit.
+  { id: 'zanik', name: 'Zanik', file: 'Zanik.png', lane: 'ranged', weapon: 'dorgeshuun_crossbow', unlock: { area: 0 }, gear: { body: 'leather_body' },
     perk: 'Cave goblin heroine of the Dorgeshuun, found under Lumbridge in The Lost Tribe. Moves 10% faster and takes 10% less damage.', mods: { speed: 1.1, taken: 0.9 },
     skills: { ranged: 8, agility: 6 }, quotes: [] },
-  { id: 'amik', name: 'Sir Amik Varze', file: 'Sir_Amik_Varze.png', lane: 'melee', weapon: 'rune_scimitar', unlock: { area: 4 },
+  { id: 'amik', name: 'Sir Amik Varze', file: 'Sir_Amik_Varze.png', lane: 'melee', weapon: 'rune_scimitar', unlock: { area: 4 }, gear: { head: 'rune_full_helm', body: 'rune_platebody', legs: 'rune_platelegs', shield: 'rune_kiteshield' },
     perk: 'Leader of the White Knights of Falador. +20 max hitpoints and prayer drains 30% slower.', mods: { hp: 20, ppDrain: 0.7 },
     skills: { attack: 10, strength: 10, defence: 10 }, quotes: [] },
   { id: 'osmumten', name: 'Osmumten', file: 'Osmumten.png', lane: 'melee', weapon: 'abyssal_tentacle', unlock: { area: 13 },
+    kits: [
+      { name: 'Tomb raider', weapon: 'abyssal_tentacle', gear: { head: 'berserker_helm', body: 'fighter_torso', legs: 'dragon_platelegs', shield: 'dragon_defender', hands: 'barrows_gloves', feet: 'dragon_boots', neck: 'amulet_of_fury', cape: 'fire_cape' } },
+      { name: 'Spear of the sands', weapon: 'zamorakian_spear', gear: { head: 'helm_of_neitiznot', body: 'bandos_chestplate', legs: 'bandos_tassets', shield: 'dragon_defender', hands: 'barrows_gloves', feet: 'dragon_boots', ring: 'berserker_ring' } },
+      { name: 'Crusher', weapon: 'abyssal_bludgeon', gear: { head: 'helm_of_neitiznot', body: 'fighter_torso', legs: 'dragon_platelegs', hands: 'dragon_gloves', feet: 'guardian_boots', neck: 'amulet_of_torture', cape: 'mythical_cape', ring: 'warrior_ring' } },
+    ],
     perk: 'The archaeologist of the Tombs of Amascut. Dragonfire and other magic hit 30% softer, and +30 max hitpoints.', mods: { magicTaken: 0.7, hp: 30 },
     skills: { attack: 30, strength: 30, defence: 20 }, quotes: [] },
-  { id: 'merlin', name: 'Merlin', file: 'Merlin.png', lane: 'magic', weapon: 'staff_of_fire', unlock: { sticks: 300 },
+  { id: 'merlin', name: 'Merlin', file: 'Merlin.png', lane: 'magic', weapon: 'staff_of_fire', unlock: { area: 11 },
+    kits: [
+      { name: 'Camelot archmage', weapon: 'trident_of_the_seas', gear: { head: 'infinity_hat', body: 'infinity_top', legs: 'infinity_bottoms', feet: 'infinity_boots', neck: 'occult_necklace', ring: 'seers_ring' } },
+      { name: 'Ancient scholar', weapon: 'ancient_staff', gear: { head: 'mystic_hat', body: 'mystic_robe_top', legs: 'mystic_robe_bottom', shield: 'book_of_darkness', hands: 'mystic_gloves', neck: 'amulet_of_glory', cape: 'imbued_saradomin_cape' } },
+      { name: 'Wand duelist', weapon: 'master_wand', gear: { head: 'infinity_hat', body: 'infinity_top', legs: 'infinity_bottoms', shield: 'book_of_darkness', feet: 'mystic_boots', ring: 'ring_of_recoil' } },
+    ],
     perk: 'The great wizard of Camelot from Merlin\'s Crystal. Spells splash 20% wider and hit bosses 25% harder.', mods: { splash: 1.2, bossDmg: 1.25 },
     skills: { magic: 16 }, quotes: [] },
-  { id: 'nieve', name: 'Nieve', file: 'Nieve.png', lane: 'ranged', weapon: 'magic_shortbow', unlock: { sticks: 250 },
+  { id: 'nieve', name: 'Nieve', file: 'Nieve.png', lane: 'ranged', weapon: 'magic_shortbow', unlock: { area: 7 }, gear: { head: 'coif', body: 'hardleather_body', feet: 'snakeskin_boots', ammo: 'adamant_arrow', ring: 'ring_of_recoil' },
     perk: 'Slayer master of the Gnome Stronghold. 10% extra critical hits and Slayer starts at 10.', mods: { crit: 0.1 },
     skills: { ranged: 12, slayer: 10 }, quotes: [] },
-  { id: 'bob', name: 'Bob the Jagex cat', file: 'Bob_the_Jagex_cat.png', lane: 'magic', weapon: 'staff_of_air', unlock: { sticks: 400 },
+  { id: 'bob', name: 'Bob the Jagex cat', file: 'Bob_the_Jagex_cat.png', lane: 'magic', weapon: 'staff_of_air', unlock: { area: 15 },
+    kits: [
+      { name: 'Nine lives', weapon: 'trident_of_the_swamp', gear: { head: 'ancestral_hat', body: 'ancestral_robe_top', legs: 'ancestral_robe_bottom', hands: 'tormented_bracelet', feet: 'eternal_boots', neck: 'occult_necklace', cape: 'imbued_zamorak_cape', ring: 'seers_ring_i', shield: 'arcane_spirit_shield' } },
+      { name: 'Cat burglar', weapon: 'toxic_staff_of_the_dead', gear: { head: 'virtus_mask', body: 'virtus_robe_top', legs: 'virtus_robe_bottom', hands: 'regen_bracelet', feet: 'eternal_boots', neck: 'amulet_of_glory', ring: 'ring_of_wealth', shield: 'spectral_spirit_shield' } },
+      { name: 'Jagex HQ', weapon: 'kodai_wand', gear: { head: 'infinity_hat', body: 'infinity_top', legs: 'infinity_bottoms', feet: 'infinity_boots', neck: 'amulet_of_fury', cape: 'max_cape', shield: 'book_of_darkness' } },
+    ],
     perk: 'The famous cat of Gielinor. Nine lives: once per run, survive a killing blow with half your hitpoints.', mods: { lives: 1, gold: 1.3 },
     skills: { magic: 6, agility: 15, thieving: 15 }, quotes: [] },
   { id: 'woox', name: 'Woox', file: 'Mysterious_Adventurer.png', lane: 'ranged', weapon: 'toxic_blowpipe', unlock: { boss: 'clue_corp', secret: 'A wanderer in search of a new challenge. Prove you can stand alone against a beast few would face.' },
@@ -421,7 +441,7 @@ const SKILLS = [
   { id: 'prayer', name: 'Prayer', file: 'Prayer_icon.png', lane: 'any', start: 1, info: '+2 prayer, slower drain' },
   { id: 'agility', name: 'Agility', file: 'Agility_icon.png', lane: 'any', start: 1, info: '+0.6% run speed' },
   { id: 'thieving', name: 'Thieving', file: 'Thieving_icon.png', lane: 'any', start: 1, info: '+2% gold from kills' },
-  { id: 'slayer', name: 'Slayer', file: 'Slayer_icon.png', lane: 'any', start: 1, info: '+0.5% critical hits' },
+  { id: 'slayer', name: 'Slayer', file: 'Slayer_icon.png', lane: 'any', start: 1, info: '+0.5% critical hits. Real slayer drops need their Slayer level' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -1090,3 +1110,74 @@ const PETS = [
   { id: 'rocky', name: 'Rocky', file: 'Rocky.png', from: ['goblin', 'hobgoblin', 'rev_goblin'], src: 'Goblins that steal your coins', thief: true },
 ];
 const PET_RATE = { route: 1 / 40, clue: 1 / 25, thief: 1 / 400 };
+
+// ---------- Barrows equipment and set effects (wear all four pieces of one brother) ----------
+item('dharoks_platelegs', "Dharok's platelegs", 'melee', 'legs', 7, 'uncommon', { def: 12, hp: 6 });
+item('dharoks_greataxe', "Dharok's greataxe", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 50, cd: 1.05, reach: 95, arc: 2.4 } });
+item('guthans_helm', "Guthan's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
+item('guthans_platebody', "Guthan's platebody", 'melee', 'body', 7, 'uncommon', { def: 15, hp: 10 });
+item('guthans_chainskirt', "Guthan's chainskirt", 'melee', 'legs', 7, 'uncommon', { def: 11, hp: 6 });
+item('guthans_warspear', "Guthan's warspear", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', dmg: 27, cd: 0.6, reach: 120, arc: 1.0 } });
+item('veracs_helm', "Verac's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
+item('veracs_brassard', "Verac's brassard", 'melee', 'body', 7, 'uncommon', { def: 13, hp: 8 });
+item('veracs_plateskirt', "Verac's plateskirt", 'melee', 'legs', 7, 'uncommon', { def: 11, hp: 6 });
+item('veracs_flail', "Verac's flail", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 29, cd: 0.6, reach: 92, arc: 1.8 } });
+item('torags_helm', "Torag's helm", 'melee', 'head', 7, 'uncommon', { def: 10, hp: 5 });
+item('torags_platebody', "Torag's platebody", 'melee', 'body', 7, 'uncommon', { def: 16, hp: 10 });
+item('torags_platelegs', "Torag's platelegs", 'melee', 'legs', 7, 'uncommon', { def: 13, hp: 6 });
+item('torags_hammers', "Torag's hammers", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 17, cd: 0.7, reach: 88, arc: 1.8, hits: 2 } });
+item('karils_crossbow', "Karil's crossbow", 'ranged', 'weapon', 6, 'uncommon', { w: { kind: 'shot', dmg: 30, cd: 0.55, range: 450, speed: 1080, pierce: 2, count: 1, bolt: true } });
+item('ahrims_staff', "Ahrim's staff", 'magic', 'weapon', 6, 'uncommon', { w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 30, cd: 0.78, range: 420, speed: 640, splash: 66, color: '#ff7a1a' } });
+// Set effects from the wiki, turned into this game's terms. 25% of hits trigger them (Dharok's always works).
+const BARROWS_SETS = {
+  dharok: { name: "Dharok's", effect: 'Wretched Strength', pieces: ['dharoks_helm', 'dharoks_platebody', 'dharoks_platelegs', 'dharoks_greataxe'], info: 'Up to +60% damage the lower your hitpoints are' },
+  guthan: { name: "Guthan's", effect: 'Infestation', pieces: ['guthans_helm', 'guthans_platebody', 'guthans_chainskirt', 'guthans_warspear'], info: '25% of hits heal you for half the damage dealt (up to 8% of your max HP per heal)' },
+  verac: { name: "Verac's", effect: 'Defiler', pieces: ['veracs_helm', 'veracs_brassard', 'veracs_plateskirt', 'veracs_flail'], info: '25% of hits ignore the enemy\'s resistance to your style and deal +25% damage' },
+  torag: { name: "Torag's", effect: 'Corruption', pieces: ['torags_helm', 'torags_platebody', 'torags_platelegs', 'torags_hammers'], info: '25% of hits drain the enemy\'s run energy: 40% slower for 3 sec' },
+  karil: { name: "Karil's", effect: 'Tainted Shot', pieces: ['karils_coif', 'karils_leathertop', 'karils_leatherskirt', 'karils_crossbow'], info: '25% of hits lower the enemy\'s Agility: 25% slower for 5 sec' },
+  ahrim: { name: "Ahrim's", effect: 'Blighted Aura', pieces: ['ahrims_hood', 'ahrims_robetop', 'ahrims_robeskirt', 'ahrims_staff'], info: '25% of hits lower the enemy\'s Strength: it hits you 20% softer for 5 sec' },
+};
+for (const k in BARROWS_SETS) for (const id of BARROWS_SETS[k].pieces) ITEMS[id].barrows = k;
+
+// ---------- Spellbooks: your staff keeps autocasting; you also carry one special spell on a cooldown (R) ----------
+// area: the area whose boss you must beat once to unlock the book (-1 = from the start).
+const SPELLBOOKS = {
+  standard: { name: 'Standard spellbook', area: -1 },
+  arceuus: { name: 'Arceuus spellbook', area: 1 },
+  lunar: { name: 'Lunar spellbook', area: 11 },
+  ancient: { name: 'Ancient Magicks', area: 12 },
+};
+const SPELLS = [
+  { id: 'charge', book: 'standard', name: 'Charge', file: 'Charge.png', cd: 30, info: '+40% damage for 10 sec' },
+  { id: 'entangle', book: 'standard', name: 'Entangle', file: 'Entangle.png', cd: 22, info: 'Holds every normal enemy near you in place for 3 sec' },
+  { id: 'thrall', book: 'arceuus', name: 'Resurrect Greater Ghost', file: 'Resurrect_Greater_Ghost.png', cd: 40, info: 'A ghostly thrall fights beside you for 20 sec' },
+  { id: 'mark', book: 'arceuus', name: 'Mark of Darkness', file: 'Mark_of_Darkness.png', cd: 35, info: 'Enemies take +25% damage from you for 15 sec' },
+  { id: 'ward', book: 'arceuus', name: 'Ward of Arceuus', file: 'Ward_of_Arceuus.png', cd: 35, info: 'Take 25% less damage for 12 sec' },
+  { id: 'dcharge', book: 'arceuus', name: 'Death Charge', file: 'Death_Charge.png', cd: 40, info: 'For 20 sec, every kill restores 15% special attack energy' },
+  { id: 'veng', book: 'lunar', name: 'Vengeance', file: 'Vengeance.png', cd: 30, info: 'The next hit you take is thrown back at 75% of its damage' },
+  { id: 'heal_group', book: 'lunar', name: 'Heal Group', file: 'Heal_Group.png', cd: 45, info: 'Heals 30% of your max hitpoints' },
+  { id: 'ice_barrage', book: 'ancient', name: 'Ice Barrage', file: 'Ice_Barrage.png', cd: 16, info: 'Big hit on a group that freezes normal enemies for 4 sec', color: '#9fe8ff' },
+  { id: 'blood_barrage', book: 'ancient', name: 'Blood Barrage', file: 'Blood_Barrage.png', cd: 16, info: 'Big hit on a group that heals you for part of the damage', color: '#c0203a' },
+  { id: 'smoke_barrage', book: 'ancient', name: 'Smoke Barrage', file: 'Smoke_Barrage.png', cd: 16, info: 'Big hit on a group that poisons them', color: '#9a9a8a' },
+  { id: 'shadow_barrage', book: 'ancient', name: 'Shadow Barrage', file: 'Shadow_Barrage.png', cd: 16, info: 'Big hit on a group that makes them hit you 20% softer for 6 sec', color: '#5a4a7a' },
+];
+
+// ---------- Slayer ----------
+// Real slayer drops need their real Slayer level before the shop or a casket will hand them over.
+item('leaf_bladed_sword', 'Leaf-bladed sword', 'melee', 'weapon', 3, 'uncommon', { w: { kind: 'swing', wt: 'sword', dmg: 17, cd: 0.55, reach: 86, arc: 1.7 } });
+item('leaf_bladed_battleaxe', 'Leaf-bladed battleaxe', 'melee', 'weapon', 4, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 30, cd: 0.8, reach: 90, arc: 2.2 } });
+item('slayer_helmet', 'Slayer helmet', 'any', 'head', 4, 'uncommon', { def: 7, task: 0.16, info: '+16% damage to your Slayer task' });
+const SLAYER_REQ = {
+  leaf_bladed_sword: [55, 'kurask'], leaf_bladed_battleaxe: [55, 'kurask'], neitiznot_faceguard: [60, 'basilisk knights'],
+  granite_maul: [75, 'gargoyles'], granite_ring: [75, 'the Grotesque Guardians'], dragon_boots: [83, 'spiritual mages'],
+  abyssal_whip: [85, 'abyssal demons'], abyssal_bludgeon: [85, 'the Abyssal Sire'], abyssal_tentacle: [87, 'the Kraken'],
+  trident_of_the_seas: [87, 'cave krakens'], dark_bow: [90, 'dark beasts'], occult_necklace: [93, 'smoke devils'],
+  ferocious_gloves: [95, 'Alchemical Hydra leather'],
+};
+for (const id in SLAYER_REQ) if (ITEMS[id]) { ITEMS[id].slayer = SLAYER_REQ[id][0]; ITEMS[id].slayerSrc = SLAYER_REQ[id][1]; }
+// Slayer reward shop unlocks, bought with slayer points from finished tasks. Names are the real Slayer rewards.
+const SLAYER_UNLOCKS = [
+  { id: 'masq', name: 'Malevolent masquerade', file: 'Slayer_helmet.png', cost: 80, info: 'Slayer helmets turn up in shops: +16% damage to your task' },
+  { id: 'bigger', name: 'Bigger and Badder', file: 'Slayer_icon.png', cost: 30, info: 'Task monsters are 5× as likely to become superiors' },
+  { id: 'boss', name: 'Like a boss', file: 'Slayer_icon.png', cost: 40, info: 'Each area boss you beat also counts as a task: +10 points, plus 2 per area' },
+];

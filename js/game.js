@@ -89,6 +89,7 @@ addEventListener('keydown', (e) => {
   if (k === 'e') useItem('shark');
   if (k === 'q') useItem('ppot');
   if (k === ' ') specialAttack();
+  if (k === 'r') castSpell();
   if (k === 'p' || k === 'escape') togglePause();
 });
 addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -110,6 +111,7 @@ cv.addEventListener('pointerup', endStick);
 cv.addEventListener('pointercancel', endStick);
 
 document.getElementById('specBtn').addEventListener('click', () => specialAttack());
+document.getElementById('spellBtn').addEventListener('click', () => castSpell());
 document.querySelectorAll('.pbtn[data-pray], .pbtn[data-use]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.pray) togglePrayer(b.dataset.pray); else useItem(b.dataset.use);
 }));
@@ -178,8 +180,9 @@ function showAch() {
 function saveMeta() { try { localStorage.setItem('runerogue.meta', JSON.stringify(meta)); } catch (e) { /* optional */ } }
 function heroUnlocked(h) {
   if (!h.unlock) return true;
+  if (meta.heroes.includes(h.id)) return true; // bought or earned before progression unlocks
   if (h.unlock.area !== undefined) return meta.cleared >= h.unlock.area;
-  return meta.heroes.includes(h.id);
+  return false;
 }
 function unlockText(h) {
   if (h.unlock.area !== undefined) return `Clear ${AREAS[h.unlock.area].name} to unlock`;
@@ -214,9 +217,11 @@ function newRun(hero) {
   for (const s of SLOTS) gear[s] = null;
   gear.weapon = hero.weapon;
   Object.assign(gear, hero.gear || {});
+  const kit = hero.kits && hero.kits[pickedKit];
+  if (kit) { gear.weapon = kit.weapon; Object.assign(gear, kit.gear || {}); }
   gearBarKey = '';
   run = {
-    hero, skills, gear,
+    hero, skills, gear, sp: {}, spellCd: 0,
     invo: { ...(meta.invo || {}) }, raid: raidLevel(meta.invo || {}), livesUsed: 0, skull: false, skullAsked: false,
     inv: { shark: Math.round((2 + upVal('shark')) * supplyMult(meta.invo || {})), ppot: Math.round(supplyMult(meta.invo || {})) },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
@@ -250,6 +255,9 @@ function gearPenalty(gear, style) {
 }
 
 function gearItems() { return SLOTS.map((s) => run.gear[s]).filter(Boolean).map((id) => ITEMS[id]); }
+// Barrows: the set effect works only with all four pieces of one brother on.
+function barrowsSet() { for (const k in BARROWS_SETS) if (BARROWS_SETS[k].pieces.every((id) => SLOTS.some((sl) => run.gear[sl] === id))) return k; return null; }
+function eDrain(e) { return e && e.drainT > 0 ? 0.8 : 1; }
 
 function stats() {
   const h = run.hero, s = run.skills, m = h.mods || {};
@@ -258,6 +266,7 @@ function stats() {
   const weapon = ITEMS[run.gear.weapon].w;
   const lane = KIND_STYLE[weapon.kind];
   let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane)) * (1 + 0.15 * bv('might')) * (ycon('severance') ? 1.6 : 1);
+  if (run.sp && run.sp.charge > 0) dmgMult *= 1.4;
   if (run.weakT > 0) dmgMult *= 0.85; // the Weaken spell, King Black Dragon's shock breath
   let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd') * (1 + 0.15 * bv('haste')) * (ycon('bloodied') ? 1.5 : 1);
   const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach')) * (inv('myopia') ? 0.75 : 1);
@@ -276,7 +285,7 @@ function stats() {
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
     reduce: inv('relentless') ? 0 : Math.min(0.75, defPts / 100),
-    taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
+    taken: (m.taken || 1) * takenGear * (run.sp && run.sp.ward > 0 ? 0.75 : 1) * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: (run.p && run.p.slowT > 0 ? 0.6 : 1) * 230 * (run.frogT > 0 ? 0.5 : 1) * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
     goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1) * (run.skull ? SKULL.gold : 1),
     crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit') + (ycon('glyphic') ? 0.25 : 0),
@@ -297,6 +306,7 @@ function startStage() {
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false; run.door = null;
+  if (!isBoss && !area.raid && !run.task) assignTask();
   run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.thiefTold = false;
   endEvent();
   if (subIndex() === 0) run.phoenixUsed = false;
@@ -458,7 +468,7 @@ function spawnTick(dt) {
     if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
     if (run.quartet && area.elites.length) { run.quartet = false; id = area.elites[Math.floor(Math.random() * area.elites.length)]; }
     const m = spawnMonster(id, pos.x, pos.y);
-    if (!isBoss && !m.d.elite && Math.random() < SUPERIOR_CHANCE * (1 + luckVal())) makeSuperior(m);
+    if (!isBoss && !m.d.elite && Math.random() < SUPERIOR_CHANCE * (1 + luckVal()) * (run.task && run.task.id === id && slayUnlocked('bigger') ? 5 : 1)) makeSuperior(m);
     if (inv('duo') && m.d.elite && !isBoss) { const p2 = spreadSpawn(); spawnMonster(id, p2.x, p2.y); }
     if (!isBoss && a >= 1 && !m.d.caster && Math.random() < Math.min(0.45, 0.2 + a * 0.02)) mixStyle(m);
     burst(pos.x, pos.y, '#d8c8a0', 8);
@@ -549,6 +559,7 @@ function endStage() {
   if (isBoss && areaIndex() > meta.cleared) {
     meta.cleared = areaIndex(); saveMeta();
     for (const h of HEROES) if (h.unlock && h.unlock.area === meta.cleared) chat(`New hero unlocked: ${h.name}!`, 'r');
+    for (const b in SPELLBOOKS) if (SPELLBOOKS[b].area === meta.cleared) chat(`New spellbook unlocked: ${SPELLBOOKS[b].name}! Pick a spell from it on the Spellbook screen.`, 'r');
   }
   sfx(660, 0.12, 'triangle', 0.06); setTimeout(() => sfx(880, 0.18, 'triangle', 0.06), 120);
   if (run.stage >= TOTAL_STAGES - 1) { victory(); return; }
@@ -1268,8 +1279,13 @@ function openCasket(pk) {
   const a = areaIndex(), tier = pk.tier ?? 3, T = CLUE_TIERS[tier];
   // higher tier caskets reach further up the item list and lean rarer; a master casket can hold a mega rare anywhere
   const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
-    it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id);
+    it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id && (it.id !== 'slayer_helmet' || slayUnlocked('masq')));
   const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 / T.weight : 1.5 * T.weight) }));
+  // A Barrows brother's casket always offers one piece of his own set you aren't wearing yet.
+  if (pk.barrows) {
+    const own = BARROWS_SETS[pk.barrows].pieces.filter((id) => !SLOTS.some((sl) => run.gear[sl] === id));
+    if (own.length) { const it = ITEMS[evPick(own)]; choices.push(it); const j = bag.findIndex((b) => b.it === it); if (j >= 0) bag.splice(j, 1); }
+  }
   while (choices.length < (tier >= 5 ? 4 : 3) && bag.length) {
     const total = bag.reduce((x, b) => x + b.wt, 0);
     let r = Math.random() * total, i = 0;
@@ -1303,18 +1319,24 @@ function rollDamage(base, target, st) {
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
   if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
   if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
+  if (run.sp.mark > 0) dmg *= 1.25;
+  if (run.task && target.id === run.task.id) dmg *= 1 + gearItems().reduce((x, it) => x + (it.task || 0), 0);
+  if (barrowsSet() === 'dharok') dmg *= 1 + 0.6 * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 
 function damageEnemy(e, dmg, crit, opts = {}) {
   if (e.dead) return;
+  const bset = !opts.venom && dmg > 0 && !e.immune && barrowsSet();
+  const proc = bset && bset !== 'dharok' && Math.random() < 0.25 ? bset : null;
+  if (proc === 'verac') dmg = Math.round(dmg * 1.25);
   if (e.immune) { dmg = 0; }
   else if (e.mirror && weaponStyle() !== e.mirror && dmg > 0) {
     // Nylocas Vasilias: the wrong style bounces back at you and heals it
     e.hp = Math.min(e.maxHp, e.hp + dmg); hurtPlayer(dmg * 0.5, e.mirror, { pure: true });
     if (!e.ai.mirrorTold) { e.ai.mirrorTold = true; chat('Wrong style! The damage bounces back and heals Nylocas Vasilias.', 'r'); }
     dmg = 0;
-  } else if (e.resist && e.resist[weaponStyle()]) dmg = Math.round(dmg * e.resist[weaponStyle()]);
+  } else if (e.resist && e.resist[weaponStyle()] && proc !== 'verac') dmg = Math.round(dmg * e.resist[weaponStyle()]);
   dmg = creatureDamage(e, dmg);
   // Xarpus: attacking him from the quadrant he stares at brings a poison retaliation
   if (e.d.boss === 'xarpus' && e.ai.stare !== undefined && e.hp < e.maxHp * 0.25 && dmg > 0 && quadOf(run.p.x, run.p.y) === e.ai.stare && (e.ai.ret = e.ai.ret || 0) <= run.stageT) {
@@ -1332,6 +1354,13 @@ function damageEnemy(e, dmg, crit, opts = {}) {
   if (opts.knock && !e.d.boss) {
     const a = Math.atan2(e.y - run.p.y, e.x - run.p.x);
     e.kx += Math.cos(a) * opts.knock * 4; e.ky += Math.sin(a) * opts.knock * 4;
+  }
+  if (proc && dmg > 0) {
+    if (proc === 'guthan') { const mx = stats().maxHp, h = Math.min(dmg * 0.5, mx * 0.08); run.p.hp = Math.min(mx, run.p.hp + h); splats.push({ x: run.p.x, y: run.p.y - 80, v: Math.round(h), t: 0.8, kind: 'heal' }); }
+    if (proc === 'torag') { e.bslow = 0.6; e.bslowT = 3; }
+    if (proc === 'karil') { e.bslow = Math.min(e.bslowT > 0 ? e.bslow : 1, 0.75); e.bslowT = Math.max(e.bslowT || 0, 5); }
+    if (proc === 'ahrim') e.drainT = 5;
+    fx.push({ kind: 'label', x: e.x, y: e.y - e.d.size * 0.6, t: 0.9, max: 0.9, txt: BARROWS_SETS[proc].effect, color: '#c8a0ff' });
   }
   const leech = (opts.leech || 0) + 0.03 * bv('vamp');
   if (leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech * PLAYER_LEECH);
@@ -1371,7 +1400,8 @@ function killEnemy(e) {
     maybeDropPotion(e);
   } else if (e.clueBoss) {
     const tier = e.clueTier ?? 3;
-    pickups.push({ kind: 'casket', tier, x: e.x, y: e.y, t: 0 });
+    const bro = e.id.replace('clue_', '');
+    pickups.push({ kind: 'casket', tier, x: e.x, y: e.y, t: 0, barrows: BARROWS_SETS[bro] ? bro : null });
     chat(`The ${e.d.name} drops ${aAn(CLUE_TIERS[tier].name).toLowerCase()} ${CLUE_TIERS[tier].name.toLowerCase()} reward casket!`, 'r');
     // on top of the casket: sometimes a clue one tier higher
     if (tier < 5 && Math.random() < CLUE_UPGRADE_CHANCE * (1 + luckVal() * 0.5)) {
@@ -1391,8 +1421,149 @@ function killEnemy(e) {
   if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
   maybeDropArtefact(e);
   maybeDropPet(e);
+  slayerKill(e);
+  if (run.sp.dcharge > 0 && !e.summoned) run.spec = Math.min(100, run.spec + 15);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
   if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
+}
+
+// ---------- Slayer ----------
+function slayUnlocked(id) { return !!(meta.slay || {})[id]; }
+function slayLocked(it) { return !!(it.slayer && run && run.skills.slayer < it.slayer); }
+function assignTask() {
+  const elite = area.elites.length && Math.random() < 0.3;
+  const id = evPick(elite ? area.elites : area.hordes);
+  const need = elite ? 4 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 11);
+  run.task = { id, name: MONSTERS[id].name, need, got: 0, elite };
+  chat(`New Slayer task: kill ${need} × ${MONSTERS[id].name}.`, 'b');
+}
+function slayerPoints(n, why) {
+  meta.slayPts = (meta.slayPts || 0) + n; saveMeta();
+  const lv = Math.min(99, run.skills.slayer + 3) - run.skills.slayer;
+  run.skills.slayer += lv;
+  chat(`${why} +${n} Slayer points (${meta.slayPts} total)${lv ? `, +${lv} Slayer levels` : ''}.`, 'r');
+  sfx(660, 0.2, 'triangle', 0.06); setTimeout(() => sfx(990, 0.3, 'triangle', 0.06), 150);
+}
+function slayerKill(e) {
+  if (e.summoned) return;
+  if (e.d.boss && !e.raidBoss && !e.clueBoss && isBoss && slayUnlocked('boss') && e.id === area.boss) slayerPoints(10 + 2 * areaIndex(), `Boss task done: ${e.d.name}.`);
+  const t = run.task;
+  if (!t || e.id !== t.id) return;
+  t.got++;
+  if (t.got < t.need) return;
+  run.task = null;
+  run.tasksDone = (run.tasksDone || 0) + 1;
+  meta.tasks = (meta.tasks || 0) + 1;
+  slayerPoints(Math.round((t.elite ? 12 : 8) + areaIndex() * 3), `Slayer task complete: ${t.need} × ${t.name}.`);
+}
+function renderSlayer() {
+  if (run && mode !== 'over') return;
+  meta.slay = meta.slay || {};
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Slayer rewards'));
+  head.appendChild(el('div', 'purse txt', `${(meta.slayPts || 0).toLocaleString()} Slayer points`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', `During a run you get Slayer tasks: kill a number of one monster from the area. Each finished task gives Slayer points (kept forever) and +3 Slayer levels. Real slayer drops like the abyssal whip need their real Slayer level before you can take them. Tasks done so far: ${meta.tasks || 0}.`));
+  const g = el('div', 'grid offers invos'); s.appendChild(g);
+  for (const u of SLAYER_UNLOCKS) {
+    const has = !!meta.slay[u.id], can = !has && (meta.slayPts || 0) >= u.cost;
+    const c = el('button', 'card offer invo' + (has ? ' sel' : '') + (has || can ? '' : ' locked')); c.type = 'button';
+    const art = el('div', 'art'); art.appendChild(imgTag(u.file, u.name)); c.appendChild(art);
+    c.appendChild(el('div', 'nm', u.name));
+    c.appendChild(el('div', 'lvl', has ? 'Unlocked' : `${u.cost} points`));
+    c.appendChild(el('div', 'ds', u.info));
+    c.addEventListener('click', () => { if (!can) return; meta.slayPts -= u.cost; meta.slay[u.id] = true; saveMeta(); sfx(620, 0.1, 'triangle', 0.06); renderSlayer(); });
+    g.appendChild(c);
+  }
+  const h2 = el('div', 'sec-title', 'Slayer level needed for slayer drops'); h2.style.marginTop = '14px'; s.appendChild(h2);
+  const g2 = el('div', 'grid offers invos'); s.appendChild(g2);
+  for (const id of Object.keys(SLAYER_REQ).filter((x) => ITEMS[x]).sort((a, b) => ITEMS[a].slayer - ITEMS[b].slayer)) {
+    const it = ITEMS[id], c = el('div', 'card offer invo');
+    const art = el('div', 'art'); art.appendChild(imgTag(it.file, it.name)); c.appendChild(art);
+    c.appendChild(el('div', 'nm', it.name));
+    c.appendChild(el('div', 'lvl', `Level ${it.slayer} Slayer`));
+    c.appendChild(el('div', 'ds', `Dropped by ${it.slayerSrc}`));
+    g2.appendChild(c);
+  }
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
+  s.appendChild(r);
+  $('hud').hidden = true;
+  screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
+}
+
+// ---------- Spellbooks ----------
+const SPELL_BY_ID = {};
+for (const sp of SPELLS) SPELL_BY_ID[sp.id] = sp;
+function bookUnlocked(b) { return SPELLBOOKS[b].area < 0 || meta.cleared >= SPELLBOOKS[b].area; }
+function currentSpell() { const sp = SPELL_BY_ID[meta.spell]; return sp && bookUnlocked(sp.book) ? sp : SPELL_BY_ID.charge; }
+function thrallLvl() { return bv('thrall') + (run.sp && run.sp.thrall > 0 ? 2 : 0); }
+function castSpell() {
+  if (mode !== 'play' || !run) return;
+  const S = currentSpell(), p = run.p, st = stats();
+  if (run.spellCd > 0) { chat(`${S.name} is ready again in ${Math.ceil(run.spellCd)} sec.`, 'b'); return; }
+  if (S.book === 'ancient') {
+    const t = nearestEnemy(p.x, p.y, 520);
+    if (!t) { chat('There is nothing in range to cast it on.', 'b'); return; }
+    const R = 150, hit = enemies.filter((e) => !e.dead && !e.untargetable && e.ai.burrow <= 0 && Math.hypot(e.x - t.x, e.y - t.y) < R + e.r);
+    const base = Math.max(10, weaponDps(st) * 2.5);
+    let total = 0;
+    for (const e of hit) {
+      const before = e.hp;
+      damageEnemy(e, Math.round(base * (e.d.boss ? 0.7 : 1) * (0.8 + Math.random() * 0.2)), false);
+      total += Math.max(0, before - Math.max(0, e.hp));
+      if (e.dead) continue;
+      if (S.id === 'ice_barrage' && !e.d.boss) e.frozen = Math.max(e.frozen, 4);
+      if (S.id === 'smoke_barrage') { e.venomT = 6; e.venomDps = base * 0.12; }
+      if (S.id === 'shadow_barrage') e.drainT = 6;
+    }
+    if (S.id === 'blood_barrage') { const h = Math.min(st.maxHp * 0.25, total * 0.25); p.hp = Math.min(st.maxHp, p.hp + h); if (h >= 1) splats.push({ x: p.x, y: p.y - 80, v: Math.round(h), t: 0.8, kind: 'heal' }); }
+    fx.push({ kind: 'boom', x: t.x, y: t.y, r: R, t: 0.5, max: 0.5, color: S.color });
+    burst(t.x, t.y, S.color, 30);
+  } else if (S.id === 'charge') { run.sp.charge = 10; chat('You feel charged with magic power.', 'b'); }
+  else if (S.id === 'entangle') {
+    let n = 0;
+    for (const e of enemies) if (!e.dead && !e.d.boss && Math.hypot(e.x - p.x, e.y - p.y) < 300) { e.frozen = Math.max(e.frozen, 3); n++; }
+    fx.push({ kind: 'boom', x: p.x, y: p.y, r: 300, t: 0.5, max: 0.5, color: '#5fae3a' });
+  }
+  else if (S.id === 'thrall') run.sp.thrall = 20;
+  else if (S.id === 'mark') run.sp.mark = 15;
+  else if (S.id === 'ward') run.sp.ward = 12;
+  else if (S.id === 'dcharge') run.sp.dcharge = 20;
+  else if (S.id === 'veng') run.sp.veng = true;
+  else if (S.id === 'heal_group') { const h = st.maxHp * 0.3; p.hp = Math.min(st.maxHp, p.hp + h); splats.push({ x: p.x, y: p.y - 80, v: Math.round(h), t: 0.8, kind: 'heal' }); }
+  run.spellCd = S.cd;
+  sfx(700, 0.15, 'sine', 0.06); setTimeout(() => sfx(1050, 0.2, 'sine', 0.05), 90);
+}
+function renderSpells() {
+  if (run && mode !== 'over') return;
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Spellbook'));
+  head.appendChild(el('div', 'purse txt', `Carrying: ${currentSpell().name}`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', 'Your weapon keeps attacking on its own. You also carry one spell you cast yourself with the spell button (or R), then it needs time to recharge. Beat an area\'s boss once to unlock its spellbook for good.'));
+  for (const b in SPELLBOOKS) {
+    const B = SPELLBOOKS[b], open = bookUnlocked(b);
+    const h = el('div', 'sec-title', B.name + (open ? '' : ` (locked: beat the ${AREAS[B.area].name} boss)`)); h.style.marginTop = '14px'; s.appendChild(h);
+    const g = el('div', 'grid offers invos'); s.appendChild(g);
+    for (const sp of SPELLS.filter((x) => x.book === b)) {
+      const on = currentSpell().id === sp.id;
+      const c = el('button', 'card offer invo' + (on ? ' sel' : '') + (open ? '' : ' locked')); c.type = 'button';
+      const art = el('div', 'art'); art.appendChild(imgTag(sp.file, sp.name)); c.appendChild(art);
+      c.appendChild(el('div', 'nm', sp.name));
+      c.appendChild(el('div', 'lvl', `Recharge: ${sp.cd} sec`));
+      c.appendChild(el('div', 'ds', sp.info));
+      c.addEventListener('click', () => { if (!open) return; meta.spell = sp.id; saveMeta(); sfx(620, 0.06, 'triangle', 0.05); renderSpells(); });
+      g.appendChild(c);
+    }
+  }
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
+  s.appendChild(r);
+  $('hud').hidden = true;
+  screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
 }
 
 // ---------- Pets (cosmetic only) ----------
@@ -1715,6 +1886,10 @@ function hurtPlayer(raw, style, opts = {}) {
   }
   if (inv('arterial') && opts.from && !opts.from.dead && dmg > 0) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg);
   if (bv('thorns') && opts.from && !opts.from.dead && dmg > 0) damageEnemy(opts.from, Math.round(dmg * 0.5 * bv('thorns')), false);
+  if (run.sp.veng && dmg > 0) {
+    const t = opts.from && !opts.from.dead ? opts.from : nearestEnemy(p.x, p.y, 700);
+    if (t) { run.sp.veng = false; p.over = { text: 'Taste vengeance!', t: 1.6 }; damageEnemy(t, Math.round(dmg * 0.75), false); }
+  }
   if (bv('veng') && dmg > 0 && !(run.vengT > 0)) {
     const t = opts.from && !opts.from.dead ? opts.from : nearestEnemy(p.x, p.y, 700);
     if (t) { run.vengT = 20; p.over = { text: 'Taste vengeance!', t: 1.6 }; damageEnemy(t, Math.round(dmg * 0.75 * bv('veng')), false); }
@@ -1757,6 +1932,8 @@ function updateEnemies(dt) {
       e.venomT -= dt; e.venomTick = (e.venomTick || 1) - dt;
       if (e.venomTick <= 0) { e.venomTick = 1; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.venomDps)), false, { venom: true }); if (e.dead) continue; }
     }
+    if (e.bslowT > 0) e.bslowT -= dt;
+    if (e.drainT > 0) e.drainT -= dt;
     if (e.frozen > 0) { e.frozen -= dt; continue; }
     if (e.eventMob) { e.wt = (e.wt || 0) - dt; if (e.wt <= 0) { e.wt = 1.5; e.wa = Math.random() * 7; } e.x += Math.cos(e.wa) * e.d.spd * dt; e.y += Math.sin(e.wa) * e.d.spd * dt; continue; }
     if (e.feeds) { feederMove(e, dt); continue; }
@@ -1798,7 +1975,7 @@ function updateEnemies(dt) {
     }
     if (e.d.pker) pkerAct(e, dt, realDist, dx, dy);
     else if (!e.d.boss && !e.d.clue) minionMove(e, dt, realDist);
-    const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1) * (inv('haste') ? 1.2 : 1) * (run.enraged ? 1.25 : 1);
+    const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1) * (e.bslowT > 0 ? e.bslow : 1) * (inv('haste') ? 1.2 : 1) * (run.enraged ? 1.25 : 1);
     if (e.charge) {
       e.x += e.charge.vx * dt; e.y += e.charge.vy * dt; e.charge.t -= dt;
       if (e.charge.t <= 0) e.charge = null;
@@ -1808,8 +1985,8 @@ function updateEnemies(dt) {
     }
     if (tgt === p && realDist < e.r + p.r && e.hitCd <= 0) {
       e.hitCd = e.d.boss ? 1.2 : 0.9;
-      if (e.d.explode) { hurtPlayer(e.dmg, 'melee', { pure: true }); killEnemy(e); continue; }
-      hurtPlayer(e.dmg * (e.d.closeMult || 1), e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e, noPray: e.d.noPray, ...e.d.onHit });
+      if (e.d.explode) { hurtPlayer(eDrain(e) * e.dmg, 'melee', { pure: true }); killEnemy(e); continue; }
+      hurtPlayer(eDrain(e) * e.dmg * (e.d.closeMult || 1), e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e, noPray: e.d.noPray, ...e.d.onHit });
     }
   }
   // soft separation so hordes don't stack into one sprite
@@ -2055,7 +2232,7 @@ function bossAI(e, dt) {
         hurtPlayer(0, 'ranged', { frac: 0.3 });
         if (e.ai.phase++ === 0) chat('Graardor slams the ground! It hits the whole room. Protect from Missiles.', 'r');
       } else {
-        hurtPlayer(e.dmg * 2.0, 'melee', { from: e });
+        hurtPlayer(eDrain(e) * e.dmg * 2.0, 'melee', { from: e });
         burst(p.x, p.y - 20, '#ff4a1a', 12);
       }
       shout(e);
@@ -2339,12 +2516,14 @@ function updatePlayer(dt) {
   for (const k in run.buffs) run.buffs[k].t -= dt;
   run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * dt);
   if (run.vengT > 0) run.vengT -= dt;
-  if (bv('thrall')) {
+  for (const k in run.sp) if (typeof run.sp[k] === 'number') run.sp[k] -= dt;
+  if (run.spellCd > 0) run.spellCd -= dt;
+  if (thrallLvl()) {
     run.thrallT = (run.thrallT || 0) - dt;
     if (run.thrallT <= 0) {
       const t = nearestEnemy(p.x, p.y, 420);
       run.thrallT = t ? 1 : 0.2;
-      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * bv('thrall') * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
+      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * thrallLvl() * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
     }
   }
   for (const pk of pickups) {
@@ -2725,6 +2904,8 @@ function draw() {
     } else if (f.kind === 'spark') {
       ctx.fillStyle = f.color; ctx.globalAlpha = Math.min(1, a * 2);
       ctx.fillRect(f.x - 2, f.y - 2, 4, 4); ctx.globalAlpha = 1;
+    } else if (f.kind === 'label') {
+      ctx.globalAlpha = Math.min(1, a * 2); text(f.txt, f.x, f.y - (1 - a) * 24, 14, f.color); ctx.globalAlpha = 1;
     } else if (f.kind === 'beam') {
       ctx.strokeStyle = f.color; ctx.globalAlpha = a; ctx.lineWidth = 14;
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.tx, f.ty); ctx.stroke(); ctx.globalAlpha = 1;
@@ -2762,7 +2943,7 @@ function drawPlayer() {
     if (ready(sk)) ctx.drawImage(sk, p.x - 11, sy, 22, 22 * sk.naturalHeight / sk.naturalWidth);
     else text('☠', p.x, sy + 18, 20, '#fff');
   }
-  if (bv('thrall')) {
+  if (thrallLvl()) {
     const tb = Math.sin(performance.now() / 300) * 5;
     ctx.save(); ctx.globalAlpha = 0.85;
     drawSprite(wikiImage(THRALL_FILE), p.x + (p.flip ? 48 : -48), p.y - 6 + tb, 58, { color: '#9ab8d8', label: 'G' });
@@ -2873,7 +3054,7 @@ function drawSplat(s) {
   const a = Math.min(1, s.t * 3);
   const y = s.y - (0.8 - s.t) * 20;
   ctx.globalAlpha = a;
-  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : s.kind === 'venom' ? '#1f7a6a' : '#b00000';
+  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : s.kind === 'venom' ? '#1f7a6a' : s.kind === 'heal' ? '#c0309a' : '#b00000';
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   ctx.beginPath();
   const R = s.crit ? 19 : 15;
@@ -2929,7 +3110,7 @@ function drawHud() {
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
   const T = timeLimit(), tl = Math.max(0, Math.ceil(T - run.stageT));
   const timer = T ? (run.enraged ? ' · Enraged!' : ` · ${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')} left`) : '';
-  $('waveSub').textContent = run.bonus ? `Bonus round · ${left} left` : `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '');
+  $('waveSub').textContent = run.bonus ? `Bonus round · ${left} left` : `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '') + (run.task ? ` · Task: ${run.task.name} ${run.task.got}/${run.task.need}` : '');
   $('goldTxt').textContent = run.gold.toLocaleString();
   drawGearBar();
   $('sharkN').textContent = '×' + run.inv.shark;
@@ -2942,6 +3123,15 @@ function drawHud() {
     sb.classList.toggle('ready', !!S && run.spec >= specCost(S));
     sb.classList.toggle('none', !S);
     sb.title = S ? `${S.name}: ${specCost(S)}% energy (Space)` : 'This weapon has no special attack';
+  }
+  const spb = $('spellBtn');
+  if (spb) {
+    const S = currentSpell();
+    if (spb.dataset.sp !== S.id) { spb.dataset.sp = S.id; const old = spb.querySelector('img'); if (old) old.remove(); spb.insertBefore(imgTag(S.file, S.name), $('spellN')); spb.title = `${S.name}: ${S.info} (R)`; }
+    const cd = run.spellCd;
+    $('spellN').textContent = cd > 0 ? `${Math.ceil(cd)}s` : 'ready';
+    spb.classList.toggle('ready', !(cd > 0));
+    spb.style.setProperty('--fill', `${cd > 0 ? 100 - cd / S.cd * 100 : 100}%`);
   }
   const bb = $('bossbar');
   if (bossAlive && !bossAlive.dead) {
@@ -2977,6 +3167,7 @@ function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.
 function btn(label, cls, onClick) { const b = el('button', cls, label); b.type = 'button'; b.addEventListener('click', onClick); return b; }
 
 let pickedHero = HEROES[0];
+let pickedKit = 0; // starting kit for heroes that offer a choice
 function heroBoostText(h) {
   return Object.entries(h.skills || {}).map(([id, lv]) => `${SKILLS.find((k) => k.id === id).name} ${lv}`).join(', ');
 }
@@ -3001,7 +3192,8 @@ function renderTitle() {
     }
     const art = el('div', 'art'); art.appendChild(imgTag(h.file, h.name)); c.appendChild(art);
     c.appendChild(el('div', 'nm', h.name));
-    const lane = el('div', 'lane'); lane.appendChild(imgTag(LANE_ICON[h.lane], LANE_NAME[h.lane])); lane.appendChild(document.createTextNode(`${heroBoostText(h)} · starts with ${ITEMS[h.weapon].name}`)); c.appendChild(lane);
+    const lane = el('div', 'lane'); lane.appendChild(imgTag(LANE_ICON[h.lane], LANE_NAME[h.lane])); const extra = Object.keys(h.gear || {}).length;
+    lane.appendChild(document.createTextNode(`${heroBoostText(h)} · ${h.kits ? `pick 1 of ${h.kits.length} starting kits` : `starts with ${ITEMS[h.weapon].name}${extra ? ` + ${extra} item${extra > 1 ? 's' : ''}` : ''}`}`)); c.appendChild(lane);
     c.appendChild(el('div', 'ds', h.perk));
     if (best[h.id]) c.appendChild(el('div', 'ds', best[h.id] > 900 ? '<b style="color:var(--orange)">Infernal cape earned</b>' : `Best: ${AREAS[Math.min(AREAS.length - 1, Math.floor((best[h.id] - 1) / (WAVES_PER_AREA + 1)))].name}`));
     if (!open) {
@@ -3015,11 +3207,25 @@ function renderTitle() {
       g.appendChild(c);
       continue;
     }
-    c.addEventListener('click', () => { pickedHero = h; renderTitle(); playMusic(MUSIC_TITLE); });
-    c.addEventListener('dblclick', () => { pickedHero = h; begin(); });
+    c.addEventListener('click', () => { if (pickedHero !== h) pickedKit = 0; pickedHero = h; renderTitle(); playMusic(MUSIC_TITLE); });
+    c.addEventListener('dblclick', () => { if (pickedHero !== h) pickedKit = 0; pickedHero = h; begin(); });
     g.appendChild(c);
   }
   s.appendChild(g);
+  if (pickedHero.kits && heroUnlocked(pickedHero)) {
+    // harder-to-reach heroes let you choose how they start
+    s.appendChild(el('h3', '', `${pickedHero.name}: starting kit`));
+    const kr = el('div', 'row');
+    pickedHero.kits.forEach((k, i) => {
+      const kb = btn('', 'btn' + (i === pickedKit ? ' sel' : ''), () => { pickedKit = i; renderTitle(); });
+      kb.appendChild(imgTag(ITEMS[k.weapon].file, ITEMS[k.weapon].name));
+      const n = Object.keys(k.gear || {}).length;
+      kb.appendChild(document.createTextNode(` ${k.name}: ${ITEMS[k.weapon].name}${n ? ` + ${n} item${n > 1 ? 's' : ''}` : ''}`));
+      if (i === pickedKit) kb.style.outline = '2px solid var(--orange)';
+      kr.appendChild(kb);
+    });
+    s.appendChild(kr);
+  }
   const r = el('div', 'row'); r.style.marginTop = '16px';
   r.appendChild(el('p', '', 'Move with <kbd>WASD</kbd> or arrows (on touch, drag anywhere). Attacks are automatic. Prayers <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, eat <kbd>E</kbd>, prayer potion <kbd>Q</kbd>, music <kbd>M</kbd>, pause <kbd>P</kbd>.'));
   const b = btn(`Play as ${pickedHero.name}`, 'btn big', begin);
@@ -3037,6 +3243,14 @@ function renderTitle() {
   ib.appendChild(imgTag(INVO_ICON.warden, 'Invocations')); ib.appendChild(document.createTextNode(` Invocations (raid level ${rl})`));
   ib.classList.add('sticks-btn');
   r.appendChild(ib);
+  const slb = btn('', 'btn', renderSlayer);
+  slb.appendChild(imgTag('Slayer_icon.png', 'Slayer')); slb.appendChild(document.createTextNode(` Slayer (${(meta.slayPts || 0).toLocaleString()} points)`));
+  slb.classList.add('sticks-btn');
+  r.appendChild(slb);
+  const spl = btn('', 'btn', renderSpells);
+  spl.appendChild(imgTag(currentSpell().file, 'Spellbook')); spl.appendChild(document.createTextNode(` Spellbook (${currentSpell().name})`));
+  spl.classList.add('sticks-btn');
+  r.appendChild(spl);
   const nPets = Object.keys(meta.pets || {}).length;
   const pb = btn('', 'btn', renderPets);
   const shown = PETS.find((x) => x.id === meta.pet) || PETS.find((x) => (meta.pets || {})[x.id]);
@@ -3074,6 +3288,7 @@ function rollOffers(fresh) {
     if (it.start || it.price <= 0) return false;
     if (it.tier > a + 1) return false;
     if (it.rarity === 'mega' && a < 10) return false;
+    if (it.id === 'slayer_helmet' && !slayUnlocked('masq')) return false;
     if (it.slot !== 'food') {
       const cur = run.gear[it.slot] ? ITEMS[run.gear[it.slot]] : null;
       // Skip downgrades, but still offer weapons of another style so you can switch.
@@ -3130,6 +3345,8 @@ function itemStatsText(it) {
     const S = SPECS[it.id];
     if (S) bits.push(`<b>Special: ${S.name}</b> (${S.cost}% energy): ${S.info}`);
   }
+  if (it.slayer) bits.push(`Needs level ${it.slayer} Slayer (dropped by ${it.slayerSrc})`);
+  if (it.barrows) { const B = BARROWS_SETS[it.barrows]; bits.push(`<b>${B.name} set (${B.effect})</b>, all 4 pieces: ${B.info}`); }
   if (it.proc) bits.push(`<b>${BOLT_PROCS[it.proc].name}</b>: ${BOLT_PROCS[it.proc].info}`);
   if (it.def) bits.push(`${it.def > 0 ? '+' : ''}${it.def} defence`);
   if (it.dmg) bits.push(`+${Math.round(it.dmg * 100)}% ${it.lane === 'any' ? '' : LANE_NAME[it.lane] + ' '}damage`);
@@ -3155,7 +3372,7 @@ function equip(it) {
 
 function buy(offer) {
   const it = offer.it;
-  if (run.gold < it.price) return;
+  if (run.gold < it.price || slayLocked(it)) return;
   if (it.slot === 'food') {
     if (run.inv[it.id] >= 5) { chat('You can\'t carry more than 5 of those.', 'r'); return; }
     run.inv[it.id]++;
@@ -3244,6 +3461,7 @@ function offerCard(it, priceLabel, onClick, sold) {
   const slotTxt = it.slot === 'food' ? 'Supply' : `${SLOT_NAME[it.slot]}${cur ? ` (replaces ${cur})` : ''}`;
   c.appendChild(el('div', 'ds', `<b style="color:var(--yellow)">${slotTxt}</b><br>${itemStatsText(it)}`));
   if (!sold && it.slot !== 'food') c.appendChild(el('div', 'ds cmp', compareText(it)));
+  if (it.slayer && !sold) { c.appendChild(el('div', 'unlock', slayLocked(it) ? `Needs level ${it.slayer} Slayer (yours: ${run.skills.slayer})` : `Slayer ${it.slayer} ✓`)); if (slayLocked(it)) c.classList.add('locked'); }
   const pr = el('div', 'price');
   if (priceLabel !== 'Free') pr.appendChild(imgTag('Coins_10000.png', 'Coins'));
   pr.appendChild(document.createTextNode(priceLabel));
@@ -3315,7 +3533,7 @@ function renderShop() {
   const of = el('div', 'grid offers');
   for (const o of offers) {
     const c = offerCard(o.it, o.sold ? 'Bought' : `${o.it.price.toLocaleString()} gp`, () => buy(o), o.sold);
-    c.disabled = o.sold || run.gold < o.it.price;
+    c.disabled = o.sold || run.gold < o.it.price || slayLocked(o.it);
     of.appendChild(c);
   }
   right.appendChild(of);
@@ -3346,6 +3564,7 @@ function renderCasket(choices, tier = 3) {
   const g = el('div', 'grid offers'); g.style.marginTop = '12px';
   for (const it of choices) {
     g.appendChild(offerCard(it, 'Free', () => {
+      if (slayLocked(it)) return;
       equip(it);
       chat(`You take the ${it.name} from the casket.`, 'g');
       achEvent('gear', it);
@@ -3930,7 +4149,7 @@ const RAID_MECH = {
       // boulders roll down every lane but one: find the gap
       const lanes = 5, lh = (WORLD_H - ARENA_TOP) / lanes, gap = Math.floor(Math.random() * lanes);
       for (let i = 0; i < lanes; i++) if (i !== gap) telegraphs.push({ line: true, x: 0, y: ARENA_TOP + lh * (i + 0.5), a: 0, len: WORLD_W, w: lh - 6, t: 2.0, max: 2.0, color: '#a07a4a', dmg: 0, frac: 0.45, style: 'melee', label: i === (gap + 1) % lanes ? 'Boulders! Get in the gap!' : '', noPray: true });
-    } else if (near) hurtPlayer(e.dmg * 1.6, 'melee', { from: e });
+    } else if (near) hurtPlayer(eDrain(e) * e.dmg * 1.6, 'melee', { from: e });
   },
   kephri(e, dt, p, hpf) {
     // Kephri (wiki): shielded while her scarab swarms crawl in to heal her; dung bombs explode on the floor where you stand;
@@ -3967,7 +4186,7 @@ const RAID_MECH = {
       const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
       order.forEach((q, i) => quadTele(q, 1.6 + i * 0.8, '#b04bff', i === 0 ? 'Memory! Remember the order' : '', { frac: 0.5 }));
       chat('Akkha\'s quadrants explode one after another. Move into the one that just went off!', 'r');
-    } else if (st === 'melee') { if (near) hurtPlayer(e.dmg * 1.5, 'melee', { from: e }); else slam(p.x, p.y, 70, 1.1, 0, 'melee', '#d8c8a0', 'Akkha leaps!', { frac: 0.3 }); }
+    } else if (st === 'melee') { if (near) hurtPlayer(eDrain(e) * e.dmg * 1.5, 'melee', { from: e }); else slam(p.x, p.y, 70, 1.1, 0, 'melee', '#d8c8a0', 'Akkha leaps!', { frac: 0.3 }); }
     else styleShot(e, st, 1.3);
   },
   zebak(e, dt, p, hpf) {
@@ -4025,7 +4244,7 @@ const RAID_MECH = {
     const kind = e.id.split('_')[1];
     if (kind === 'ranged') { slam(p.x, p.y, 55, 1.2, 0, 'ranged', '#8a8a8a', 'Rocks!', { noPray: true, frac: 0.2 }); for (let i = 0; i < 2; i++) { const s = nearSpot(p, 200); slam(s.x, s.y, 55, 1.2, 0, 'ranged', '#8a8a8a', '', { noPray: true, frac: 0.2 }); } }
     else if (kind === 'magic') { if (e.ai.phase++ % 3 === 2) for (let i = 0; i < 3; i++) { const s = i ? nearSpot(p, 260) : p; slam(s.x, s.y, 70, 1.1, e.dmg * 1.4, 'magic', '#4aa0ff', i ? '' : 'Magic blast!'); } else styleShot(e, 'magic', 1.1); }
-    else if (near) hurtPlayer(e.dmg * 1.4, 'melee', { from: e });
+    else if (near) hurtPlayer(eDrain(e) * e.dmg * 1.4, 'melee', { from: e });
   },
   vasa(e, dt, p, hpf) {
     // Vasa Nistirio (wiki): heals from a glowing crystal (break it to stop him), throws boulders,
@@ -4133,7 +4352,7 @@ const RAID_MECH = {
     if (e.ai.walk <= 0) { e.ai.sleep = 4.5; e.resist = null; chat('The Pestilent Bloat stops to sleep. Hit it, then get clear before it wakes.', 'g'); return; }
     // flies: anyone in its line of sight gets hit
     e.ai.seen = !rectBlocks(e.x, e.y - 40, p.x, p.y - 20, tank);
-    if (e.ai.seen && (e.ai.fly = (e.ai.fly || 0) - dt) <= 0) { e.ai.fly = 0.6; hurtPlayer(e.dmg * 0.5, 'melee', { pure: true, from: e }); if (!e.ai.flyTold) { e.ai.flyTold = true; chat('Flies swarm anyone the Bloat can see. Hide behind the tank!', 'r'); } }
+    if (e.ai.seen && (e.ai.fly = (e.ai.fly || 0) - dt) <= 0) { e.ai.fly = 0.6; hurtPlayer(eDrain(e) * e.dmg * 0.5, 'melee', { pure: true, from: e }); if (!e.ai.flyTold) { e.ai.flyTold = true; chat('Flies swarm anyone the Bloat can see. Hide behind the tank!', 'r'); } }
     if (e.ai.t > 0) return;
     e.ai.t = 2.4;
     for (let i = 0; i < 5; i++) { const s = i ? roomSpot() : p; slam(s.x, s.y, 55, 1.3, 0, 'melee', '#c8a080', i ? '' : 'Falling limbs!', { noPray: true, frac: 0.2 }); }
@@ -4153,7 +4372,7 @@ const RAID_MECH = {
     if ((e.ai.nyT = (e.ai.nyT ?? 4) - dt) <= 0) { e.ai.nyT = 9; summon(e, ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'][Math.floor(Math.random() * 3)], 2); }
     if (e.ai.t > 0) return;
     e.ai.t = 1.9;
-    if (e.ai.form === 'melee') { if (near) hurtPlayer(e.dmg * 1.5, 'melee', { from: e }); }
+    if (e.ai.form === 'melee') { if (near) hurtPlayer(eDrain(e) * e.dmg * 1.5, 'melee', { from: e }); }
     else styleShot(e, e.ai.form, 1.3);
   },
   sotetseg(e, dt, p, hpf) {
@@ -4199,7 +4418,7 @@ const RAID_MECH = {
       for (const x of e.ai.ex) {
         x.t -= dt;
         const on = Math.hypot(p.x - x.x, p.y - x.y) < 42;
-        if (on) { x.held = true; if ((x.tick = (x.tick || 0) - dt) <= 0) { x.tick = 0.5; hurtPlayer(e.dmg * 0.3, 'magic', { pure: true, poison: 4 }); } }
+        if (on) { x.held = true; if ((x.tick = (x.tick || 0) - dt) <= 0) { x.tick = 0.5; hurtPlayer(eDrain(e) * e.dmg * 0.3, 'magic', { pure: true, poison: 4 }); } }
         if (x.t <= 0 && !x.held) { e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.05); burst(e.x, e.y, '#5fd34a', 10); }
       }
       e.ai.ex = e.ai.ex.filter((x) => x.t > 0);
@@ -4321,7 +4540,7 @@ function bossMech(e, dt) {
       if (r === 0) { for (let i = 0; i < 4; i++) slam(p.x + (i ? (Math.random() - 0.5) * 260 : 0), p.y + (i ? (Math.random() - 0.5) * 200 : 0), 70, 1.2, 0, 'melee', '#a08060', i ? '' : 'Falling bricks!', { noPray: true, frac: 0.2 }); }
       else if (r === 1) fan(e, 3, 0.2, 340, 'magic', '#6aa0ff', e.dmg * 0.9, { r: 10 });
       else if (r === 2) fan(e, 3, 0.2, 340, 'ranged', '#8a6a3c', e.dmg * 0.8, { r: 10, shape: 'blob' });
-      else if (r === 3 && near) { hurtPlayer(e.dmg * 1.6, 'melee', { from: e }); burst(p.x, p.y - 20, '#c8a080', 10); }
+      else if (r === 3 && near) { hurtPlayer(eDrain(e) * e.dmg * 1.6, 'melee', { from: e }); burst(p.x, p.y - 20, '#c8a080', 10); }
       else if (r === 4) { summon(e, 'giant_rat', 6); chat('Scurrius calls six giant rats!', 'r'); }
       else aimShot(e, 360, 'magic', '#6aa0ff', e.dmg, { r: 12 });
     }
@@ -4351,7 +4570,7 @@ function bossMech(e, dt) {
       sfx(70, 0.4, 'sawtooth', 0.06);
       if (e.ai.phase === 1) chat('The King Black Dragon breathes fire! An anti-dragon or dragonfire shield blocks most of it.', 'r');
     }
-    if (near && (e.ai.bite = (e.ai.bite || 0) - dt) <= 0) { e.ai.bite = 2.4; hurtPlayer(e.dmg * 1.1, 'melee', { from: e }); }
+    if (near && (e.ai.bite = (e.ai.bite || 0) - dt) <= 0) { e.ai.bite = 2.4; hurtPlayer(eDrain(e) * e.dmg * 1.1, 'melee', { from: e }); }
     return true;
   }
   if (k === 'zulrah') {
@@ -4384,7 +4603,7 @@ function bossMech(e, dt) {
     // TzTok-Jad bites with no warning when you stand in his reach (wiki), on top of his magic and ranged
     if (near && (e.ai.bite = (e.ai.bite ?? 1) - dt) <= 0) {
       e.ai.bite = 2.4;
-      hurtPlayer(e.dmg * 2.2, 'melee', { from: e });
+      hurtPlayer(eDrain(e) * e.dmg * 2.2, 'melee', { from: e });
       if (!e.ai.biteTold) { e.ai.biteTold = true; chat('Jad bites! Stay out of his reach, or pray Melee.', 'r'); }
     }
     return false;
@@ -4482,7 +4701,7 @@ function bossMech(e, dt) {
           if (e.dead || mode !== 'play') return;
           const d = Math.hypot(nx - p.x, ny - p.y);
           burst(p.x, p.y, '#b04bff', 16); p.x = nx; p.y = ny; burst(p.x, p.y, '#b04bff', 16);
-          hurtPlayer(e.dmg * d / 400, 'magic', { pure: true });
+          hurtPlayer(eDrain(e) * e.dmg * d / 400, 'magic', { pure: true });
           chat('Olm teleports you across the room!', 'r');
         }, 1100);
       } else if (sp === 'acid') {
@@ -4542,7 +4761,7 @@ function verzikMech(e, dt, near, hpf) {
     // Phase 2 (wiki): body slam up close, urnbombs, a lightning ball, purple Nylocas Athanatos that heal her,
     // and below 35% blood spells that heal her and two Nylocas Matomenos.
     if (near && (e.ai.slamCd = (e.ai.slamCd || 0) - dt) <= 0) {
-      e.ai.slamCd = 3; hurtPlayer(e.dmg * 2.2, 'melee', { from: e });
+      e.ai.slamCd = 3; hurtPlayer(eDrain(e) * e.dmg * 2.2, 'melee', { from: e });
       const a = Math.atan2(p.y - e.y, p.x - e.x); p.x = clamp(p.x + Math.cos(a) * 120, p.r, WORLD_W - p.r); p.y = clamp(p.y + Math.sin(a) * 120, 110, WORLD_H - p.r); p.frozen = Math.max(p.frozen, 0.8);
     }
     if (hpf < 0.35 && !e.ai.bloodTold) {
@@ -4570,7 +4789,7 @@ function verzikMech(e, dt, near, hpf) {
     CR.tornados.push({ x: e.x, y: e.y, e }); CR.tornados.push({ x: e.x + 80, y: e.y, e });
     chat('Verzik summons tornadoes! A hit takes half your hitpoints and heals her.', 'r');
   }
-  if (near && (e.ai.melee = (e.ai.melee || 0) - dt) <= 0) { e.ai.melee = 1.8; hurtPlayer(e.dmg * 1.8, 'melee', { from: e }); }
+  if (near && (e.ai.melee = (e.ai.melee || 0) - dt) <= 0) { e.ai.melee = 1.8; hurtPlayer(eDrain(e) * e.dmg * 1.8, 'melee', { from: e }); }
   if (e.ai.t <= 0) {
     e.ai.t = 1.6;
     if (++e.ai.phase % 5) { const s = Math.random() < 0.5 ? 'ranged' : 'magic'; aimShot(e, 520, s, s === 'ranged' ? '#c8c8a0' : '#4aa0ff', e.dmg, { r: 13, shape: s === 'ranged' ? 'spike' : 'orb' }); return true; }
