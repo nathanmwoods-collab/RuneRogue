@@ -294,7 +294,7 @@ function startStage() {
   area = AREAS[areaIndex()];
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
-  bossAlive = null; stageEnding = 0; run.bossHurt = false;
+  bossAlive = null; stageEnding = 0; run.bossHurt = false; run.door = null;
   run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.thiefTold = false;
   endEvent();
   if (subIndex() === 0) run.phoenixUsed = false;
@@ -323,7 +323,7 @@ function startStage() {
     bossIntro(b);
     sfx(90, 0.6, 'sawtooth', 0.07);
   } else {
-    chat(`${area.name}, wave ${sub + 1} of ${WAVES_PER_AREA}. Defeat every enemy.`, 'g');
+    chat(`${area.name}, wave ${sub + 1} of ${WAVES_PER_AREA}. Defeat every enemy, then walk through the exit door.`, 'g');
   }
   if (sub === 0 && !isBoss) heroSays();
   creatureStageStart();
@@ -467,10 +467,33 @@ function checkStageDone(dt) {
   const casketWaiting = !!waitPk;
   if (run.ev) return; // finish the random event first
   if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0) {
-    if (casketWaiting) { if (!run.casketNag) { run.casketNag = true; chat(`Pick up the ${waitPk.kind === 'clue' ? 'clue scroll' : waitPk.kind === 'artefact' ? waitPk.art.name : 'reward casket'} to finish the round.`, 'r'); } return; }
+    // a casket or artefact must be picked up; a clue scroll can be read or left behind
+    if (casketWaiting && waitPk.kind !== 'clue') { if (!run.casketNag) { run.casketNag = true; chat(`Pick up the ${waitPk.kind === 'artefact' ? waitPk.art.name : 'reward casket'} to finish the round.`, 'r'); } return; }
     run.casketNag = false;
-    stageEnding = 1.2;
-  }
+    // every enemy is dead: an exit door appears in the middle of the map, and walking through it ends the round
+    if (!run.door) {
+      run.door = { x: WORLD_W / 2, y: WORLD_H / 2, t: 0, armed: false };
+      chat(waitPk ? 'A door appears in the middle. Read the clue scroll first, or leave it and walk through the door.' : 'A door appears in the middle. Walk through it to leave.', 'g');
+      sfx(520, 0.15, 'triangle', 0.05);
+    }
+    const d = run.door, dist = Math.hypot(run.p.x - d.x, run.p.y - d.y);
+    d.t += dt;
+    if (dist > 70) d.armed = true; // step away first, so standing on the spot when it appears doesn't end the round
+    if (d.armed && dist < run.p.r + 24) {
+      if (waitPk) chat('You leave the clue scroll on the ground.', 'b');
+      run.door = null;
+      stageEnding = 0.3;
+    }
+  } else run.door = null;
+}
+
+function drawDoor() {
+  const d = run.door; if (!d) return;
+  ctx.fillStyle = 'rgba(255,220,120,0.22)'; ctx.beginPath(); ctx.arc(d.x, d.y, 44 + Math.sin(d.t * 4) * 5, 0, 7); ctx.fill();
+  const im = wikiImage(DOOR_FILE);
+  if (ready(im)) { const h = 84, w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, d.x - w / 2, d.y - h + 24, w, h); }
+  else { ctx.fillStyle = '#5a3a1a'; ctx.fillRect(d.x - 22, d.y - 56, 44, 76); ctx.fillStyle = '#3a2410'; ctx.fillRect(d.x - 18, d.y - 52, 36, 70); ctx.fillStyle = '#d8b040'; ctx.beginPath(); ctx.arc(d.x + 10, d.y - 14, 3, 0, 7); ctx.fill(); }
+  text('Exit door', d.x, d.y - 66, 13, '#ff981f');
 }
 
 function endStage() {
@@ -927,7 +950,7 @@ function startBonus() {
   run.bonus = true; run.revPk = 0; run.revPkT = 4;
   area = REV_AREA; isBoss = false;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = []; endEvent();
-  bossAlive = null; stageEnding = 0;
+  bossAlive = null; stageEnding = 0; run.door = null;
   run.stageT = 0; run.enraged = false; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.quartet = false;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
@@ -2475,6 +2498,7 @@ function draw() {
     text(art ? art.name : pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
   }
 
+  drawDoor();
   drawEvent();
   const sprites = enemies.filter((e) => e.ai.burrow <= 0).map((e) => ({ y: e.y, e }));
   sprites.push({ y: run.p.y, player: true });
@@ -4091,6 +4115,7 @@ window.__rr = {
   start: (i) => { pickedHero = HEROES[i || 0]; begin(); }, endStage: () => endStage(),
   skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: () => pickups.push({ kind: 'clue', x: run.p.x + 60, y: run.p.y, t: 0 }),
   killAll: () => { for (const e of enemies) e.hp = 1; },
+  clearWave: () => { toSpawn = 0; run.evAt = null; run.insaneAt = null; run.circleAt = null; enemies.length = 0; },
   die: () => die(),
   rollOffers: () => { rollOffers(true); return offers; },
   yama: () => renderYama(() => { mode = 'shop'; renderShop(); }),

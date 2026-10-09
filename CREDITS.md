@@ -559,6 +559,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Potion | Stamina potion | https://oldschool.runescape.wiki/w/File:Stamina_potion(4).png |
 | Icon | Clue scroll | https://oldschool.runescape.wiki/w/File:Clue_scroll_(hard).png |
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
+| Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | NPC | Yama | https://oldschool.runescape.wiki/w/File:Yama.png |
 | Achievement tier | Easy | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_easy_tier_icon.png |

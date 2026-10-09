@@ -569,6 +569,7 @@ mon('clue_dusk', 'Dusk', 'Dusk.png', 328, 0, 90, 0, 150, 60, 'melee', { clue: tr
 const CLUE_BOSSES = Object.keys(MONSTERS).filter((id) => MONSTERS[id].clue);
 const CLUE_FILE = 'Clue_scroll_(hard).png';
 const CASKET_FILE = 'Reward_casket_(hard).png';
+const DOOR_FILE = 'Exit_door.png'; // appears once every enemy is dead; walk through it to end the round
 
 // ---------------------------------------------------------------------------
 // Trading sticks: earned every run (win or lose) and spent on permanent upgrades.
