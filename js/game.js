@@ -807,7 +807,7 @@ function runPickEvent(def) {
   run.ev = { def, type: 'pick' };
   const st = { round: 0, good: 0, bad: 0, need: 1, maxBad: 1, data: {} };
   const a = areaIndex();
-  const gearPool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.clueOnly && it.tier <= a + 2);
+  const gearPool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && it.tier <= a + 2);
   let gen, win, fail, intro = '';
   const done = (ok) => { clearTimeout(st.timer); run.ev = null; mode = 'play'; showScreen(null); (ok ? win : fail)(); };
   if (def.id === 'beekeeper') {
@@ -1266,7 +1266,7 @@ function openCasket(pk) {
   const choices = [];
   const a = areaIndex(), tier = pk.tier ?? 3, T = CLUE_TIERS[tier];
   // higher tier caskets reach further up the item list and lean rarer; a master casket can hold a mega rare anywhere
-  const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start && !it.clueOnly &&
+  const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
     it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id);
   const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 / T.weight : 1.5 * T.weight) }));
   while (choices.length < (tier >= 5 ? 4 : 3) && bag.length) {
@@ -1274,16 +1274,6 @@ function openCasket(pk) {
     let r = Math.random() * total, i = 0;
     while (i < bag.length - 1 && r > bag[i].wt) { r -= bag[i].wt; i++; }
     choices.push(bag.splice(i, 1)[0].it);
-  }
-  // Third age: a rare roll on hard, elite and master caskets swaps one pick for a third-age piece
-  const ta = THIRD_AGE_CHANCE[T.id];
-  if (ta && choices.length && Math.random() < ta * (1 + luckVal())) {
-    const tas = Object.values(ITEMS).filter((it) => it.clueOnly && run.gear[it.slot] !== it.id);
-    if (tas.length) {
-      choices[Math.floor(Math.random() * choices.length)] = tas[Math.floor(Math.random() * tas.length)];
-      chat('Something glints in the casket... third age!', 'r');
-      sfx(1320, 0.4, 'triangle', 0.07);
-    }
   }
   renderCasket(choices, tier);
 }
@@ -2968,7 +2958,7 @@ function itemScore(it) { return it ? it.price + it.tier * 10 : -1; }
 function rollOffers(fresh) {
   const style = weaponStyle(), a = areaIndex();
   const pool = Object.values(ITEMS).filter((it) => {
-    if (it.start || it.clueOnly || it.price <= 0) return false;
+    if (it.start || it.price <= 0) return false;
     if (it.tier > a + 1) return false;
     if (it.rarity === 'mega' && a < 10) return false;
     if (it.slot !== 'food') {
