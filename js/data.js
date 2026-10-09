@@ -542,6 +542,41 @@ const POTIONS = {
   magic: { name: 'Magic potion', file: 'Magic_potion(4).png', stat: 'dmg_magic', style: 'magic', amount: 0.35, secs: 15, info: '35% more magic damage' },
   stamina: { name: 'Stamina potion', file: 'Stamina_potion(4).png', stat: 'speed', amount: 0.3, secs: 15, info: '30% faster running' },
 };
+// Special attacks (OSRS names and energy costs from the wiki). Press Space or tap the Special button.
+// Spec energy is 0-100 and refills 10% every 3 seconds (ten times the game's 10% every 30 seconds),
+// so a 25% spec is back in under 8 seconds and a 100% spec takes 30.
+// melee: hits = damage multipliers per hit on the target; arc = hits everyone in reach.
+// shot/spell: arrows/bolts fired with mult; aoe = explosion radius; heal = share of damage healed.
+// weaken = target takes that much more damage for 10s; bind = freezes (not bosses) for n seconds.
+const SPEC_REGEN = 10 / 3; // energy per second
+const SPECS = {
+  dragon_dagger: { name: 'Puncture', cost: 25, hits: [1.15, 1.15], info: 'two quick stabs' },
+  dragon_longsword: { name: 'Cleave', cost: 25, hits: [1.5], arc: true, info: 'a heavy cleave through everything in reach' },
+  dragon_scimitar: { name: 'Sever', cost: 55, hits: [1.6], weaken: 0.15, info: 'a big slash that weakens the target' },
+  zamorakian_spear: { name: 'Shove', cost: 25, hits: [0.5], arc: true, bind: 2.5, knock: 90, info: 'shoves enemies back and stuns them' },
+  granite_maul: { name: 'Quick Smash', cost: 50, hits: [1.4], instant: true, info: 'an instant extra smash' },
+  abyssal_whip: { name: 'Energy Drain', cost: 50, hits: [1.3], bind: 1.5, info: 'a lash that roots the target' },
+  abyssal_tentacle: { name: 'Binding Tentacle', cost: 50, hits: [1.4], bind: 2.5, info: 'binds the target in place' },
+  dragon_claws: { name: 'Slice and Dice', cost: 50, hits: [1.0, 0.5, 0.5, 0.5], info: 'four rapid hits' },
+  dragon_warhammer: { name: 'Smash', cost: 50, hits: [1.5], weaken: 0.3, info: 'crushes defence: the target takes 30% more damage' },
+  saradomin_sword: { name: "Saradomin's Lightning", cost: 100, hits: [1.1], arc: true, aoe: 160, info: 'lightning strikes everyone near you' },
+  bandos_godsword: { name: 'Warstrike', cost: 50, hits: [1.8], weaken: 0.25, info: 'a huge hit that weakens the target' },
+  armadyl_godsword: { name: 'The Judgement', cost: 50, hits: [2.4], info: 'one enormous hit' },
+  saradomin_godsword: { name: 'Healing Blade', cost: 50, hits: [1.6], heal: 0.5, info: 'heals you for half the damage' },
+  abyssal_bludgeon: { name: 'Penance', cost: 50, hits: [1.7], arc: true, info: 'a crushing blow to all in reach' },
+  osmumtens_fang: { name: 'Unleash', cost: 25, hits: [1.5], info: 'a precise stab that never misses' },
+  dorgeshuun_crossbow: { name: 'Snipe', cost: 75, arrows: 1, mult: 2.2, weaken: 0.2, info: 'a sure bolt that weakens the target' },
+  magic_shortbow: { name: 'Snapshot', cost: 55, arrows: 2, mult: 1.3, info: 'two arrows at once' },
+  magic_longbow: { name: 'Powershot', cost: 35, arrows: 1, mult: 1.8, info: 'one arrow that never misses' },
+  dark_bow: { name: 'Descent of Darkness', cost: 55, arrows: 2, mult: 1.8, info: 'two dragon-fire arrows' },
+  dragon_crossbow: { name: 'Annihilate', cost: 60, arrows: 1, mult: 1.6, aoe: 110, info: 'an exploding bolt' },
+  armadyl_crossbow: { name: 'Armadyl Eye', cost: 40, arrows: 1, mult: 2.0, info: 'a pinpoint bolt' },
+  toxic_blowpipe: { name: 'Toxic Siphon', cost: 50, arrows: 1, mult: 1.6, heal: 0.5, info: 'heals you for half the damage' },
+  heavy_ballista: { name: 'Power Shot', cost: 65, arrows: 1, mult: 2.4, info: 'a massive javelin' },
+  zaryte_crossbow: { name: 'Evoke', cost: 75, arrows: 1, mult: 2.8, aoe: 90, info: 'a bolt that bursts on impact' },
+  volatile_nightmare_staff: { name: 'Immolate', cost: 55, mult: 3.2, info: 'a huge burst of nightmare magic' },
+  toxic_staff_of_the_dead: { name: 'Lock', cost: 100, lock: 20, info: 'halves damage you take for 20 seconds' },
+};
 const POTION_CHANCE = { normal: 0.012, elite: 0.06 };
 // Redberry pie: a separate ground drop that heals. Likelier when you're hurt.
 const PIE = { name: 'Redberry pie', file: 'Redberry_pie.png', heal: 0.25 };

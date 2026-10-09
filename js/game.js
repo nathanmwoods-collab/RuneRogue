@@ -87,6 +87,7 @@ addEventListener('keydown', (e) => {
   if (k === '3') togglePrayer('magic');
   if (k === 'e') useItem('shark');
   if (k === 'q') useItem('ppot');
+  if (k === ' ') specialAttack();
   if (k === 'p' || k === 'escape') togglePause();
 });
 addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -107,6 +108,7 @@ const endStick = (e) => { if (e.pointerId === stick.id) { stick.id = null; stick
 cv.addEventListener('pointerup', endStick);
 cv.addEventListener('pointercancel', endStick);
 
+document.getElementById('specBtn').addEventListener('click', () => specialAttack());
 document.querySelectorAll('.pbtn[data-pray], .pbtn[data-use]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.pray) togglePrayer(b.dataset.pray); else useItem(b.dataset.use);
 }));
@@ -171,7 +173,7 @@ function newRun(hero) {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
-    gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
+    spec: 100, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
   };
@@ -515,6 +517,7 @@ function damageEnemy(e, dmg, crit, opts = {}) {
   if (e.dead) return;
   if (e.immune) { dmg = 0; }
   else if (e.resist && e.resist[weaponStyle()]) dmg = Math.round(dmg * e.resist[weaponStyle()]);
+  if (e.weakT > 0 && dmg > 0) dmg = Math.round(dmg * (1 + e.weak));
   e.hp -= dmg;
   e.flash = 0.12;
   e.aggro = true;
@@ -557,6 +560,62 @@ function killEnemy(e) {
     maybeDropPotion(e);
   }
   if (e.d.explode) burst(e.x, e.y, '#5fd34a', 20);
+}
+
+// ---------- Special attacks ----------
+function specialAttack() {
+  if (mode !== 'play' || !run) return;
+  const p = run.p, st = stats(), w = st.weapon, S = SPECS[run.gear.weapon];
+  if (!S) { chat(`Your ${ITEMS[run.gear.weapon].name} has no special attack.`, 'b'); return; }
+  if (run.spec < S.cost) { chat(`You need ${S.cost}% special attack energy for ${S.name}.`, 'b'); return; }
+  if (p.frozen > 0) return;
+  // a sure hit: specs re-roll a miss once
+  const roll = (base, e) => { let r = rollDamage(base, e, st); if (!r.dmg) r = rollDamage(base, e, st); return r; };
+  const afterHit = (e, dmg) => {
+    if (S.heal && dmg > 0) p.hp = Math.min(st.maxHp, p.hp + dmg * S.heal);
+    if (S.weaken && !e.dead) { e.weak = S.weaken; e.weakT = 10; }
+    if (S.bind && !e.dead && !e.d.boss) e.frozen = Math.max(e.frozen, S.bind);
+  };
+  if (S.lock) {
+    run.buffs.lock = { t: S.lock, amount: 0.5, name: S.name, file: ITEMS[run.gear.weapon].file };
+  } else if (w.kind === 'swing') {
+    const reach = w.reach * (1 + 0.15 * bv('reach')) * 1.3;
+    const target = nearestEnemy(p.x, p.y, (S.aoe || reach) + 10);
+    if (!target) { chat('Nothing in reach for a special attack.', 'b'); return; }
+    const ang = Math.atan2(target.y - p.y, target.x - p.x);
+    p.face = ang; p.anim = { kind: 'swing', ang, t: 0, dur: 0.25, arc: S.arc ? 6.3 : (w.arc || 1.5) };
+    fx.push({ kind: 'slash', x: p.x, y: p.y - 30, a: ang, arc: S.arc ? 6.3 : Math.min(w.arc, 6.3), r: S.aoe || reach, t: 0.3, max: 0.3 });
+    const victims = S.arc ? enemies.filter((e) => !e.dead && !e.untargetable && !(e.ai.burrow > 0) && Math.hypot(e.x - p.x, e.y - p.y) - e.r < (S.aoe || reach)) : [target];
+    victims.forEach((e) => {
+      S.hits.forEach((m, i) => {
+        const go = () => { if (e.dead) return; const r = roll(w.dmg * m, e); damageEnemy(e, r.dmg, true, { knock: S.knock }); afterHit(e, r.dmg); };
+        if (i === 0) go(); else setTimeout(go, i * 110);
+      });
+    });
+    if (S.aoe) for (const e of victims) burst(e.x, e.y - 30, '#9fd8ff', 10);
+    if (!S.instant) p.atkT = Math.max(p.atkT, w.cd / st.aspd);
+  } else {
+    const target = nearestEnemy(p.x, p.y, w.range * st.range * 1.2);
+    if (!target) { chat('Nothing in range for a special attack.', 'b'); return; }
+    const ang = Math.atan2(target.y - p.y, target.x - p.x);
+    p.face = ang; p.anim = { kind: w.kind, ang, t: 0, dur: 0.2, arc: 0 };
+    if (w.kind === 'shot') {
+      const n = S.arrows || 1;
+      for (let i = 0; i < n; i++) {
+        const a = ang + (i - (n - 1) / 2) * 0.08;
+        shots.push({ kind: 'arrow', x: p.x, y: p.y - 30, vx: Math.cos(a) * w.speed * 1.1, vy: Math.sin(a) * w.speed * 1.1, life: (w.range * st.range * 1.2) / w.speed + 0.2,
+          pierce: 1, hit: new Set(), dmg: w.dmg * S.mult, bolt: w.bolt, dart: w.dart, bounce: 0, spec: S });
+      }
+    } else {
+      shots.push({ kind: 'spell', x: p.x, y: p.y - 40, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, life: (w.range * st.range * 1.2) / w.speed + 0.2,
+        pierce: 1, hit: new Set(), dmg: w.dmg * S.mult, splash: (w.splash || 40) * st.splash * 1.4, color: '#ff4ad8', icon: w.icon, bounce: 0, spec: S, big: true });
+    }
+  }
+  run.spec -= S.cost;
+  p.over = { text: `${S.name}!`, t: 1.6 };
+  sfx(180, 0.25, 'sawtooth', 0.07); setTimeout(() => sfx(360, 0.2, 'square', 0.05), 80);
+  burst(p.x, p.y - 30, '#ffd23a', 16);
+  chat(`Special attack: ${S.name}.`, 'g');
 }
 
 function playerAttack(dt) {
@@ -605,6 +664,19 @@ function playerAttack(dt) {
   }
 }
 
+function specHit(s, e, dmg) {
+  const S = s.spec, st = stats();
+  if (S.heal && dmg > 0) run.p.hp = Math.min(st.maxHp, run.p.hp + dmg * S.heal);
+  if (S.weaken && !e.dead) { e.weak = S.weaken; e.weakT = 10; }
+  if (S.aoe) {
+    fx.push({ kind: 'boom', x: e.x, y: e.y - e.d.size * 0.35, r: S.aoe, color: '#ff8a2a', t: 0.35, max: 0.35 });
+    for (const o of [...enemies]) {
+      if (o === e || o.dead || o.untargetable || o.ai.burrow > 0) continue;
+      if (Math.hypot(o.x - e.x, o.y - e.y) < S.aoe + o.r * 0.5) { const r = rollDamage(s.dmg * 0.6, o, st); damageEnemy(o, r.dmg, r.crit); }
+    }
+  }
+}
+
 function updateShots(dt) {
   const st = stats();
   for (const s of shots) {
@@ -620,6 +692,7 @@ function updateShots(dt) {
             if (Math.hypot(o.x - s.x, (o.y - o.d.size * 0.35) - s.y) < s.splash + o.r * 0.5) {
               const r = rollDamage(o === e ? s.dmg : s.dmg * 0.6, o, st);
               damageEnemy(o, r.dmg, r.crit, { freeze: s.freeze, leech: s.leech });
+              if (s.spec && o === e) specHit(s, o, r.dmg);
             }
           }
           // Ricochet: the spell leaps on to another enemy
@@ -627,8 +700,10 @@ function updateShots(dt) {
           if (next) { s.bounce--; const a = Math.atan2(next.y - s.y, next.x - s.x), sp = Math.hypot(s.vx, s.vy); s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp; s.life = 0.7; break; }
           s.life = 0;
         } else {
-          const r = rollDamage(s.dmg, e, st);
-          damageEnemy(e, r.dmg, r.crit);
+          let r = rollDamage(s.dmg, e, st);
+          if (s.spec && !r.dmg) r = rollDamage(s.dmg, e, st);
+          damageEnemy(e, r.dmg, r.crit || !!s.spec);
+          if (s.spec) specHit(s, e, r.dmg);
           if (s.bounce > 0) {
             // Venator bow: the arrow bounces to the next nearby enemy
             const next = enemies.find((o) => !o.dead && !s.hit.has(o) && Math.hypot(o.x - e.x, o.y - e.y) < 220);
@@ -648,6 +723,7 @@ function hurtPlayer(raw, style, opts = {}) {
   const p = run.p, st = stats();
   let dmg = raw * st.taken * (opts.pure ? 1 : 1 - st.reduce);
   if (style === 'magic' && (run.hero.mods || {}).magicTaken) dmg *= run.hero.mods.magicTaken;
+  if (run.buffs.lock && run.buffs.lock.t > 0) dmg *= 0.5;
   if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= opts.full ? 0 : 0.3;
   dmg = Math.round(dmg * (0.6 + Math.random() * 0.4));
   p.hp -= dmg;
@@ -677,6 +753,7 @@ function updateEnemies(dt) {
     if (e.dead) continue;
     e.flash = Math.max(0, e.flash - dt);
     e.hitCd = Math.max(0, e.hitCd - dt);
+    if (e.weakT > 0) e.weakT -= dt;
     if (e.over) { e.over.t -= dt; if (e.over.t <= 0) e.over = null; }
     e.x += e.kx * dt; e.y += e.ky * dt; e.kx *= 0.85; e.ky *= 0.85;
     if (e.frozen > 0) { e.frozen -= dt; continue; }
@@ -1133,6 +1210,7 @@ function updatePlayer(dt) {
   }
   coins = coins.filter((c) => !c.got);
   for (const k in run.buffs) run.buffs[k].t -= dt;
+  run.spec = Math.min(100, run.spec + SPEC_REGEN * dt);
   for (const pk of pickups) {
     pk.t += dt;
     if ((pk.kind === 'potion' || pk.kind === 'pie') && pk.t > 20) { pk.got = true; continue; } // potions and pies fade after a while
@@ -1626,6 +1704,15 @@ function drawHud() {
   drawGearBar();
   $('sharkN').textContent = '×' + run.inv.shark;
   $('ppotN').textContent = '×' + run.inv.ppot;
+  const S = SPECS[run.gear.weapon], sb = $('specBtn');
+  if (sb) {
+    const e = Math.floor(run.spec);
+    $('specN').textContent = S ? `${e}%` : '—';
+    sb.style.setProperty('--fill', `${S ? e : 0}%`);
+    sb.classList.toggle('ready', !!S && run.spec >= S.cost);
+    sb.classList.toggle('none', !S);
+    sb.title = S ? `${S.name}: ${S.cost}% energy (Space)` : 'This weapon has no special attack';
+  }
   const bb = $('bossbar');
   if (bossAlive && !bossAlive.dead) {
     bb.hidden = false;
@@ -1780,6 +1867,8 @@ function itemStatsText(it) {
     if (w.freeze) bits.push('freezes');
     if (w.leech) bits.push('heals you');
     if (w.tbow) bits.push('stronger vs high levels');
+    const S = SPECS[it.id];
+    if (S) bits.push(`<b>Special: ${S.name}</b> (${S.cost}% energy): ${S.info}`);
   }
   if (it.def) bits.push(`${it.def > 0 ? '+' : ''}${it.def} defence`);
   if (it.dmg) bits.push(`+${Math.round(it.dmg * 100)}% ${it.lane === 'any' ? '' : LANE_NAME[it.lane] + ' '}damage`);
