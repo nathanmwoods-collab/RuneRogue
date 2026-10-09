@@ -45,7 +45,7 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
 img.wiki { image-rendering: auto; }
 
 /* HUD */
-#hud { position: absolute; inset: 0; pointer-events: none; font-family: var(--font-display); }
+#hud { position: absolute; inset: 0; pointer-events: none; font-family: var(--font-body); font-weight: bold; }
 #hud[hidden] { display: none; }
 .hud-top { position: absolute; top: 8px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .panel {
@@ -88,7 +88,8 @@ img.wiki { image-rendering: auto; }
 .pbtn img { width: 30px; height: 30px; object-fit: contain; }
 .pbtn.on { background: #6b5a2a; box-shadow: inset 0 0 0 2px var(--yellow); }
 .pbtn small { position: absolute; left: 3px; top: 1px; font-size: 11px; color: var(--muted); font-family: var(--font-display); }
-.pbtn em { position: absolute; right: 3px; bottom: 1px; font-style: normal; font-size: 13px; color: var(--yellow); font-family: var(--font-display); text-shadow: 1px 1px 0 #000; }
+.pbtn em { position: absolute; right: 3px; bottom: 1px; font-style: normal; font-size: 13px; font-weight: bold; color: var(--yellow); font-family: var(--font-body); text-shadow: 1px 1px 0 #000; }
+@media (hover: none) { .pbtn small { display: none; } }
 #chat {
   width: min(460px, 46vw); max-height: 112px; overflow: hidden;
   background: color-mix(in srgb, var(--parch) 82%, transparent);

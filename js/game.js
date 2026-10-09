@@ -794,6 +794,27 @@ function bossAI(e, dt) {
       burst(e.x, e.y, '#8a6a3c', 30);
       chat('The Giant Mole burrows underground.', 'r');
     }
+  } else if (k === 'dragon' && e.id === 'elvarg') {
+    // Elvarg: rotates a wide dragonfire cone, a fast aimed fire stream, and scorched ground under you. Enrages at half hp.
+    const rage = e.hp < e.maxHp * 0.5;
+    if (rage && !e.ai.rage) { e.ai.rage = 1; chat('Elvarg roars in fury!', 'r'); shout(e); }
+    if (e.ai.stream > 0 && (e.ai.st -= dt) <= 0) {
+      e.ai.stream--; e.ai.st = 0.12;
+      aimShot(e, 560, 'magic', '#ff6a1a', e.dmg * 0.55, { r: 12 });
+    }
+    if (e.ai.t <= 0) {
+      e.ai.t = rage ? 1.6 : 2.2;
+      const r = e.ai.phase++ % 3;
+      if (r === 0) {
+        fan(e, rage ? 13 : 11, 0.11, 430, 'magic', '#ff6a1a', e.dmg);
+        if (e.ai.phase === 1) chat('Elvarg breathes dragonfire! Protect from Magic helps.', 'r');
+      } else if (r === 1) { e.ai.stream = rage ? 9 : 6; e.ai.st = 0; }
+      else {
+        const n = rage ? 5 : 3;
+        for (let i = 0; i < n; i++) slam(p.x + (i ? (Math.random() - 0.5) * 220 : 0), p.y + (i ? (Math.random() - 0.5) * 180 : 0), 75, 0.9, e.dmg * 1.3, 'magic', '#ff4a1a', i ? '' : 'Scorch!');
+      }
+      sfx(70, 0.4, 'sawtooth', 0.06);
+    }
   } else if (k === 'dragon' || k === 'kbd') {
     if (e.ai.t <= 0) {
       e.ai.t = k === 'kbd' ? 2.5 : 3.0;
@@ -1515,13 +1536,13 @@ function drawHud() {
   $('hpBar').lastElementChild.textContent = `${Math.max(0, Math.ceil(p.hp))} / ${st.maxHp}`;
   $('ppBar').firstElementChild.style.width = `${clamp(p.pp / st.maxPp, 0, 1) * 100}%`;
   $('ppBar').lastElementChild.textContent = `Prayer ${Math.ceil(p.pp)} / ${st.maxPp}`;
-  $('waveName').textContent = `${area.name} · ${areaIndex() + 1}/${AREAS.length}`;
+  $('waveName').textContent = area.name;
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
-  $('waveSub').textContent = isBoss ? `Boss: ${MONSTERS[area.boss].name}` : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} enemies left`;
+  $('waveSub').textContent = `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? `Boss: ${MONSTERS[area.boss].name}` : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`);
   $('goldTxt').textContent = run.gold.toLocaleString();
   drawGearBar();
-  $('sharkN').textContent = run.inv.shark;
-  $('ppotN').textContent = run.inv.ppot;
+  $('sharkN').textContent = '×' + run.inv.shark;
+  $('ppotN').textContent = '×' + run.inv.ppot;
   const bb = $('bossbar');
   if (bossAlive && !bossAlive.dead) {
     bb.hidden = false;

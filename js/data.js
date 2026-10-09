@@ -425,7 +425,7 @@ mon('count_draynor', 'Count Draynor', 'Count_Draynor.png', 34, 700, 95, 8, 80, 8
 mon('delrith', 'Delrith', 'Delrith.png', 27, 900, 85, 9, 110, 100, 'magic', { boss: 'delrith' });
 mon('scurrius', 'Scurrius', 'Scurrius.png', 200, 1300, 90, 12, 150, 130, 'melee', { boss: 'scurrius' });
 mon('giant_mole', 'Giant Mole', 'Giant_Mole.png', 230, 1700, 100, 14, 150, 150, 'melee', { boss: 'mole' });
-mon('elvarg', 'Elvarg', 'Elvarg.png', 83, 2300, 80, 16, 190, 180, 'melee', { boss: 'dragon' });
+mon('elvarg', 'Elvarg', 'Elvarg.png', 83, 2800, 95, 20, 190, 180, 'melee', { boss: 'dragon' });
 mon('kalphite_queen', 'Kalphite Queen', 'Kalphite_Queen.png', 333, 2600, 85, 18, 190, 220, 'melee', { boss: 'kq' });
 mon('kbd', 'King Black Dragon', 'King_Black_Dragon.png', 276, 3600, 78, 20, 220, 260, 'melee', { boss: 'kbd' });
 mon('graardor', 'General Graardor', 'General_Graardor.png', 624, 4400, 80, 24, 200, 320, 'melee', { boss: 'graardor' });
