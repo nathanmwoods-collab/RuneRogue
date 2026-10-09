@@ -1238,7 +1238,14 @@ function startClue(tier = 3) {
   // A random boss from outside the route, never the same one twice in a run.
   let pool = CLUE_BOSSES.filter((id) => !run.clueSeen.includes(id));
   if (!pool.length) { run.clueSeen = []; pool = CLUE_BOSSES.slice(); }
-  const id = pool[Math.floor(Math.random() * pool.length)];
+  // Early clues mostly summon low bosses (Obor, Bryophyta, Barrows), later ones the big ones (Nightmare, the DT2 bosses, Sol).
+  // clueMult (1.1 to 2.4) ranks them; the target moves up with the area and the clue's tier, with a small chance of a surprise.
+  const prog = clamp(areaIndex() / (AREAS.length - 1) * 0.75 + tier / 5 * 0.25, 0, 1);
+  const target = 1.1 + 1.3 * prog;
+  const bag = pool.map((cid) => ({ cid, wt: 0.03 + Math.exp(-((((MONSTERS[cid].clueMult || 1) - target) / 0.25) ** 2)) }));
+  let roll = Math.random() * bag.reduce((x, b) => x + b.wt, 0), pick = bag[bag.length - 1].cid;
+  for (const b of bag) { if ((roll -= b.wt) <= 0) { pick = b.cid; break; } }
+  const id = pick;
   run.clueSeen.push(id);
   run.clues++;
   meta.clues = (meta.clues || 0) + 1; saveMeta();
