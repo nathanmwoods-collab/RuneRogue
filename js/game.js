@@ -694,7 +694,7 @@ function specialAttack() {
   if (S.lock) {
     run.buffs.lock = { t: S.lock, amount: 0.5, name: S.name, file: ITEMS[run.gear.weapon].file };
   } else if (w.kind === 'swing') {
-    const reach = w.reach * (1 + 0.15 * bv('reach')) * 1.3;
+    const reach = w.reach * MELEE_REACH * (1 + 0.15 * bv('reach')) * 1.3;
     const target = nearestEnemy(p.x, p.y, (S.aoe || reach) + 10);
     if (!target) { chat('Nothing in reach for a special attack.', 'b'); return; }
     const ang = Math.atan2(target.y - p.y, target.x - p.x);
@@ -734,11 +734,14 @@ function specialAttack() {
   achEvent('spec', run.gear.weapon);
 }
 
+// Melee swings reach this much farther than each weapon's listed reach, so melee heroes can hit from a safer distance.
+const MELEE_REACH = 1.3;
+
 function playerAttack(dt) {
   const p = run.p, st = stats(), w = st.weapon;
   p.atkT -= dt;
   if (p.atkT > 0 || p.frozen > 0) return;
-  const reachMult = 1 + 0.15 * bv('reach');
+  const reachMult = MELEE_REACH * (1 + 0.15 * bv('reach'));
   const reach = w.kind === 'swing' ? w.reach * reachMult : w.range * st.range;
   const target = nearestEnemy(p.x, p.y, reach + (w.kind === 'swing' ? 10 : 0));
   if (!target) return;
@@ -747,7 +750,7 @@ function playerAttack(dt) {
   p.face = ang;
   p.anim = { kind: w.kind, ang, t: 0, dur: w.kind === 'swing' ? 0.2 : 0.18, arc: w.arc || 0 };
   if (w.kind === 'swing') {
-    fx.push({ kind: 'slash', x: p.x, y: p.y - 30, a: ang, arc: Math.min(w.arc, 6.3), r: w.reach, t: 0.2, max: 0.2 });
+    fx.push({ kind: 'slash', x: p.x, y: p.y - 30, a: ang, arc: Math.min(w.arc, 6.3), r: w.reach * reachMult, t: 0.2, max: 0.2 });
     sfx(w.arc > 6 ? 120 : 300, 0.06, 'square', 0.03);
     for (const e of [...enemies]) {
       const d = Math.hypot(e.x - p.x, e.y - p.y) - e.r;
@@ -2119,7 +2122,7 @@ function itemStatsText(it) {
     bits.push(`${LANE_NAME[KIND_STYLE[w.kind]]} weapon`);
     bits.push(`${w.dmg} dmg every ${w.cd}s`);
     if (w.spell) bits.push(`casts ${w.spell}`);
-    if (w.kind === 'swing') bits.push(w.arc > 6 ? 'hits all around you' : `reach ${w.reach}`);
+    if (w.kind === 'swing') bits.push(w.arc > 6 ? 'hits all around you' : `reach ${Math.round(w.reach * MELEE_REACH)}`);
     if (w.hits) bits.push(`${w.hits} hits per swing`);
     if (w.count > 1) bits.push(`${w.count} arrows`);
     if (w.pierce > 1) bits.push(`pierces ${w.pierce}`);
