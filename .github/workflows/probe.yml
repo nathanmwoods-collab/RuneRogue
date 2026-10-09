@@ -8,26 +8,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           rm -rf probe; mkdir -p probe
-          # name map x y  (game coords; zoom 3 => 32 squares per 256px tile)
-          while read n m p x y; do
-            tx=$((x/32)); ty=$((y/32))
-            for dx in -3 -2 -1 0 1 2; do for dy in -2 -1 0 1; do
-              X=$((tx+dx)); Y=$((ty+dy))
-              curl -s -o probe/${n}_${X}_${Y}.png -w "%{http_code}\n" "https://maps.runescape.wiki/osrs/tiles/${m}_2019-10-31_1/3/${p}_${X}_${Y}.png" | grep -q 200 || rm -f probe/${n}_${X}_${Y}.png
-            done; done
-          done <<'LIST'
-          sew 12 0 3237 9900
-          sew2 0 0 3245 3420
-          kq 0 0 3230 3110
-          gwd 7 2 2864 5360
-          gwd1 7 0 2880 5312
-          zul 0 0 2232 3060
-          caves 23 0 2440 5170
-          ung 0 0 2273 4071
-          toa 0 0 3270 2790
-          nex 7 2 2925 5330
-          inf 23 0 2500 5100
-          LIST
+          while read k; do IFS=_ read m p x y <<< "$k"
+            curl -s -o probe/$k.png -w "%{http_code}" "https://maps.runescape.wiki/osrs/tiles/${m}_2019-10-31_1/3/${p}_${x}_${y}.png" | grep -q 200 || rm -f probe/$k.png
+          done < list.txt
           ls probe | wc -l
           git config user.name probe; git config user.email probe@example.com
           git add -A probe && git commit -qm "probe tiles" && git push
