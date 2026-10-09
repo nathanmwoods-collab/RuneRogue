@@ -269,7 +269,7 @@ function stats() {
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
     maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.6 : 1)),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
-    ppDrain: 1.6 * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
+    ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
     reduce: Math.min(0.75, defPts / 100),
     taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
@@ -292,13 +292,15 @@ function startStage() {
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false;
-  run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null;
+  run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
   run.prayer = null;
   const a = areaIndex(), sub = subIndex();
   toSpawn = isBoss ? 4 + a * 2 : 12 + a * 4 + sub * 6;
   if (!isBoss && inv('overlords')) toSpawn = Math.round(toSpawn * 1.4);
+  // Varrock: the dark wizards' circle south of the city ambushes you once in each wave
+  if (!isBoss && area.name === 'Varrock') run.circleAt = Math.floor(toSpawn * (0.3 + Math.random() * 0.5));
   // Insanity: a boss from elsewhere in Gielinor bursts into this wave partway through
   if (!isBoss && inv('insanity') && run.stage >= 1 && Math.random() < 0.45) run.insaneAt = Math.floor(toSpawn * (0.2 + Math.random() * 0.5));
   if (run.skull && area.name !== 'Wilderness') { run.skull = false; chat('You leave the Wilderness. Your skull fades.', 'g'); }
@@ -337,6 +339,14 @@ function bossIntro(b) {
 
 // Global boss toughness (Nathan: bosses were too easy).
 const BOSS_TEMPO = 1.3, BOSS_HP = 1.5, BOSS_DMG = 1.35;
+// Protection prayers block everything but drain fast; flick them on for the hit and off again.
+const PRAYER_DRAIN = 4, FLICK_TICK = 0.6;
+// Rest between rounds heals this share of max hitpoints (Nathan: 15%).
+const REST_HEAL = 0.15;
+// Bosses enrage below this share of their total hitpoints, counting every phase.
+const ENRAGE_AT = 0.33;
+// Eating a shark or pie stops your attacks for this long, like the OSRS food delay.
+const EAT_DELAY = 1.2;
 function stageScale() { return 1 + 0.085 * run.stage + 0.004 * run.stage * run.stage; }
 
 const SAFE_SPAWN = 260; // nothing appears closer than this to the player
@@ -412,6 +422,7 @@ function spawnTick(dt) {
   const a = areaIndex();
   // trickle in: only a limited number alive at once
   if (run.insaneAt !== null && toSpawn <= run.insaneAt) { run.insaneAt = null; spawnInsane(); }
+  if (run.circleAt !== null && toSpawn <= run.circleAt) { run.circleAt = null; wizardCircle(); }
   const maxAlive = Math.round((isBoss ? 4 + a : 7 + Math.floor(a * 0.8) + subIndex() * 2) * (!isBoss && inv('overlords') ? 1.4 : 1));
   if (spawnT > 0 || enemies.length >= maxAlive) return;
   spawnT = isBoss ? 4 : Math.max(0.7, 1.7 - a * 0.05);
@@ -423,6 +434,7 @@ function spawnTick(dt) {
     if (run.skull && !isBoss && Math.random() < 0.12 && enemies.filter((e) => e.d.pker && !e.dead).length < 2) { spawnPker(pos); continue; }
     if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
     const m = spawnMonster(id, pos.x, pos.y);
+    if (!isBoss && a >= 1 && !m.d.caster && Math.random() < Math.min(0.45, 0.2 + a * 0.02)) mixStyle(m);
     burst(pos.x, pos.y, '#d8c8a0', 8);
     if (m && Math.random() < 0.45) m.lead = 0.5 + Math.random() * 0.7; // cuts you off instead of chasing your tail
   }
@@ -450,7 +462,7 @@ function endStage() {
   const st = stats();
   const bonus = Math.round((15 + run.stage * 6) * st.goldMult * (isBoss ? 2 : 1));
   addGold(bonus, false);
-  if (!ycon('breath')) run.p.hp = Math.min(st.maxHp, run.p.hp + Math.round(st.maxHp * 0.5));
+  if (!ycon('breath')) run.p.hp = Math.min(st.maxHp, run.p.hp + Math.round(st.maxHp * REST_HEAL));
   run.p.hp = Math.min(st.maxHp, run.p.hp);
   chat(`${isBoss ? `${area.name} cleared!` : 'Wave cleared.'} Bonus: ${bonus} coins.`, 'g');
   achEvent('stage', { area: areaIndex(), boss: isBoss });
@@ -578,6 +590,25 @@ function medicScarab(pos) {
   m.hp = m.maxHp = Math.round(base.hp * stageScale() * 1.2);
   m.dmg = base.dmg * (1 + 0.03 * run.stage) * 1.2;
   burst(pos.x, pos.y, '#c8a060', 8);
+}
+// Mixed-style waves: some of the horde fight at range or with magic, so one prayer can't cover the wave.
+function mixStyle(m) {
+  const style = Math.random() < 0.5 ? 'ranged' : 'magic';
+  m.d = { ...m.d, style, caster: style === 'magic' ? MAGIC_BOLT('#4aa0ff') : ARROW('#c8a060') };
+  m.castT = 1 + Math.random() * 1.5;
+}
+// The dark wizards' circle: a perfect ring of them appears around you and casts straight away.
+function wizardCircle() {
+  const p = run.p, n = 8, rad = SAFE_SPAWN + 30;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const x = clamp(p.x + Math.cos(a) * rad, 30, WORLD_W - 30), y = clamp(p.y + Math.sin(a) * rad * 0.8, 130, WORLD_H - 20);
+    const m = spawnMonster('dark_wizard', x, y);
+    m.x = x; m.y = y; m.castT = 0.3 + i * 0.05;
+    burst(x, y, '#c040ff', 10);
+  }
+  chat('A circle of dark wizards surrounds you!', 'r');
+  sfx(140, 0.5, 'sawtooth', 0.07);
 }
 // Insanity: an off-route boss joins a normal wave. It drops a pile of coins instead of a casket.
 function spawnInsane() {
@@ -862,7 +893,8 @@ const MELEE_REACH = 1.3;
 function playerAttack(dt) {
   const p = run.p, st = stats(), w = st.weapon;
   p.atkT -= dt;
-  if (p.atkT > 0 || p.frozen > 0) return;
+  if (p.eatT > 0) p.eatT -= dt;
+  if (p.atkT > 0 || p.frozen > 0 || p.eatT > 0) return;
   const reachMult = MELEE_REACH * (1 + 0.15 * bv('reach'));
   const reach = w.kind === 'swing' ? w.reach * reachMult : w.range * st.range;
   const target = nearestEnemy(p.x, p.y, reach + (w.kind === 'swing' ? 10 : 0));
@@ -1015,7 +1047,8 @@ function hurtPlayer(raw, style, opts = {}) {
   let dmg = raw * st.taken * (opts.pure ? 1 : 1 - st.reduce);
   if (style === 'magic' && (run.hero.mods || {}).magicTaken) dmg *= run.hero.mods.magicTaken;
   if (run.buffs.lock && run.buffs.lock.t > 0) dmg *= 0.5;
-  if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= opts.full ? 0 : inv('quiet') ? 0.5 : 0.3;
+  // OSRS protection prayers block all damage of their style (Quiet Prayers: 80%)
+  if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= inv('quiet') ? 0.2 : 0;
   if (run.enraged && !opts.pure) dmg *= 1.5;
   dmg = Math.round(dmg * (0.6 + Math.random() * 0.4));
   p.hp -= dmg;
@@ -1130,7 +1163,7 @@ function fan(e, n, step, speed, style, color, dmg, extra) {
 }
 function slam(x, y, r, delay, dmg, style, color, label, extra) {
   const ex = extra || {};
-  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!ex.noPray, shape: ex.shape || 'circle', a: ex.a || 0, spread: ex.spread || 0.6, w: ex.w || 50 });
+  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!ex.noPray, heal: ex.heal, from: ex.from, freeze: ex.freeze, shape: ex.shape || 'circle', a: ex.a || 0, spread: ex.spread || 0.6, w: ex.w || 50 });
 }
 function summon(e, id, n, opts = {}) {
   for (let i = 0; i < n; i++) {
@@ -1186,8 +1219,8 @@ function clueSpecial(e) {
     fan(e, 5, 0.18, 400, e.d.style === 'melee' ? 'magic' : e.d.style, '#5fd34a', dmg, { drain: 6 });
     if (e.d.caster == null) slam(p.x, p.y, 75, 1.0, dmg * 1.5, e.d.style, '#5fd34a', 'Special!');
   } else if (m === 'leech') {
-    slam(p.x, p.y, 75, 1.0, dmg * 1.6, e.d.style, '#c01a1a', 'Infest!');
-    e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.06);
+    // Guthan's set effect: he heals by the damage this hit deals you, so dodge it or pray
+    slam(p.x, p.y, 75, 1.0, dmg * 1.6, e.d.style, '#c01a1a', 'Infest!', { heal: 1, from: e });
   } else if (m === 'rage') {
     const missing = 1 - e.hp / e.maxHp;
     slam(p.x, p.y, 80, 1.0, dmg * (1.4 + 2.5 * missing), e.d.style, '#c01a1a', 'Special!');
@@ -1201,11 +1234,23 @@ function clueSpecial(e) {
   }
 }
 
+// Share of a boss's hitpoints left across all its phases (Kalphite Queen has two forms, Verzik three phases).
+function totalHpFrac(e) {
+  const k = e.d.boss, h = Math.max(0, e.hp);
+  if (k === 'kq') return e.ai.form2 ? h / e.maxHp / 2 : 0.5 + h / e.maxHp / 2;
+  if (k === 'verzik') {
+    const vp = e.ai.vphase || 1, base = e.ai.vBase || (e.ai.vBase = e.maxHp), total = base * 1.96;
+    const later = vp === 1 ? base * 0.96 : vp === 2 ? e.maxHp * 0.6 : 0;
+    return (h + later) / total;
+  }
+  return h / e.maxHp;
+}
+
 function bossAI(e, dt) {
   const p = run.p, k = e.d.boss;
   const hpf = e.hp / e.maxHp;
   // bosses act faster than their base pattern, and faster still below half health
-  if (hpf < 0.5 && !e.ai.enraged) { e.ai.enraged = true; chat(`${e.d.name} is enraged!`, 'r'); burst(e.x, e.y, '#ff3a1a', 30); }
+  if (totalHpFrac(e) < ENRAGE_AT && !e.ai.enraged) { e.ai.enraged = true; chat(`${e.d.name} is enraged!`, 'r'); burst(e.x, e.y, '#ff3a1a', 30); }
   e.ai.t -= dt * BOSS_TEMPO * invoTempo() * (e.ai.enraged ? 1.3 : 1);
   if (k === 'cow') {
     // Cow Boss: charges across the field and calls the herd
@@ -1349,6 +1394,7 @@ function bossAI(e, dt) {
         e.ai.shots = 0; e.ai.form = ((e.ai.form || 0) + 1) % 3;
         const nf = ZULRAH_FORMS[e.ai.form];
         burst(e.x, e.y, nf.color, 30);
+        summon(e, 'snakeling', 2);
         e.x = clamp(WORLD_W / 2 + (Math.random() - 0.5) * 700, 150, WORLD_W - 150);
         chat(`Zulrah dives and resurfaces in its ${nf.name} form. Pray ${nf.style === 'melee' ? 'Melee (1)' : nf.style === 'ranged' ? 'Missiles (2)' : 'Magic (3)'}!`, 'r');
       }
@@ -1379,9 +1425,9 @@ function bossAI(e, dt) {
       const r = e.ai.phase++ % 6;
       if (r === 2) {
         // acid phase: pools everywhere and a rapid fireball stream
-        for (let i = 0; i < 10; i++) hazards.push({ x: 60 + Math.random() * (WORLD_W - 120), y: 140 + Math.random() * (WORLD_H - 180), r: 40, t: 7, color: '#7ad04a', dps: 14 });
+        for (let i = 0; i < 14; i++) hazards.push({ x: 60 + Math.random() * (WORLD_W - 120), y: 140 + Math.random() * (WORLD_H - 180), r: 40, t: 7, color: '#7ad04a', dps: 20, heal: 3, from: e });
         for (let i = 0; i < 6; i++) setTimeout(() => { if (!e.dead && mode === 'play') aimShot(e, 600, 'magic', '#ff6a1a', 16, { pure: true }); }, i * 450);
-        chat('Vorkath spews acid!', 'r');
+        if (!e.ai.acidTold) { e.ai.acidTold = true; chat('Vorkath spews acid! Stepping in it heals him. Walk between the pools.', 'r'); }
       } else if (r === 5) {
         p.frozen = 2.5;
         e.ai.spawn = spawnMonster('zombified_spawn', e.x, e.y + 60);
@@ -1420,7 +1466,12 @@ function bossAI(e, dt) {
         if (e.ai.phase++ % 3 === 0) { summon(e, ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'][Math.floor(Math.random() * 3)], 3); }
         else slam(p.x, p.y, 80, 1.0, e.dmg * 1.2, 'ranged', '#a01a2a', 'Bounce!');
       } else {
-        if (e.ai.phase++ % 4 === 0) { hazards.push({ x: e.x, y: e.y, r: 40, t: 8, color: '#c03030', dps: 25, chase: 90 }); chat('Verzik summons a tornado!', 'r'); }
+        const vr = e.ai.phase++ % 4;
+        if (vr === 0) { hazards.push({ x: e.x, y: e.y, r: 40, t: 8, color: '#c03030', dps: 25, chase: 90, heal: 2, from: e }); chat('Verzik summons a tornado! It heals her if it catches you.', 'r'); }
+        else if (vr === 2) {
+          // webs: get caught and you're stuck in place
+          for (let i = 0; i < 6; i++) slam(clamp(p.x + (i ? (Math.random() - 0.5) * 420 : 0), 40, WORLD_W - 40), clamp(p.y + (i ? (Math.random() - 0.5) * 300 : 0), 130, WORLD_H - 40), 55, 1.0, e.dmg * 0.8, 'magic', '#e8e8e8', i ? '' : 'Webs!', { noPray: true, freeze: 1.5 });
+        }
         else aimShot(e, 520, Math.random() < 0.5 ? 'ranged' : 'magic', '#e04a6a', e.dmg, { r: 14 });
       }
     }
@@ -1433,7 +1484,14 @@ function bossAI(e, dt) {
       e.ai.t = 2.2;
       if (ph === 'smoke') fan(e, 5, 0.25, 360, 'magic', '#7a7a7a', e.dmg * 0.8, { poison: 4 });
       else if (ph === 'shadow') { for (let i = 0; i < 4; i++) slam(p.x + (Math.random() - 0.5) * 240, p.y + (Math.random() - 0.5) * 200, 60, 1.0, e.dmg * 1.2, 'ranged', '#222', 'Shadow!'); }
-      else if (ph === 'blood') { e.lifesteal = 1; aimShot(e, 500, 'magic', '#c01a1a', e.dmg, { r: 14 }); }
+      else if (ph === 'blood') {
+        e.lifesteal = 1; aimShot(e, 500, 'magic', '#c01a1a', e.dmg, { r: 14 });
+        if (e.ai.siphon = (e.ai.siphon || 0) + 1, e.ai.siphon % 3 === 1) {
+          // Blood Siphon: pools of blood around you feed Nex for every hit they do
+          for (let i = 0; i < 5; i++) hazards.push({ x: clamp(p.x + (Math.random() - 0.5) * 360, 40, WORLD_W - 40), y: clamp(p.y + (Math.random() - 0.5) * 280, 130, WORLD_H - 40), r: 50, t: 6, color: '#a00a1a', dps: 24, heal: 4, from: e });
+          chat('Nex: Blood Siphon! Her blood pools heal her. Stay out of them.', 'r');
+        }
+      }
       else if (ph === 'ice') { fan(e, 6, 0.2, 380, 'magic', '#9fe8ff', e.dmg * 0.8, { freeze: 0.8 }); }
       else { fan(e, 7, 0.18, 420, 'magic', '#b04bff', e.dmg); }
     }
@@ -1489,7 +1547,7 @@ function updateEnemyShots(dt) {
       } else {
         if (t.shape === 'circle' || t.shape === 'ring') fx.push({ kind: 'boom', x: t.x, y: t.y, r: t.r, color: t.color, t: 0.35, max: 0.35 });
         else burst(t.x, t.y, t.color, 14);
-        if (inTelegraph(t, p.x, p.y)) hurtPlayer(t.dmg, t.style, { noPray: t.noPray });
+        if (inTelegraph(t, p.x, p.y)) hurtPlayer(t.dmg, t.style, { noPray: t.noPray, heal: t.heal, from: t.from, freeze: t.freeze });
       }
     }
   }
@@ -1499,7 +1557,7 @@ function updateEnemyShots(dt) {
     if (h.chase) { const a = Math.atan2(p.y - h.y, p.x - h.x); h.x += Math.cos(a) * h.chase * dt; h.y += Math.sin(a) * h.chase * dt; }
     if (Math.hypot(p.x - h.x, p.y - h.y) < h.r) {
       h.tick = (h.tick || 0) - dt;
-      if (h.tick <= 0) { h.tick = 0.5; hurtPlayer(h.dps * 0.5, 'magic', { pure: true, poison: h.poison }); }
+      if (h.tick <= 0) { h.tick = 0.5; hurtPlayer(h.dps * 0.5, 'magic', { pure: true, poison: h.poison, heal: h.heal, from: h.from }); }
     }
   }
   hazards = hazards.filter((h) => h.t > 0);
@@ -1543,7 +1601,9 @@ function updatePlayer(dt) {
     if (mx) p.flip = mx < 0;
   }
   if (run.prayer) {
-    p.pp -= st.ppDrain * dt;
+    // prayer flicking: like a game tick, the first 0.6s of a prayer costs nothing, so tapping it on for each hit is free
+    run.prayOnT = (run.prayOnT || 0) + dt;
+    if (run.prayOnT > FLICK_TICK) p.pp -= st.ppDrain * dt;
     if (p.pp <= 0) { p.pp = 0; run.prayer = null; chat('You have run out of prayer points.', 'r'); updatePrayerButtons(); }
   }
   for (const c of coins) {
@@ -1565,6 +1625,7 @@ function updatePlayer(dt) {
       else if (pk.kind === 'pie') {
         const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal);
         p.hp = Math.min(max, p.hp + heal);
+        p.eatT = EAT_DELAY;
         chat(`You eat the Redberry pie. It heals ${heal} hitpoints.`, 'g');
         achEvent('pie');
         burst(p.x, p.y - 20, '#ff4a6a', 12);
@@ -1591,7 +1652,7 @@ function togglePrayer(style) {
   if (!run || mode !== 'play') return;
   if (run.prayer === style) run.prayer = null;
   else if (ycon('severance')) { chat('Your Contract of Divine Severance forbids protection prayers.', 'r'); return; }
-  else if (run.p.pp > 0) { run.prayer = style; run.prayedEver = true; achEvent('pray'); }
+  else if (run.p.pp > 0) { run.prayer = style; run.prayOnT = 0; run.prayedEver = true; achEvent('pray'); }
   else chat('You need to recharge your prayer.', 'r');
   sfx(run.prayer ? 520 : 300, 0.06, 'sine', 0.05);
   updatePrayerButtons();
@@ -1606,7 +1667,7 @@ function useItem(kind) {
   const st = stats();
   run.inv[kind]--;
   if (kind === 'shark') achEvent('eat');
-  if (kind === 'shark') { if (ycon('breath')) chat('You eat the shark, but your contract with Yama stops it healing you.', 'r'); else { run.p.hp = Math.min(st.maxHp, run.p.hp + 20); chat('You eat the shark. It heals some health.'); } }
+  if (kind === 'shark') { if (ycon('breath')) chat('You eat the shark, but your contract with Yama stops it healing you.', 'r'); else { run.p.hp = Math.min(st.maxHp, run.p.hp + 20); run.p.eatT = EAT_DELAY; chat('You eat the shark. It heals some health.'); } }
   else { run.p.pp = Math.min(st.maxPp, run.p.pp + 20); chat('You drink some of your prayer potion.'); }
   sfx(400, 0.1, 'sine', 0.05);
 }
