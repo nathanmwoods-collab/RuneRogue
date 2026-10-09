@@ -718,6 +718,90 @@ mon('pk_revenant', 'Revenant knight', 'Revenant_knight.png', 126, 300, 140, 14, 
 mon('pk_dark_warrior', 'Dark warrior', 'Dark_warrior.png', 62, 220, 160, 12, 62, 30, 'melee', { elite: true, pker: true });
 mon('pk_rogue', 'Rogue', 'Rogue.png', 15, 180, 185, 10, 60, 25, 'melee', { elite: true, pker: true });
 
+// ---------------------------------------------------------------------------
+// Random events: all 24 current ones from the wiki's Random events page, each with the NPC who brings it.
+// type: talk (walk to them in time), pick (a quick puzzle screen with a timer), or an arena event.
+// ---------------------------------------------------------------------------
+const RANDOM_EVENTS = [
+  { id: 'beekeeper', name: 'Beekeeper', npc: 'Bee keeper', file: 'Bee_keeper.png', type: 'pick' },
+  { id: 'arnav', name: "Capt' Arnav's Chest", npc: "Capt' Arnav", file: "Capt'_Arnav.png", type: 'pick' },
+  { id: 'certer', name: 'Certers', npc: 'Niles', file: 'Niles.png', type: 'pick' },
+  { id: 'count', name: 'Count Check', npc: 'Count Check', file: 'Count_Check.png', type: 'talk', line: 'I am certainly not just a role-playing enthusiast in a costume! Never question that!' },
+  { id: 'drill', name: 'Drill Demon', npc: 'Sergeant Damien', file: 'Sergeant_Damien.png', type: 'drill', line: 'Do you think you can be the best?' },
+  { id: 'dwarf', name: 'Drunken Dwarf', npc: 'Drunken Dwarf', file: 'Drunken_Dwarf.png', type: 'talk' },
+  { id: 'evilbob', name: 'Evil Bob', npc: 'Evil Bob', file: 'Evil_Bob.png', type: 'pick' },
+  { id: 'twin', name: 'Evil twin', npc: 'Molly', file: 'Molly.png', type: 'pick' },
+  { id: 'forester', name: 'Freaky Forester', npc: 'Freaky Forester', file: 'Freaky_Forester.png', type: 'forester' },
+  { id: 'genie', name: 'Genie', npc: 'Genie', file: 'Genie.png', type: 'talk' },
+  { id: 'gravedigger', name: 'Gravedigger', npc: 'Leo', file: 'Leo.png', type: 'pick' },
+  { id: 'jekyll', name: 'Jekyll and Hyde', npc: 'Dr Jekyll', file: 'Dr_Jekyll.png', type: 'talk' },
+  { id: 'frog', name: 'Kiss the frog', npc: 'Frog prince', file: 'Frog_(Kiss_the_frog,_crown)_chathead.png', type: 'pick' },
+  { id: 'maze', name: 'Maze', npc: 'Mysterious Old Man', file: 'Mysterious_Old_Man.png', type: 'maze' },
+  { id: 'mime', name: 'Mime', npc: 'Mime', file: 'Mime.png', type: 'pick' },
+  { id: 'oldman', name: 'Mysterious Old Man', npc: 'Mysterious Old Man', file: 'Mysterious_Old_Man.png', type: 'talk' },
+  { id: 'pillory', name: 'Pillory', npc: 'Pillory Guard', file: 'Pillory_Guard_chathead.png', type: 'pick' },
+  { id: 'pinball', name: 'Pinball', npc: 'Flippa', file: 'Flippa.png', type: 'pinball' },
+  { id: 'prisonpete', name: 'Prison Pete', npc: 'Prison Pete', file: 'Prison_Pete.png', type: 'pick' },
+  { id: 'quiz', name: 'Quiz Master', npc: 'Quiz Master', file: 'Quiz_Master.png', type: 'pick' },
+  { id: 'rick', name: 'Rick Turpentine', npc: 'Rick Turpentine', file: 'Rick_Turpentine.png', type: 'talk' },
+  { id: 'sandwich', name: 'Sandwich lady', npc: 'Sandwich lady', file: 'Sandwich_lady.png', type: 'pick' },
+  { id: 'plant', name: 'Strange plant', npc: 'Strange plant', file: 'Strange_plant.png', type: 'talk' },
+  { id: 'exam', name: 'Surprise Exam', npc: 'Mr. Mordaut', file: 'Mr._Mordaut.png', type: 'pick' },
+];
+const RANDOM_EVENT_CHANCE = 0.35; // per normal wave, from the second wave of the run
+// Props for the puzzles (item files checked on the wiki)
+const SANDWICH_FOOD = [['Baguette', 'Baguette.png'], ['Triangle sandwich', 'Triangle_sandwich.png'], ['Square sandwich', 'Square_sandwich.png'], ['Chocolate bar', 'Chocolate_bar.png'], ['Kebab', 'Kebab.png'], ['Roll', 'Roll.png'], ['Meat pie', 'Meat_pie.png']];
+const GRAVE_JOBS = [['Farmer', 'Rake.png'], ['Miner', 'Bronze_pickaxe.png'], ['Potter', 'Soft_clay.png'], ['Lumberjack', 'Bronze_axe.png'], ['Cook', 'Pot.png']];
+const MIME_EMOTES = ['Think', 'Laugh', 'Cry', 'Dance', 'Climb Rope', 'Lean', 'Glass Box', 'Glass Wall'];
+const DRILL_MATS = ['Sit up', 'Push up', 'Star jump', 'Jog'];
+const ARNAV_ITEMS = [['Coins', 'Coins_100.png'], ['Gold ring', 'Gold_ring.png'], ['Gold necklace', 'Gold_necklace.png'], ['Gold bar', 'Gold_bar.png']];
+const BALLOONS = ['Cat', 'Dog', 'Goat', 'Sheep'];
+const PILLORY_SHAPES = [['Diamond', '◆'], ['Triangle', '▲'], ['Circle', '●'], ['Square', '■']];
+const BOB_FISH = [['Raw shrimps', 'Raw_shrimps.png'], ['Raw sardine', 'Raw_sardine.png'], ['Raw herring', 'Raw_herring.png'], ['Raw anchovies', 'Raw_anchovies.png']];
+const HIVE_PARTS = ['Lid', 'Body', 'Entrance', 'Legs']; // top to bottom
+// Dr Jekyll's potions for each herb (wiki), mapped to this game's potion buffs
+const JEKYLL_HERBS = [['Guam leaf', 'super_strength'], ['Tarromin', 'super_attack'], ['Ranarr weed', 'stamina'], ['Avantoe', 'super_attack'], ['Snapdragon', 'super_strength'], ['Dwarf weed', 'magic'], ['Torstol', 'stamina']];
+mon('pheasant', 'Pheasant', 'Pheasant_(1_tail).png', 1, 1, 70, 0, 40, 0, 'melee', { harmless: true });
+mon('mr_hyde', 'Mr Hyde', 'Dr_Jekyll.png', 90, 130, 135, 10, 66, 25, 'melee', { elite: true });
+
+// The Revenant Caves: a rare bonus round. Revenants drop ancient artefacts, and a PKer is always hunting there.
+const REV_AREA = { name: 'Revenant Caves', bg: 'Revenant_Caves.png', music: 'Revenants.ogg', look: ['#2e2a3a', '#26222f', '#3a3446'],
+  hordes: ['rev_imp', 'rev_goblin', 'rev_pyrefiend', 'rev_hobgoblin', 'rev_cyclops', 'rev_hellhound', 'rev_ork'], elites: ['rev_demon', 'rev_dark_beast', 'rev_dragon'] };
+const REV_CHANCE = 0.1;
+mon('rev_imp', 'Revenant imp', 'Revenant_imp.png', 7, 30, 140, 4, 40, 6, 'magic', { caster: MAGIC_BOLT('#9fe8ff') });
+mon('rev_goblin', 'Revenant goblin', 'Revenant_goblin.png', 15, 45, 120, 5, 46, 6, 'melee');
+mon('rev_pyrefiend', 'Revenant pyrefiend', 'Revenant_pyrefiend.png', 52, 60, 130, 6, 54, 8, 'magic', { caster: MAGIC_BOLT('#ff7a1a') });
+mon('rev_hobgoblin', 'Revenant hobgoblin', 'Revenant_hobgoblin.png', 60, 80, 110, 7, 58, 9, 'ranged', { caster: ARROW('#9fe8ff') });
+mon('rev_cyclops', 'Revenant cyclops', 'Revenant_cyclops.png', 82, 120, 95, 9, 84, 11, 'melee');
+mon('rev_hellhound', 'Revenant hellhound', 'Revenant_hellhound.png', 90, 110, 140, 9, 64, 11, 'melee');
+mon('rev_ork', 'Revenant ork', 'Revenant_ork.png', 105, 140, 100, 10, 70, 13, 'ranged', { caster: ARROW('#9fe8ff') });
+mon('rev_demon', 'Revenant demon', 'Revenant_demon.png', 98, 200, 95, 11, 90, 16, 'magic', { elite: true, caster: MAGIC_BOLT('#9fe8ff') });
+mon('rev_dark_beast', 'Revenant dark beast', 'Revenant_dark_beast.png', 120, 230, 100, 12, 86, 18, 'ranged', { elite: true, caster: ARROW('#9fe8ff') });
+mon('rev_dragon', 'Revenant dragon', 'Revenant_dragon.png', 135, 300, 90, 13, 110, 22, 'magic', { elite: true, caster: { range: 260, cd: 2.4, color: '#9fe8ff', speed: 340 } });
+// Ancient artefacts (wiki), worth more the rarer they are
+const ARTEFACTS = [
+  { name: 'Ancient emblem', file: 'Ancient_emblem.png', gold: 150, wt: 50 },
+  { name: 'Ancient totem', file: 'Ancient_totem.png', gold: 300, wt: 25 },
+  { name: 'Ancient statuette', file: 'Ancient_statuette.png', gold: 600, wt: 12 },
+  { name: 'Ancient medallion', file: 'Ancient_medallion.png', gold: 1200, wt: 6 },
+  { name: 'Ancient effigy', file: 'Ancient_effigy.png', gold: 2400, wt: 3 },
+  { name: 'Ancient relic', file: 'Ancient_relic.png', gold: 4800, wt: 1 },
+];
+
+// Superior monsters: a rare, much tougher version of any horde monster. "A superior foe has appeared..."
+const SUPERIOR_CHANCE = 1 / 45;
+
+// Boss helpers from the wiki: Nex's mages hold her phases, Olm's claws, Verzik's Nylocas Matomenos heal her,
+// Vet'ion's hellhounds make him immune, Scorpia's guardians heal her, Corp's dark energy core heals him.
+mon('umbra', 'Umbra', 'Umbra.png', 285, 1100, 70, 38, 80, 0, 'magic', { elite: true, caster: MAGIC_BOLT('#3a3a3a') });
+mon('cruor', 'Cruor', 'Cruor.png', 285, 1100, 70, 38, 80, 0, 'magic', { elite: true, caster: MAGIC_BOLT('#c01a1a') });
+mon('olm_left_claw', 'Left claw', 'Great_Olm.png', 750, 2600, 0, 0, 120, 0, 'melee', { elite: true });
+mon('olm_right_claw', 'Right claw', 'Great_Olm.png', 750, 2600, 0, 0, 120, 0, 'magic', { elite: true });
+mon('nylocas_matomenos', 'Nylocas Matomenos', 'Nylocas_Matomenos.png', 115, 500, 70, 0, 54, 0, 'melee', { harmless: true });
+mon('vetion_hound', 'Skeleton Hellhound', "Skeleton_Hellhound_(Vet'ion).png", 194, 0, 125, 0, 70, 0, 'melee', { elite: true });
+mon('scorpia_guardian', "Scorpia's guardian", "Scorpia's_guardian.png", 47, 0, 100, 0, 40, 0, 'magic', { harmless: true });
+mon('dark_core', 'Dark energy core', 'Dark_energy_core.png', 75, 0, 0, 0, 44, 0, 'magic', { harmless: true });
+
 // Enchanted bolt effects (OSRS names and odds from the wiki).
 const BOLT_PROCS = {
   dragonstone: { name: "Dragon's breath", chance: 0.06, info: "6%: dragonfire for extra damage based on your Ranged level" },
