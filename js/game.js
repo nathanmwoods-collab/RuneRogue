@@ -3319,9 +3319,9 @@ function rollOffers(fresh) {
 }
 
 function skillCost(sk) {
-  // Tuned so a run that focuses one skill can reach 99 by the end (about 14,500 gp from 1 to 99).
+  // High levels get steep: about 30,000 gp from 1 to 99, twice the old price, and most of it above level 70.
   const lvl = run.skills[sk.id];
-  return Math.round((4 + 0.045 * lvl * lvl) * ((run.hero.mods || {}).skillCost || 1));
+  return Math.round((5 + 0.06 * lvl * lvl + 0.0004 * lvl * lvl * lvl) * ((run.hero.mods || {}).skillCost || 1));
 }
 
 function itemStatsText(it) {
