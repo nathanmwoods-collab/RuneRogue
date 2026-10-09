@@ -529,8 +529,10 @@ const UPGRADES = [
 
 // Potion drops: short buffs picked up from the ground (on top of the permanent trading-stick upgrades).
 const POTIONS = {
-  super_attack: { name: 'Super attack', file: 'Super_attack(4).png', stat: 'aspd', amount: 0.4, secs: 15, info: '40% faster attacks' },
-  super_strength: { name: 'Super strength', file: 'Super_strength(4).png', stat: 'dmg', amount: 0.3, secs: 15, info: '30% more damage' },
+  super_attack: { name: 'Super attack', file: 'Super_attack(4).png', stat: 'aspd', amount: 0.4, secs: 15, info: '40% faster attacks with any weapon' },
+  super_strength: { name: 'Super strength', file: 'Super_strength(4).png', stat: 'dmg_melee', style: 'melee', amount: 0.35, secs: 15, info: '35% more melee damage' },
+  ranging: { name: 'Ranging potion', file: 'Ranging_potion(4).png', stat: 'dmg_ranged', style: 'ranged', amount: 0.35, secs: 15, info: '35% more ranged damage' },
+  magic: { name: 'Magic potion', file: 'Magic_potion(4).png', stat: 'dmg_magic', style: 'magic', amount: 0.35, secs: 15, info: '35% more magic damage' },
   stamina: { name: 'Stamina potion', file: 'Stamina_potion(4).png', stat: 'speed', amount: 0.3, secs: 15, info: '30% faster running' },
 };
 const POTION_CHANCE = { normal: 0.012, elite: 0.06 };

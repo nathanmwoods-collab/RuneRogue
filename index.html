@@ -24,6 +24,7 @@
   --muted: #c8b98f;
   --blue: #6aa0ff;
   --red: #ff4b4b;
+  --green: #6fdc4f;
   --font-display: "Pixelify Sans", "Trebuchet MS", Verdana, sans-serif;
   --font-body: "Trebuchet MS", Verdana, "Segoe UI", sans-serif;
   color-scheme: dark;
@@ -72,6 +73,13 @@ img.wiki { image-rendering: auto; }
 #bossbar .bar { height: 18px; }
 .hud-bottom { position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
 .prayers { display: flex; gap: 6px; pointer-events: auto; }
+.ds.cmp { margin-top: 4px; font-size: 12px; line-height: 1.35; border-top: 1px solid #5a4d3a; padding-top: 4px; }
+#gearBar { position: absolute; left: 8px; top: 64px; max-height: calc(100% - 150px); display: flex; flex-direction: column; flex-wrap: wrap; gap: 3px; }
+#gearBar .gs { width: 30px; height: 30px; background: rgba(40,33,24,.82); border: 1px solid #000; outline: 1px solid #5a4d3a; display: grid; place-items: center; }
+#gearBar .gs img { max-width: 26px; max-height: 26px; object-fit: contain; }
+#gearBar .gs.empty { opacity: .45; }
+@media (max-width: 600px) { #gearBar { top: 112px; } }
+#gearBar .gs .fallback { font-size: 10px; color: var(--muted); }
 .pbtn {
   position: relative; width: 52px; height: 52px; padding: 0;
   background: var(--stone-dark); border: 2px solid var(--ink); outline: 1px solid var(--rim);
@@ -200,6 +208,7 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
       <div class="panel wave txt"><div class="name" id="waveName"></div><div class="sub" id="waveSub"></div></div>
       <div class="panel purse txt"><img class="wiki" data-wiki="Coins_10000.png" alt=""><span id="goldTxt">0</span></div>
     </div>
+    <div id="gearBar" aria-label="Worn equipment"></div>
     <div id="bossbar" hidden class="txt"><div class="bname" id="bossName"></div><div class="bar" id="bossHp"><i></i></div></div>
     <div class="hud-bottom">
       <div class="prayers">

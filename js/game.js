@@ -166,6 +166,7 @@ function newRun(hero) {
   for (const s of SLOTS) gear[s] = null;
   gear.weapon = hero.weapon;
   Object.assign(gear, hero.gear || {});
+  gearBarKey = '';
   run = {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
@@ -186,6 +187,16 @@ const KIND_STYLE = { swing: 'melee', shot: 'ranged', spell: 'magic' };
 function weaponStyle() { return KIND_STYLE[ITEMS[run.gear.weapon].w.kind]; }
 // Gear damage bonuses only count when they match the weapon's style, like OSRS.
 function gearDmg(it, style) { return it.lane === 'any' || it.lane === style ? (it.dmg || 0) : 0; }
+// Combat triangle for armour: melee armour hurts magic, magic armour hurts ranged, ranged armour hurts melee.
+const WEAK_STYLE = { melee: 'magic', magic: 'ranged', ranged: 'melee' };
+function armourPenalty(it) {
+  if (it.w || it.slot === 'ammo' || !WEAK_STYLE[it.lane]) return 0;
+  return 0.04 + 0.5 * Math.max(0, it.dmg || 0) + 0.002 * Math.max(0, it.def || 0);
+}
+function gearPenalty(gear, style) {
+  const p = gear.reduce((a, it) => a + (WEAK_STYLE[it.lane] === style ? armourPenalty(it) : 0), 0);
+  return Math.min(0.6, p);
+}
 
 function gearItems() { return SLOTS.map((s) => run.gear[s]).filter(Boolean).map((id) => ITEMS[id]); }
 
@@ -195,7 +206,7 @@ function stats() {
   const sum = (k) => gear.reduce((a, it) => a + (it[k] || 0), 0);
   const weapon = ITEMS[run.gear.weapon].w;
   const lane = KIND_STYLE[weapon.kind];
-  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg') * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0));
+  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane));
   let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd');
   const range = (m.range || 1) * (1 + sum('range'));
   let splash = (m.splash || 1);
@@ -271,8 +282,20 @@ function bossIntro(b) {
 
 function stageScale() { return 1 + 0.085 * run.stage + 0.004 * run.stage * run.stage; }
 
+const SAFE_SPAWN = 260; // nothing appears closer than this to the player
+function safeSpot(x, y) {
+  const p = run.p;
+  let dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy);
+  if (d >= SAFE_SPAWN) return { x, y };
+  if (d < 1) { const a = Math.random() * Math.PI * 2; dx = Math.cos(a); dy = Math.sin(a); d = 1; }
+  let nx = p.x + dx / d * SAFE_SPAWN, ny = p.y + dy / d * SAFE_SPAWN;
+  // pushed off the arena? go the other way instead
+  if (nx < 20 || nx > WORLD_W - 20 || ny < 110 || ny > WORLD_H - 20) { nx = p.x - dx / d * SAFE_SPAWN; ny = p.y - dy / d * SAFE_SPAWN; }
+  return { x: clamp(nx, 20, WORLD_W - 20), y: clamp(ny, 110, WORLD_H - 20) };
+}
 function spawnMonster(id, x, y, opts = {}) {
   const d = MONSTERS[id];
+  if (!d.boss) ({ x, y } = safeSpot(x, y));
   let hp = d.hp;
   if (d.clue) hp = Math.round(300 * (d.clueMult || 1)); // clue bosses grow with the run via stageScale below
   const sc = d.boss ? 1 : stageScale();
@@ -296,7 +319,7 @@ function edgeSpawn() {
     const y = side === 2 ? 110 : side === 3 ? WORLD_H - 20 : 110 + Math.random() * (WORLD_H - 130);
     if (Math.hypot(x - p.x, y - p.y) > 320) return { x, y };
   }
-  return { x: 20, y: 120 };
+  return safeSpot(20, 120);
 }
 
 function spawnTick(dt) {
@@ -318,7 +341,13 @@ function spawnTick(dt) {
 function checkStageDone(dt) {
   if (stageEnding > 0) { stageEnding -= dt; if (stageEnding <= 0) endStage(); return; }
   const bossDone = !isBoss || !bossAlive || bossAlive.dead;
-  if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0) stageEnding = 1.2;
+  // a reward casket on the ground keeps the round open until you pick it up
+  const casketWaiting = pickups.some((pk) => pk.kind === 'casket');
+  if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0) {
+    if (casketWaiting) { if (!run.casketNag) { run.casketNag = true; chat('Pick up the reward casket to finish the round.', 'r'); } return; }
+    run.casketNag = false;
+    stageEnding = 1.2;
+  }
 }
 
 function endStage() {
@@ -352,8 +381,10 @@ function maybeDropPotion(e) {
   if (e.d.boss || e.summoned) return;
   const chance = (e.d.elite || e.clueBoss ? POTION_CHANCE.elite : POTION_CHANCE.normal) * (1 + upVal('luck') * 0.5);
   if (Math.random() < chance) {
-    const keys = Object.keys(POTIONS);
-    pickups.push({ kind: 'potion', pot: keys[Math.floor(Math.random() * keys.length)], x: e.x + 20, y: e.y, t: 0 });
+    // the potion for the style you're using is twice as likely
+    const style = weaponStyle();
+    const bag = Object.keys(POTIONS).flatMap((k) => (POTIONS[k].style === style ? [k, k] : [k]));
+    pickups.push({ kind: 'potion', pot: bag[Math.floor(Math.random() * bag.length)], x: e.x + 20, y: e.y, t: 0 });
   }
 }
 function buffMult(stat) { const b = run.buffs[stat]; return b && b.t > 0 ? 1 + b.amount : 1; }
@@ -1419,6 +1450,21 @@ function drawTitleBackdrop() {
 // HUD
 // ======================================================================
 const $ = (id) => document.getElementById(id);
+// Left sidebar: what you're wearing, rebuilt only when gear changes.
+let gearBarKey = '';
+function drawGearBar() {
+  const key = SLOTS.map((sl) => run.gear[sl] || '').join('|');
+  if (key === gearBarKey) return;
+  gearBarKey = key;
+  const bar = $('gearBar'); bar.innerHTML = '';
+  for (const sl of SLOTS) {
+    const it = run.gear[sl] ? ITEMS[run.gear[sl]] : null;
+    const box = el('div', 'gs' + (it ? '' : ' empty'));
+    box.title = it ? `${SLOT_NAME[sl]}: ${it.name}` : `${SLOT_NAME[sl]}: empty`;
+    if (it) box.appendChild(imgTag(it.file, it.name));
+    bar.appendChild(box);
+  }
+}
 function drawHud() {
   const st = stats(), p = run.p;
   $('hpBar').firstElementChild.style.width = `${clamp(p.hp / st.maxHp, 0, 1) * 100}%`;
@@ -1429,6 +1475,7 @@ function drawHud() {
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
   $('waveSub').textContent = isBoss ? `Boss: ${MONSTERS[area.boss].name}` : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} enemies left`;
   $('goldTxt').textContent = run.gold.toLocaleString();
+  drawGearBar();
   $('sharkN').textContent = run.inv.shark;
   $('ppotN').textContent = run.inv.ppot;
   const bb = $('bossbar');
@@ -1589,6 +1636,7 @@ function itemStatsText(it) {
   if (it.pierce) bits.push(`+${it.pierce} pierce`);
   if (it.speed) bits.push(`+${Math.round(it.speed * 100)}% run speed`);
   if (it.gold) bits.push(`+${Math.round(it.gold * 100)}% gold`);
+  if (armourPenalty(it)) bits.push(`<span style="color:var(--red)">-${Math.round(armourPenalty(it) * 100)}% ${LANE_NAME[WEAK_STYLE[it.lane]]} damage</span>`);
   if (it.regen) bits.push(`heals ${it.regen} HP a second`);
   if (it.taken) bits.push(`${Math.round((1 - it.taken) * 100)}% less damage taken`);
   return bits.join(' · ');
@@ -1652,6 +1700,29 @@ function equipmentPanel() {
   return g;
 }
 
+// What changes if you wear this instead of what you have now.
+function weaponDps(st) { const w = st.weapon; return w.dmg * (w.hits || 1) * (w.count || 1) / w.cd * st.dmgMult * st.aspd; }
+function compareText(it) {
+  if (it.slot === 'food') return '';
+  const before = stats();
+  const old = run.gear[it.slot];
+  run.gear[it.slot] = it.id;
+  const after = stats();
+  run.gear[it.slot] = old;
+  const out = [];
+  const pct = (a, b) => Math.round((b / a - 1) * 100);
+  const add = (label, v, unit = '%') => { if (v) out.push(`<span style="color:${v > 0 ? 'var(--green)' : 'var(--red)'}">${v > 0 ? '▲ +' : '▼ '}${v}${unit} ${label}</span>`); };
+  add('damage per second', pct(weaponDps(before), weaponDps(after)));
+  add('blocked', Math.round((after.reduce - before.reduce) * 100), ' pts');
+  add('hitpoints', after.maxHp - before.maxHp, '');
+  add('prayer', after.maxPp - before.maxPp, '');
+  add('damage taken', -pct(before.taken, after.taken));
+  add('run speed', pct(before.speed, after.speed));
+  add('gold', pct(before.goldMult, after.goldMult));
+  add('crit', Math.round((after.crit - before.crit) * 100), ' pts');
+  if (after.weapon.kind !== before.weapon.kind) out.push(`<span style="color:var(--yellow)">Switches you to ${LANE_NAME[KIND_STYLE[after.weapon.kind]]}</span>`);
+  return out.length ? out.join('<br>') : '<span style="color:var(--muted)">No change for your current weapon</span>';
+}
 function offerCard(it, priceLabel, onClick, sold) {
   const c = el('button', `card offer${sold ? ' sold' : ''}${it.rarity === 'mega' ? ' mega' : it.rarity === 'rare' ? ' rare-card' : ''}`); c.type = 'button';
   const art = el('div', 'art'); art.appendChild(imgTag(it.file, it.name)); c.appendChild(art);
@@ -1660,6 +1731,7 @@ function offerCard(it, priceLabel, onClick, sold) {
   const cur = it.slot !== 'food' && run.gear[it.slot] ? ITEMS[run.gear[it.slot]].name : null;
   const slotTxt = it.slot === 'food' ? 'Supply' : `${SLOT_NAME[it.slot]}${cur ? ` (replaces ${cur})` : ''}`;
   c.appendChild(el('div', 'ds', `<b style="color:var(--yellow)">${slotTxt}</b><br>${itemStatsText(it)}`));
+  if (!sold && it.slot !== 'food') c.appendChild(el('div', 'ds cmp', compareText(it)));
   const pr = el('div', 'price');
   if (priceLabel !== 'Free') pr.appendChild(imgTag('Coins_10000.png', 'Coins'));
   pr.appendChild(document.createTextNode(priceLabel));

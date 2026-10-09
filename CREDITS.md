@@ -413,6 +413,8 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Icon | Trading sticks | https://oldschool.runescape.wiki/w/File:Trading_sticks_1000.png |
 | Potion | Super attack | https://oldschool.runescape.wiki/w/File:Super_attack(4).png |
 | Potion | Super strength | https://oldschool.runescape.wiki/w/File:Super_strength(4).png |
+| Potion | Ranging potion | https://oldschool.runescape.wiki/w/File:Ranging_potion(4).png |
+| Potion | Magic potion | https://oldschool.runescape.wiki/w/File:Magic_potion(4).png |
 | Potion | Stamina potion | https://oldschool.runescape.wiki/w/File:Stamina_potion(4).png |
 | Icon | Clue scroll | https://oldschool.runescape.wiki/w/File:Clue_scroll_(hard).png |
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
