@@ -178,8 +178,9 @@ function showAch() {
 function saveMeta() { try { localStorage.setItem('runerogue.meta', JSON.stringify(meta)); } catch (e) { /* optional */ } }
 function heroUnlocked(h) {
   if (!h.unlock) return true;
+  if (meta.heroes.includes(h.id)) return true; // bought or earned before progression unlocks
   if (h.unlock.area !== undefined) return meta.cleared >= h.unlock.area;
-  return meta.heroes.includes(h.id);
+  return false;
 }
 function unlockText(h) {
   if (h.unlock.area !== undefined) return `Clear ${AREAS[h.unlock.area].name} to unlock`;
@@ -214,6 +215,8 @@ function newRun(hero) {
   for (const s of SLOTS) gear[s] = null;
   gear.weapon = hero.weapon;
   Object.assign(gear, hero.gear || {});
+  const kit = hero.kits && hero.kits[pickedKit];
+  if (kit) { gear.weapon = kit.weapon; Object.assign(gear, kit.gear || {}); }
   gearBarKey = '';
   run = {
     hero, skills, gear,
@@ -3001,6 +3004,7 @@ function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.
 function btn(label, cls, onClick) { const b = el('button', cls, label); b.type = 'button'; b.addEventListener('click', onClick); return b; }
 
 let pickedHero = HEROES[0];
+let pickedKit = 0; // starting kit for heroes that offer a choice
 function heroBoostText(h) {
   return Object.entries(h.skills || {}).map(([id, lv]) => `${SKILLS.find((k) => k.id === id).name} ${lv}`).join(', ');
 }
@@ -3025,7 +3029,8 @@ function renderTitle() {
     }
     const art = el('div', 'art'); art.appendChild(imgTag(h.file, h.name)); c.appendChild(art);
     c.appendChild(el('div', 'nm', h.name));
-    const lane = el('div', 'lane'); lane.appendChild(imgTag(LANE_ICON[h.lane], LANE_NAME[h.lane])); lane.appendChild(document.createTextNode(`${heroBoostText(h)} · starts with ${ITEMS[h.weapon].name}`)); c.appendChild(lane);
+    const lane = el('div', 'lane'); lane.appendChild(imgTag(LANE_ICON[h.lane], LANE_NAME[h.lane])); const extra = Object.keys(h.gear || {}).length;
+    lane.appendChild(document.createTextNode(`${heroBoostText(h)} · ${h.kits ? `pick 1 of ${h.kits.length} starting kits` : `starts with ${ITEMS[h.weapon].name}${extra ? ` + ${extra} item${extra > 1 ? 's' : ''}` : ''}`}`)); c.appendChild(lane);
     c.appendChild(el('div', 'ds', h.perk));
     if (best[h.id]) c.appendChild(el('div', 'ds', best[h.id] > 900 ? '<b style="color:var(--orange)">Infernal cape earned</b>' : `Best: ${AREAS[Math.min(AREAS.length - 1, Math.floor((best[h.id] - 1) / (WAVES_PER_AREA + 1)))].name}`));
     if (!open) {
@@ -3039,11 +3044,25 @@ function renderTitle() {
       g.appendChild(c);
       continue;
     }
-    c.addEventListener('click', () => { pickedHero = h; renderTitle(); playMusic(MUSIC_TITLE); });
-    c.addEventListener('dblclick', () => { pickedHero = h; begin(); });
+    c.addEventListener('click', () => { if (pickedHero !== h) pickedKit = 0; pickedHero = h; renderTitle(); playMusic(MUSIC_TITLE); });
+    c.addEventListener('dblclick', () => { if (pickedHero !== h) pickedKit = 0; pickedHero = h; begin(); });
     g.appendChild(c);
   }
   s.appendChild(g);
+  if (pickedHero.kits && heroUnlocked(pickedHero)) {
+    // harder-to-reach heroes let you choose how they start
+    s.appendChild(el('h3', '', `${pickedHero.name}: starting kit`));
+    const kr = el('div', 'row');
+    pickedHero.kits.forEach((k, i) => {
+      const kb = btn('', 'btn' + (i === pickedKit ? ' sel' : ''), () => { pickedKit = i; renderTitle(); });
+      kb.appendChild(imgTag(ITEMS[k.weapon].file, ITEMS[k.weapon].name));
+      const n = Object.keys(k.gear || {}).length;
+      kb.appendChild(document.createTextNode(` ${k.name}: ${ITEMS[k.weapon].name}${n ? ` + ${n} item${n > 1 ? 's' : ''}` : ''}`));
+      if (i === pickedKit) kb.style.outline = '2px solid var(--orange)';
+      kr.appendChild(kb);
+    });
+    s.appendChild(kr);
+  }
   const r = el('div', 'row'); r.style.marginTop = '16px';
   r.appendChild(el('p', '', 'Move with <kbd>WASD</kbd> or arrows (on touch, drag anywhere). Attacks are automatic. Prayers <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, eat <kbd>E</kbd>, prayer potion <kbd>Q</kbd>, music <kbd>M</kbd>, pause <kbd>P</kbd>.'));
   const b = btn(`Play as ${pickedHero.name}`, 'btn big', begin);
