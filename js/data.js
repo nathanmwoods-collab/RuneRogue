@@ -88,7 +88,8 @@ const RARITY_NAME = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', ultr
 
 const ITEMS = {};
 function item(id, name, lane, slot, tier, rarity, stats, file) {
-  const base = Math.round(28 * Math.pow(1.36, tier));
+  // Price climbs faster than power: top-tier gear is a real saving goal (Nathan found the game too easy).
+  const base = Math.round(30 * Math.pow(1.46, tier));
   // Rarity is at least what the item's tier implies: raid and top boss gear is ultra rare, mid-game boss gear rare.
   const RANK = ['common', 'uncommon', 'rare', 'ultra', 'thirdage', 'mega'];
   const byTier = tier >= 10 ? 'ultra' : tier >= 7 ? 'rare' : tier >= 4 ? 'uncommon' : 'common';
