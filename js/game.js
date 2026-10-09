@@ -274,7 +274,7 @@ function stats() {
     ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
     reduce: inv('relentless') ? 0 : Math.min(0.75, defPts / 100),
     taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
-    speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
+    speed: 230 * (run.frogT > 0 ? 0.5 : 1) * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
     goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1) * (run.skull ? SKULL.gold : 1),
     crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit') + (ycon('glyphic') ? 0.25 : 0),
   };
@@ -294,7 +294,8 @@ function startStage() {
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false;
-  run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null;
+  run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.thiefTold = false;
+  endEvent();
   if (subIndex() === 0) run.phoenixUsed = false;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
@@ -303,6 +304,7 @@ function startStage() {
   toSpawn = isBoss ? 4 + a * 2 : 12 + a * 4 + sub * 6;
   if (!isBoss && inv('overlords')) toSpawn = Math.round(toSpawn * 1.4);
   if (!isBoss && inv('quartet')) { toSpawn++; run.quartet = true; }
+  if (!isBoss && run.stage >= 1 && Math.random() < RANDOM_EVENT_CHANCE) run.evAt = Math.floor(toSpawn * (0.3 + Math.random() * 0.5));
   if (inv('bees')) hazards.push({ x: 60, y: 140, r: 32, t: 1e9, color: '#ffd23a', dps: 3 + areaIndex() * 1.5, chase: 105, bees: true });
   if (inv('solarflare')) hazards.push({ x: WORLD_W / 2, y: WORLD_H / 2, r: 38, t: 1e9, color: '#ff9a1a', dps: 6 + areaIndex() * 2, orbit: { a: 0 } });
   // Varrock: the dark wizards' circle south of the city ambushes you once in each wave
@@ -353,6 +355,8 @@ const REST_HEAL = 0.15;
 const ENRAGE_AT = 0.33;
 // Eating a shark or pie stops your attacks for this long, like the OSRS food delay.
 const EAT_DELAY = 1.2;
+// Healing from your own damage (lifesteal weapons, specs, boons) is halved (Nathan).
+const PLAYER_LEECH = 0.5;
 function stageScale() { return 1 + 0.085 * run.stage + 0.004 * run.stage * run.stage; }
 
 const SAFE_SPAWN = 260; // nothing appears closer than this to the player
@@ -431,6 +435,7 @@ function spawnTick(dt) {
   // trickle in: only a limited number alive at once
   if (run.insaneAt !== null && toSpawn <= run.insaneAt) { run.insaneAt = null; spawnInsane(); }
   if (run.circleAt !== null && toSpawn <= run.circleAt) { run.circleAt = null; wizardCircle(); }
+  if (run.evAt !== null && run.evAt !== undefined && toSpawn <= run.evAt) { run.evAt = null; startRandomEvent(); if (mode !== 'play') return; }
   const maxAlive = Math.round((isBoss ? 4 + a : 7 + Math.floor(a * 0.8) + subIndex() * 2) * (!isBoss && inv('overlords') ? 1.4 : 1));
   if (spawnT > 0 || enemies.length >= maxAlive) return;
   spawnT = isBoss ? 4 : Math.max(0.7, 1.7 - a * 0.05);
@@ -443,6 +448,7 @@ function spawnTick(dt) {
     if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
     if (run.quartet && area.elites.length) { run.quartet = false; id = area.elites[Math.floor(Math.random() * area.elites.length)]; }
     const m = spawnMonster(id, pos.x, pos.y);
+    if (!isBoss && !m.d.elite && Math.random() < SUPERIOR_CHANCE * (1 + luckVal())) makeSuperior(m);
     if (inv('duo') && m.d.elite && !isBoss) { const p2 = spreadSpawn(); spawnMonster(id, p2.x, p2.y); }
     if (!isBoss && a >= 1 && !m.d.caster && Math.random() < Math.min(0.45, 0.2 + a * 0.02)) mixStyle(m);
     burst(pos.x, pos.y, '#d8c8a0', 8);
@@ -455,16 +461,25 @@ function checkStageDone(dt) {
   if (stageEnding > 0) { stageEnding -= dt; if (stageEnding <= 0) endStage(); return; }
   const bossDone = !isBoss || !bossAlive || bossAlive.dead;
   // a reward casket or clue scroll on the ground keeps the round open until you pick it up
-  const waitPk = pickups.find((pk) => pk.kind === 'casket' || pk.kind === 'clue');
+  const waitPk = pickups.find((pk) => pk.kind === 'casket' || pk.kind === 'clue' || pk.kind === 'artefact');
   const casketWaiting = !!waitPk;
+  if (run.ev) return; // finish the random event first
   if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0) {
-    if (casketWaiting) { if (!run.casketNag) { run.casketNag = true; chat(`Pick up the ${waitPk.kind === 'clue' ? 'clue scroll' : 'reward casket'} to finish the round.`, 'r'); } return; }
+    if (casketWaiting) { if (!run.casketNag) { run.casketNag = true; chat(`Pick up the ${waitPk.kind === 'clue' ? 'clue scroll' : waitPk.kind === 'artefact' ? waitPk.art.name : 'reward casket'} to finish the round.`, 'r'); } return; }
     run.casketNag = false;
     stageEnding = 1.2;
   }
 }
 
 function endStage() {
+  if (run.bonus) {
+    for (const c of coins) addGold(c.v, false);
+    coins = []; pickups = []; run.buffs = {};
+    run.bonus = false; area = AREAS[areaIndex()];
+    chat('You climb out of the Revenant Caves.', 'g');
+    playMusic(MUSIC_SHOP); rollOffers(true); mode = 'shop'; renderShop();
+    return;
+  }
   for (const c of coins) addGold(c.v, false);
   coins = [];
   pickups = [];
@@ -485,6 +500,7 @@ function endStage() {
   playMusic(MUSIC_SHOP);
   rollOffers(true);
   const next = () => { if (isBoss) { renderBoons(); return; } mode = 'shop'; renderShop(); };
+  if (!isBoss && !run.revSeen && areaIndex() >= 3 && Math.random() < REV_CHANCE) { run.revSeen = true; renderRevOffer(next); return; }
   if (yamaShows()) { renderYama(next); return; }
   next();
 }
@@ -586,6 +602,440 @@ function maybeDropPotion(e) {
   }
 }
 function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0) + (run.raid || 0) / 400 + (run.skull ? SKULL.luck : 0) + 0.25 * bv('wealth'); }
+// ======================================================================
+// Random events (RANDOM_EVENTS in data.js): talk events, quick puzzle screens and arena events.
+// ======================================================================
+let evNpc = null; // { x, y, file, name, t, line }
+const evPick = (a) => a[Math.floor(Math.random() * a.length)];
+const evShuffle = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+function evGold(mult = 1) { return Math.round((40 + run.stage * 14) * mult * stats().goldMult); }
+function evReward(gold, why) { addGold(gold, true); chat(`${why} You get ${gold.toLocaleString()} coins.`, 'g'); sfx(880, 0.15, 'triangle', 0.06); }
+// An experience lamp: levels in the skill your weapon uses
+function evLamp(n, why) {
+  const sk = { melee: 'strength', ranged: 'ranged', magic: 'magic' }[weaponStyle()];
+  run.skills[sk] = Math.min(99, run.skills[sk] + n);
+  chat(`${why} You rub the lamp: +${n} ${SKILLS.find((k) => k.id === sk).name} levels.`, 'g');
+  sfx(980, 0.2, 'triangle', 0.06);
+}
+function evTeleport() {
+  const p = run.p;
+  p.x = 80 + Math.random() * (WORLD_W - 160); p.y = 150 + Math.random() * (WORLD_H - 200);
+  burst(p.x, p.y, '#b080ff', 24);
+  chat('You are teleported somewhere random!', 'r');
+}
+function startRandomEvent() {
+  if (run.ev || mode !== 'play') return;
+  run.evSeen = run.evSeen || [];
+  let pool = RANDOM_EVENTS.filter((d) => !run.evSeen.includes(d.id));
+  if (!pool.length) { run.evSeen = []; pool = RANDOM_EVENTS.slice(); }
+  const def = evPick(pool);
+  run.evSeen.push(def.id);
+  chat(`Random event: ${def.name}!`, 'r');
+  sfx(700, 0.12, 'triangle', 0.06); setTimeout(() => sfx(940, 0.12, 'triangle', 0.06), 120);
+  const p = run.p;
+  if (def.type === 'talk') {
+    const a = Math.random() * Math.PI * 2;
+    evNpc = { x: clamp(p.x + Math.cos(a) * 220, 60, WORLD_W - 60), y: clamp(p.y + Math.sin(a) * 180, 170, WORLD_H - 30), file: def.file, name: def.npc, t: 14 };
+    run.ev = { def, type: 'talk' };
+    if (def.line) chat(`${def.npc}: ${def.line}`, 'b');
+    chat(`${def.npc} wants a word. Walk over within 14 seconds.`, 'b');
+    return;
+  }
+  if (def.type === 'pick') { runPickEvent(def); return; }
+  run.ev = { def, type: def.type, t: 0 };
+  if (def.line) chat(`${def.npc}: ${def.line}`, 'b');
+  if (def.type === 'drill') {
+    run.ev.mats = DRILL_MATS.map((name, i) => ({ name, x: WORLD_W / 2 + (i % 2 ? 1 : -1) * 260, y: 300 + (i < 2 ? 0 : 280) }));
+    run.ev.round = 0; run.ev.good = 0; run.ev.bad = 0; run.ev.t = 5; run.ev.call = evPick(DRILL_MATS);
+    chat(`Sergeant Damien: ${run.ev.call}! Stand on the right mat.`, 'r');
+  } else if (def.type === 'forester') {
+    const want = 1 + Math.floor(Math.random() * 4);
+    run.ev.want = want; run.ev.t = 25;
+    for (let i = 1; i <= 4; i++) { const pos = spreadSpawn(); const m = spawnMonster('pheasant', pos.x, pos.y); m.eventMob = true; m.tails = i; m.hp = m.maxHp = 1; }
+    chat(`Freaky Forester: kill the pheasant with ${want} tail${want > 1 ? 's' : ''}. Walk up to a pheasant to attack it.`, 'r');
+  } else if (def.type === 'maze') {
+    const far = { x: p.x < WORLD_W / 2 ? WORLD_W - 90 : 90, y: p.y < WORLD_H / 2 ? WORLD_H - 70 : 170 };
+    run.ev.shrine = far; run.ev.pot = 100;
+    run.ev.chests = [0, 1, 2].map((i) => ({ x: p.x + (far.x - p.x) * (0.25 + i * 0.25) + (Math.random() - 0.5) * 200, y: p.y + (far.y - p.y) * (0.25 + i * 0.25) + (Math.random() - 0.5) * 140 }));
+    run.ev.chests.forEach((c) => { c.x = clamp(c.x, 60, WORLD_W - 60); c.y = clamp(c.y, 150, WORLD_H - 40); });
+    chat('Mysterious Old Man: reach the shrine before your reward runs out. Chests cost a little reward.', 'r');
+  } else if (def.type === 'pinball') {
+    run.ev.posts = [0, 1, 2, 3, 4].map((i) => ({ x: WORLD_W / 2 + Math.cos(i / 5 * Math.PI * 2 - Math.PI / 2) * 300, y: 470 + Math.sin(i / 5 * Math.PI * 2 - Math.PI / 2) * 230 }));
+    run.ev.lit = Math.floor(Math.random() * 5); run.ev.score = 0; run.ev.t = 40;
+    chat('Flippa: tag the flashing post. 10 in a row wins. A wrong post resets your score.', 'r');
+  }
+}
+function endEvent() { run.ev = null; evNpc = null; for (const e of enemies) if (e.eventMob) e.dead = true; }
+
+function eventTick(dt) {
+  const p = run.p;
+  if (run.frogT > 0) { run.frogT -= dt; if (run.frogT <= 0) chat('You turn back into a human.', 'g'); }
+  if (run.bonus) {
+    run.revPkT -= dt;
+    if (!run.revPk && run.revPkT <= 0) { run.revPk = 1; spawnPker(); chat('A PKer followed you into the caves!', 'r'); }
+    if (run.revPk === 1 && toSpawn <= run.revHalf) { run.revPk = 2; spawnPker(); }
+  }
+  const ev = run.ev;
+  if (!ev) return;
+  const d = ev.def;
+  if (ev.type === 'talk') {
+    evNpc.t -= dt;
+    if (Math.hypot(p.x - evNpc.x, p.y - evNpc.y) < p.r + 40) { const n = evNpc; endEvent(); talkReward(d, n); return; }
+    if (evNpc.t <= 0) { const n = evNpc; endEvent(); talkIgnored(d, n); }
+  } else if (ev.type === 'drill') {
+    ev.t -= dt;
+    if (ev.t <= 0) {
+      const mat = ev.mats.find((m) => Math.abs(p.x - m.x) < 90 && Math.abs(p.y - m.y) < 60);
+      if (mat && mat.name === ev.call) { ev.good++; chat('Sergeant Damien: Good!', 'g'); }
+      else { ev.bad++; hurtPlayer(0, 'melee', { pure: true, frac: 0.12 }); chat('Sergeant Damien: Wrong! Drop and give me twenty!', 'r'); }
+      if (ev.good >= 4) { endEvent(); evLamp(3, 'Drill Demon complete.'); return; }
+      if (ev.bad >= 3) { endEvent(); chat('Sergeant Damien gives up on you.', 'r'); return; }
+      ev.call = evPick(DRILL_MATS); ev.t = 5;
+      chat(`Sergeant Damien: ${ev.call}!`, 'r');
+    }
+  } else if (ev.type === 'forester') {
+    ev.t -= dt;
+    if (ev.t <= 0) { endEvent(); chat('The Freaky Forester leaves. You took too long.', 'r'); }
+  } else if (ev.type === 'maze') {
+    ev.pot -= dt * 3.5;
+    for (const c of ev.chests) if (!c.open && Math.hypot(p.x - c.x, p.y - c.y) < p.r + 26) {
+      c.open = true; ev.pot -= 5;
+      const bag = Object.keys(POTIONS); pickups.push({ kind: 'potion', pot: evPick(bag), x: c.x + 30, y: c.y, t: 0 });
+    }
+    if (Math.hypot(p.x - ev.shrine.x, p.y - ev.shrine.y) < p.r + 34) { const pot = Math.max(0, ev.pot); endEvent(); evReward(evGold(3 * pot / 100), `You touch the shrine with ${Math.round(pot)}% reward potential.`); return; }
+    if (ev.pot <= 0) { endEvent(); chat('Your reward potential ran out. The maze lets you go with nothing.', 'r'); }
+  } else if (ev.type === 'pinball') {
+    ev.t -= dt;
+    ev.posts.forEach((po, i) => {
+      if (Math.hypot(p.x - po.x, p.y - po.y) < p.r + 26) {
+        if (po.cool > 0) return;
+        po.cool = 0.8;
+        if (i === ev.lit) { ev.score++; sfx(900 + ev.score * 40, 0.06, 'square', 0.04); let n; do n = Math.floor(Math.random() * 5); while (n === ev.lit); ev.lit = n; }
+        else { ev.score = 0; chat('Wrong post! Your score resets.', 'r'); sfx(150, 0.15, 'square', 0.05); }
+      }
+      po.cool = Math.max(0, (po.cool || 0) - dt);
+    });
+    if (ev.score >= 10) { endEvent(); evReward(evGold(3), 'Pinball complete: Flippa hands over a pile of gems.'); return; }
+    if (ev.t <= 0) { endEvent(); chat('Pinball is over. Flippa keeps the gems.', 'r'); }
+  }
+}
+
+function talkReward(d, n) {
+  const st = stats();
+  burst(n.x, n.y, '#ffd060', 16);
+  if (d.id === 'count' || d.id === 'genie') evLamp(2, `${d.npc} gives you a lamp.`);
+  else if (d.id === 'oldman') evReward(evGold(1.5), 'The Mysterious Old Man gives you a gift.');
+  else if (d.id === 'rick') evReward(evGold(1.5), 'Rick Turpentine shares his loot.');
+  else if (d.id === 'dwarf') { run.p.hp = Math.min(st.maxHp, run.p.hp + st.maxHp * 0.25); chat('The Drunken Dwarf gives you a beer and a kebab. They heal you.', 'g'); }
+  else if (d.id === 'plant') {
+    run.p.hp = Math.min(st.maxHp, run.p.hp + st.maxHp * 0.15); run.p.poison = 0;
+    run.buffs.speed = { t: 15, amount: 0.3, name: 'Strange fruit', file: 'Strange_plant.png' };
+    chat('You pick a strange fruit. It tastes great, some of your energy is restored!', 'g');
+  } else if (d.id === 'jekyll') {
+    const [herb, pot] = evPick(JEKYLL_HERBS), P = POTIONS[pot];
+    run.buffs[P.stat] = { t: 20, amount: P.amount, name: P.name, file: P.file };
+    chat(`You give Dr Jekyll a ${herb}. He gives you a ${P.name}: ${P.info} for 20 seconds.`, 'g');
+  }
+}
+function talkIgnored(d, n) {
+  const p = run.p;
+  if (d.id === 'dwarf') { for (let i = 0; i < 3; i++) slam(p.x + (i ? (Math.random() - 0.5) * 160 : 0), p.y + (i ? (Math.random() - 0.5) * 120 : 0), 55, 0.8 + i * 0.3, 0, 'ranged', '#a08060', i ? '' : 'Rocks!', { noPray: true, frac: 0.08 }); chat('The Drunken Dwarf throws rocks at you!', 'r'); }
+  else if (d.id === 'rick') { const lost = Math.round(run.gold * 0.15); run.gold -= lost; hurtPlayer(0, 'melee', { pure: true, frac: 0.12 }); chat(`Rick Turpentine attacks you and takes ${lost.toLocaleString()} coins!`, 'r'); }
+  else if (d.id === 'plant') { hurtPlayer(0, 'melee', { pure: true, frac: 0.1, poison: 8 }); chat('The strange plant attacks and poisons you!', 'r'); }
+  else if (d.id === 'jekyll') { const m = spawnMonster('mr_hyde', n.x, n.y); m.x = n.x; m.y = n.y; m.hp = m.maxHp = Math.round(m.maxHp * 1.5); chat('Dr Jekyll turns into Mr Hyde!', 'r'); }
+  else chat(`${d.npc} leaves.`, 'b');
+}
+
+// Quick puzzle screens. The fight pauses; each answer has a timer.
+const PICK_SECS = 8;
+function runPickEvent(def) {
+  mode = 'event';
+  run.ev = { def, type: 'pick' };
+  const st = { round: 0, good: 0, bad: 0, need: 1, maxBad: 1, data: {} };
+  const a = areaIndex();
+  const gearPool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && it.tier <= a + 2);
+  let gen, win, fail, intro = '';
+  const done = (ok) => { clearTimeout(st.timer); run.ev = null; mode = 'play'; showScreen(null); (ok ? win : fail)(); };
+  if (def.id === 'beekeeper') {
+    intro = 'Help me rebuild this beehive. Place the parts from the top down.'; st.need = 4; st.inOrder = true;
+    gen = () => ({ prompt: `Part ${st.good + 1} of 4: which goes next?`, options: evShuffle(HIVE_PARTS).map((x) => ({ label: x, ok: x === HIVE_PARTS[st.good] })) });
+    win = () => evReward(evGold(2), 'The hive is fixed.');
+    fail = () => { hazards.push({ x: run.p.x + 200, y: run.p.y, r: 32, t: 10, color: '#ffd23a', dps: 4 + a * 1.5, chase: 120 }); chat('The bees are angry! A swarm chases you.', 'r'); };
+  } else if (def.id === 'arnav') {
+    const target = evPick(ARNAV_ITEMS); st.need = 3; st.maxBad = 2;
+    intro = `Turn the three dials so they all show the ${target[0]}.`;
+    gen = () => ({ prompt: `Dial ${st.good + 1} of 3: show the ${target[0]}`, options: evShuffle(ARNAV_ITEMS).map(([n, f]) => ({ img: f, ok: n === target[0] })) });
+    win = () => evReward(evGold(2), `The chest opens: a ${target[0].toLowerCase()} and some coins.`);
+    fail = () => evTeleport();
+  } else if (def.id === 'certer') {
+    const it = evPick(gearPool), others = evShuffle(gearPool.filter((x) => x.name !== it.name)).slice(0, 2);
+    intro = 'Can you tell me what this is?';
+    gen = () => ({ prompt: 'What is this item?', show: it.file, options: evShuffle([it, ...others]).map((x) => ({ label: x.name, ok: x === it })) });
+    win = () => evReward(evGold(1.5), 'Niles thanks you.'); fail = () => chat('Niles: Wrong! Better luck next time.', 'r');
+  } else if (def.id === 'evilbob') {
+    st.need = 3; st.maxBad = 4;
+    intro = 'Evil Bob wants fish. His servant whispers which one; each wrong fish means one more to catch.';
+    gen = () => { const f = evPick(BOB_FISH); return { prompt: `Servant: "He wants ${f[0].toLowerCase()}." (${st.good} of ${st.need} fed)`, options: evShuffle(BOB_FISH).map(([n, file]) => ({ img: file, ok: n === f[0] })) }; };
+    st.onBad = () => { st.need++; };
+    win = () => evLamp(2, 'Evil Bob falls asleep and you escape ScapeRune.'); fail = () => { run.p.frozen = 2; chat('Evil Bob keeps you on ScapeRune a little longer...', 'r'); };
+  } else if (def.id === 'twin') {
+    st.maxBad = 2;
+    intro = 'My evil twin is in the pen, among some bystanders. She looks exactly like me. Grab her with the claw!';
+    gen = () => { const opts = [{ img: def.file, ok: true }]; for (const h of evShuffle([70, 140, 200, 260, 320]).slice(0, 3)) opts.push({ img: def.file, filter: `hue-rotate(${h}deg)`, ok: false }); return { prompt: 'Which one is the evil twin?', show: def.file, options: evShuffle(opts) }; };
+    win = () => evReward(evGold(2), 'You caught the evil twin. Molly gives you uncut gems.'); fail = () => evTeleport();
+  } else if (def.id === 'gravedigger') {
+    st.need = 3; st.maxBad = 2;
+    intro = 'Put each coffin under the right gravestone.';
+    gen = () => { const j = evPick(GRAVE_JOBS); return { prompt: 'This coffin holds:', show: j[1], options: evShuffle(GRAVE_JOBS).map(([n]) => ({ label: `${n}'s grave`, ok: n === j[0] })) }; };
+    win = () => evLamp(2, 'Leo thanks you.'); fail = () => { summon(run.p, 'zombie', 2); chat('You disturbed the dead! Zombies rise.', 'r'); };
+  } else if (def.id === 'frog') {
+    intro = 'One of these frogs is a royal in disguise. Kiss the one with the crown.';
+    gen = () => ({ prompt: 'Which frog do you kiss?', options: evShuffle([{ img: def.file, ok: true }, ...[0, 1, 2].map(() => ({ img: 'Frog_(Kiss_the_frog)_chathead.png', ok: false }))]) });
+    win = () => evReward(evGold(2), 'The frog turns into royalty and gives you a frog token.');
+    fail = () => { run.frogT = 8; chat('Wrong frog! You are turned into a frog for 8 seconds: slow, and you can\'t attack.', 'r'); };
+  } else if (def.id === 'mime') {
+    st.need = 4; st.maxBad = 2;
+    intro = 'Copy the Mime\'s emotes.';
+    gen = () => { const em = evPick(MIME_EMOTES); return { prompt: `The Mime performs: ${em}`, options: evShuffle([em, ...evShuffle(MIME_EMOTES.filter((x) => x !== em)).slice(0, 3)]).map((x) => ({ label: x, ok: x === em })) }; };
+    win = () => evLamp(2, 'The Mime applauds.'); fail = () => chat('The Mime is unimpressed.', 'r');
+  } else if (def.id === 'pillory') {
+    st.need = 3; st.maxBad = 6; st.streak = true;
+    intro = 'You are locked in the pillory! Pick the key that matches the big lock. A wrong key adds another lock.';
+    gen = () => { const lock = evPick(PILLORY_SHAPES); return { prompt: `Lock ${st.good + 1} of ${st.need}`, bigText: lock[1], options: evShuffle([lock, ...evShuffle(PILLORY_SHAPES.filter((x) => x !== lock)).slice(0, 2)]).map((x) => ({ label: x[1], ok: x === lock })) }; };
+    st.onBad = () => { st.need = Math.min(6, st.need + 1); run.p.hp -= Math.round(stats().maxHp * 0.04); chat('The crowd pelts you with rotten tomatoes!', 'r'); };
+    win = () => evReward(evGold(1.5), 'You are free of the pillory.'); fail = () => chat('The guard finally lets you go.', 'r');
+  } else if (def.id === 'prisonpete') {
+    st.need = 3; st.maxBad = 5; st.streak = true;
+    intro = 'Pull the lever, then pop the balloon animal that matches. Three keys in a row gets us out.';
+    gen = () => { const an = evPick(BALLOONS); return { prompt: `The lever shows a ${an.toLowerCase()}. Pop the matching balloon. (${st.good} of 3 keys)`, options: evShuffle(BALLOONS).map((x) => ({ label: `${x} balloon`, ok: x === an })) }; };
+    win = () => evReward(evGold(1.5), 'Prison Pete thanks you for the keys.'); fail = () => chat('Prison Pete gives up for now.', 'r');
+  } else if (def.id === 'quiz') {
+    st.need = 4; st.maxBad = 6; st.streak = true;
+    intro = 'Welcome to the quiz! Pick the odd one out. Four in a row wins.';
+    gen = () => {
+      const slots = evShuffle([...new Set(gearPool.map((x) => x.slot))]);
+      const same = evShuffle(gearPool.filter((x) => x.slot === slots[0])).slice(0, 2), odd = evPick(gearPool.filter((x) => x.slot === slots[1]));
+      if (same.length < 2 || !odd) return { prompt: 'Odd one out?', options: [{ label: 'Coins', ok: true }, { label: 'Coins', ok: true }] };
+      return { prompt: `Which is the odd one out? (${st.good} of 4)`, options: evShuffle([...same.map((x) => ({ img: x.file, ok: false })), { img: odd.file, ok: true }]) };
+    };
+    win = () => { evReward(evGold(2), 'Quiz complete!'); if (Math.random() < 0.3) { chat('You also get a mystery box!', 'g'); setTimeout(() => { if (mode === 'play') openCasket({}); }, 300); } };
+    fail = () => chat('The Quiz Master lets you go.', 'r');
+  } else if (def.id === 'sandwich') {
+    const f = evPick(SANDWICH_FOOD);
+    intro = `You look hungry. Have a ${f[0].toLowerCase()}!`;
+    gen = () => ({ prompt: `She offers you a ${f[0].toLowerCase()}. Take it.`, options: evShuffle(SANDWICH_FOOD).map(([n, file]) => ({ img: file, ok: n === f[0] })) });
+    win = () => { const m = stats().maxHp; run.p.hp = Math.min(m, run.p.hp + m * 0.2); chat(`You eat the ${f[0].toLowerCase()}. It heals you.`, 'g'); };
+    fail = () => { hurtPlayer(0, 'melee', { pure: true, frac: 0.25 }); evTeleport(); chat('The sandwich lady hits you with a baguette!', 'r'); };
+  } else {
+    // Surprise Exam: find the item that fits Mr. Mordaut's hint
+    st.need = 3; st.maxBad = 2;
+    intro = 'Surprise exam! Find the item that matches each hint.';
+    gen = () => {
+      const slots = evShuffle([...new Set(gearPool.map((x) => x.slot))]).slice(0, 4);
+      const picks = slots.map((sl) => evPick(gearPool.filter((x) => x.slot === sl)));
+      const ans = evPick(picks);
+      return { prompt: `Hint: something you wear in the ${SLOT_NAME[ans.slot].toLowerCase()} slot`, options: evShuffle(picks).map((x) => ({ img: x.file, ok: x === ans })) };
+    };
+    win = () => evLamp(3, 'You pass! Mr. Mordaut gives you a Book of Knowledge.'); fail = () => chat('Mr. Mordaut: You fail!', 'r');
+  }
+  const render = () => {
+    clearTimeout(st.timer);
+    const q = gen();
+    const s = el('div', 'sheet event'); s.style.maxWidth = '620px';
+    const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
+    const art = el('div', 'yama-art'); art.appendChild(imgTag(def.file, def.npc)); head.appendChild(art);
+    const t = el('div'); t.appendChild(el('h2', '', `Random event: ${def.name}`)); t.appendChild(el('p', '', `${def.npc}: “${intro}”`)); head.appendChild(t);
+    s.appendChild(head);
+    const bar = el('div', 'ev-timer'); const fill = el('div'); bar.appendChild(fill); s.appendChild(bar);
+    s.appendChild(el('p', 'ev-prompt', q.prompt));
+    if (q.show) { const sh = el('div', 'ev-show'); sh.appendChild(imgTag(q.show, '')); s.appendChild(sh); }
+    if (q.bigText) s.appendChild(el('div', 'ev-big', q.bigText));
+    const g = el('div', 'grid offers ev-opts');
+    const answer = (ok) => {
+      if (ok) { st.good++; sfx(760, 0.08, 'triangle', 0.05); }
+      else { st.bad++; sfx(160, 0.15, 'square', 0.05); if (st.streak) st.good = 0; if (st.onBad) st.onBad(); }
+      if (st.good >= st.need) return done(true);
+      if (st.bad >= st.maxBad) return done(false);
+      render();
+    };
+    for (const o of q.options) {
+      const c = el('button', 'card offer ev-opt'); c.type = 'button';
+      if (o.img) { const a2 = el('div', 'art'); const im = imgTag(o.img, o.label || ''); if (o.filter) im.style.filter = o.filter; a2.appendChild(im); c.appendChild(a2); }
+      if (o.label) c.appendChild(el('div', 'nm', o.label));
+      c.addEventListener('click', () => answer(o.ok));
+      g.appendChild(c);
+    }
+    s.appendChild(g);
+    showScreen(s);
+    fill.style.animation = `evbar ${PICK_SECS}s linear forwards`;
+    st.timer = setTimeout(() => { chat('Too slow!', 'r'); answer(false); }, PICK_SECS * 1000);
+  };
+  render();
+}
+
+function drawEvent() {
+  const ev = run.ev;
+  if (evNpc) {
+    drawShadow(evNpc.x, evNpc.y + 4, 22);
+    drawSprite(wikiImage(evNpc.file), evNpc.x, evNpc.y + 4, 84, { color: '#7a5aaa', label: evNpc.name[0] });
+    text(`${evNpc.name} (${Math.ceil(evNpc.t)}s)`, evNpc.x, evNpc.y - 100, 14, '#00ffff');
+  }
+  if (!ev) return;
+  if (ev.type === 'drill') {
+    for (const m of ev.mats) {
+      ctx.fillStyle = m.name === ev.call ? 'rgba(255,220,80,0.35)' : 'rgba(80,120,60,0.45)'; ctx.strokeStyle = '#d8c8a0'; ctx.lineWidth = 3;
+      ctx.fillRect(m.x - 90, m.y - 60, 180, 120); ctx.strokeRect(m.x - 90, m.y - 60, 180, 120);
+      text(m.name, m.x, m.y, 18, '#fff');
+    }
+    text(`Sergeant Damien: ${ev.call}! (${Math.ceil(ev.t)})`, WORLD_W / 2, 130, 22, '#ffff00');
+  } else if (ev.type === 'maze') {
+    ctx.fillStyle = 'rgba(160,200,255,0.4)'; ctx.beginPath(); ctx.arc(ev.shrine.x, ev.shrine.y, 34 + Math.sin(performance.now() / 200) * 4, 0, 7); ctx.fill();
+    text('Shrine', ev.shrine.x, ev.shrine.y - 44, 15, '#9fe8ff');
+    for (const c of ev.chests) if (!c.open) { ctx.fillStyle = '#7a4a1a'; ctx.fillRect(c.x - 16, c.y - 12, 32, 24); ctx.strokeStyle = '#ffd060'; ctx.strokeRect(c.x - 16, c.y - 12, 32, 24); }
+    text(`Reward potential ${Math.max(0, Math.round(ev.pot))}%`, WORLD_W / 2, 130, 20, '#9fe8ff');
+  } else if (ev.type === 'pinball') {
+    ev.posts.forEach((po, i) => {
+      const lit = i === ev.lit && Math.sin(performance.now() / 120) > -0.3;
+      ctx.fillStyle = lit ? '#ffe04a' : '#5a4a3a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(po.x, po.y, 24, 0, 7); ctx.fill(); ctx.stroke();
+    });
+    text(`Pinball: ${ev.score} / 10 (${Math.ceil(ev.t)}s)`, WORLD_W / 2, 130, 20, '#ffe04a');
+  } else if (ev.type === 'forester') {
+    text(`Freaky Forester: kill the pheasant with ${ev.want} tail${ev.want > 1 ? 's' : ''} (${Math.ceil(ev.t)}s)`, WORLD_W / 2, 130, 20, '#7fd060');
+  }
+}
+
+// ======================================================================
+// Revenant Caves bonus round (REV_AREA in data.js)
+// ======================================================================
+function renderRevOffer(next) {
+  mode = 'revoffer';
+  const s = el('div', 'sheet yama'); s.style.maxWidth = '640px';
+  const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
+  const art = el('div', 'yama-art'); art.appendChild(imgTag('Revenant_knight.png', 'Revenant')); head.appendChild(art);
+  const t = el('div'); t.appendChild(el('h2', '', 'A way into the Revenant Caves')); t.appendChild(el('p', '', 'A bonus round: revenants drop ancient artefacts worth a fortune. A PKer is always hunting down there.')); head.appendChild(t);
+  s.appendChild(head);
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Walk past', 'btn', () => { chat('You leave the caves alone.', 'b'); next(); }));
+  r.appendChild(btn('Enter the caves', 'btn big', startBonus));
+  s.appendChild(r);
+  showScreen(s);
+}
+function startBonus() {
+  run.bonus = true; run.revPk = 0; run.revPkT = 4;
+  area = REV_AREA; isBoss = false;
+  enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = []; endEvent();
+  bossAlive = null; stageEnding = 0;
+  run.stageT = 0; run.enraged = false; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.quartet = false;
+  const st = stats();
+  Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
+  run.prayer = null;
+  toSpawn = 16 + areaIndex() * 2; run.revHalf = Math.floor(toSpawn / 2); spawnT = 0.6;
+  chat('You enter the Revenant Caves. Ancient artefacts await, and so do PKers.', 'r');
+  playMusic(REV_AREA.music);
+  mode = 'play'; showScreen(null); updatePrayerButtons();
+}
+function maybeDropArtefact(e) {
+  if (!run.bonus || e.summoned) return;
+  const ch = (e.d.pker ? 1 : e.d.elite ? 0.25 : 0.06) * (1 + luckVal());
+  if (Math.random() >= ch) return;
+  const total = ARTEFACTS.reduce((a, x) => a + x.wt, 0);
+  let r = Math.random() * total, art = ARTEFACTS[0];
+  for (const x of ARTEFACTS) { if (r < x.wt) { art = x; break; } r -= x.wt; }
+  pickups.push({ kind: 'artefact', art, x: e.x, y: e.y, t: 0 });
+  chat(`An ${art.name} drops!`, 'r');
+}
+
+// ======================================================================
+// Superior monsters, goblin thieves and boss helpers
+// ======================================================================
+function makeSuperior(m) {
+  m.superior = true;
+  m.d = { ...m.d, name: `Superior ${m.d.name.toLowerCase()}`, size: m.d.size * 1.35, elite: true };
+  m.r = m.d.size * 0.36;
+  m.hp = m.maxHp = Math.round(m.maxHp * 4);
+  m.dmg *= 1.6;
+  chat('A superior foe has appeared...', 'r');
+  sfx(120, 0.4, 'sawtooth', 0.07);
+}
+const THIEVES = new Set(['goblin', 'hobgoblin', 'rev_goblin']);
+// Goblins run for coins on the ground and make off with them. Kill the thief to get them back with interest.
+function thiefMove(e, dt) {
+  const p = run.p, spd = e.d.spd * (e.slow || 1);
+  if (e.loot) {
+    const a = Math.atan2(e.y - p.y, e.x - p.x);
+    e.x += Math.cos(a) * spd * 1.15 * dt; e.y += Math.sin(a) * spd * 1.15 * dt;
+    return true;
+  }
+  let best = null, bd = 420;
+  for (const c of coins) { if (c.got) continue; const d = Math.hypot(c.x - e.x, c.y - e.y); if (d < bd) { bd = d; best = c; } }
+  if (!best) return false;
+  if (bd < 18) {
+    e.loot = best.v; best.got = true;
+    if (!run.thiefTold) { run.thiefTold = true; chat(`A ${e.d.name.toLowerCase()} grabs your coins! Kill it to get them back.`, 'r'); }
+    return true;
+  }
+  e.x += (best.x - e.x) / bd * spd * dt; e.y += (best.y - e.y) / bd * spd * dt;
+  return true;
+}
+// Verzik's Nylocas Matomenos walk to her and heal her for the health they have left.
+function feederMove(e, dt) {
+  const b = e.feeds;
+  if (!b || b.dead) { e.dead = true; return; }
+  const dx = b.x - e.x, dy = b.y - e.y, d = Math.hypot(dx, dy) || 1;
+  if (d < b.r + e.r) {
+    b.hp = Math.min(b.maxHp, b.hp + e.hp); e.dead = true;
+    burst(b.x, b.y, '#c01a1a', 14);
+    chat(`A ${e.d.name} heals ${b.d.name}!`, 'r');
+    return;
+  }
+  e.x += dx / d * e.d.spd * dt; e.y += dy / d * e.d.spd * dt;
+}
+// Scorpia's guardians stay by her and heal her every 1.8s
+function guardianTick(e, dt) {
+  const b = e.guardOf;
+  if (!b || b.dead) { e.dead = true; return; }
+  const dx = b.x + e.ox - e.x, dy = b.y + e.oy - e.y, d = Math.hypot(dx, dy);
+  if (d > 4) { e.x += dx / d * Math.min(d, e.d.spd * dt); e.y += dy / d * Math.min(d, e.d.spd * dt); }
+  e.healT = (e.healT || 1.8) - dt;
+  if (e.healT <= 0) { e.healT = 1.8; b.hp = Math.min(b.maxHp, b.hp + b.maxHp * 0.012); fx.push({ kind: 'beam', x: e.x, y: e.y - 20, tx: b.x, ty: b.y - 40, t: 0.25, max: 0.25, color: '#5fd34a' }); }
+}
+// Corp's dark energy core leaps onto you and heals the Corporeal Beast for half the damage it does
+function coreTick(e, dt) {
+  const b = e.coreOf, p = run.p;
+  if (!b || b.dead) { e.dead = true; return; }
+  e.leapT = (e.leapT || 1.5) - dt;
+  if (e.leapT <= 0) {
+    e.leapT = 2.6;
+    const tx = p.x, ty = p.y;
+    slam(tx, ty, 60, 0.7, b.dmg * 0.7, 'magic', '#4a4aff', '', { noPray: true, heal: 0.5, from: b });
+    setTimeout(() => { if (!e.dead) { e.x = tx; e.y = ty; } }, 700);
+  }
+}
+function clueHelpers(e, dt) {
+  const id = e.d.id;
+  if (id === 'clue_vetion') {
+    if (!e.ai.hounds && e.hp < e.maxHp * 0.5) {
+      e.ai.hounds = [0, 1].map((i) => { const m = spawnMonster('vetion_hound', e.x + (i ? 120 : -120), e.y + 60); m.hp = m.maxHp = Math.round(e.maxHp * 0.12); m.dmg = e.dmg * 0.6; m.summoned = true; return m; });
+      chat("Vet'ion summons his Skeleton Hellhounds! He is immune until they die.", 'r');
+    }
+    e.immune = !!(e.ai.hounds && e.ai.hounds.some((m) => !m.dead));
+  } else if (id === 'clue_scorpia') {
+    if (!e.ai.guards && e.hp < e.maxHp) {
+      e.ai.guards = true;
+      for (const ox of [-90, 90]) { const m = spawnMonster('scorpia_guardian', e.x + ox, e.y); m.hp = m.maxHp = Math.round(e.maxHp * 0.05); m.guardOf = e; m.ox = ox; m.oy = 30; m.summoned = true; }
+      chat("Scorpia's guardians appear to heal her! Kill them.", 'r');
+    }
+  } else if (id === 'clue_corp') {
+    e.ai.coreT = (e.ai.coreT ?? 6) - dt;
+    if (e.ai.coreT <= 0 && !(e.ai.core && !e.ai.core.dead)) {
+      e.ai.coreT = 14;
+      const m = spawnMonster('dark_core', e.x, e.y + 60); m.hp = m.maxHp = Math.round(e.maxHp * 0.05); m.coreOf = e; m.summoned = true; e.ai.core = m;
+      chat('The Corporeal Beast releases a dark energy core! It heals him as it hurts you.', 'r');
+    }
+  }
+}
+
 // Invocations chosen for this run (INVOCATIONS in data.js)
 function inv(id) { return !!(run && run.invo && run.invo[id]); }
 function raidLevel(set) { return INVOCATIONS.reduce((a, v) => a + (set[v.id] ? v.lvl : 0), 0); }
@@ -769,6 +1219,7 @@ function nearestEnemy(x, y, maxD) {
   for (const e of enemies) {
     if (e.ai.burrow > 0 || e.untargetable) continue;
     const d = Math.hypot(e.x - x, e.y - y) - e.r;
+    if (e.eventMob && d > 70) continue; // walk up to the pheasant you want
     if (d < bd) { bd = d; best = e; }
   }
   return best;
@@ -805,7 +1256,7 @@ function damageEnemy(e, dmg, crit, opts = {}) {
     e.kx += Math.cos(a) * opts.knock * 4; e.ky += Math.sin(a) * opts.knock * 4;
   }
   const leech = (opts.leech || 0) + 0.03 * bv('vamp');
-  if (leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech);
+  if (leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech * PLAYER_LEECH);
   if (bv('execute') && !e.d.boss && !e.clueBoss && e.hp > 0 && e.hp < e.maxHp * 0.12) e.hp = 0;
   if (e.hp <= 0) {
     if (e.d.boss && bossPhaseOnDeath(e)) return;
@@ -830,6 +1281,10 @@ function killEnemy(e) {
     burst(e.x, e.y, '#ffd060', 60);
     // remaining summons collapse with their master
     for (const m of enemies) if (m.summoned && !m.dead) { m.dead = true; burst(m.x, m.y, '#888', 8); }
+  } else if (e.eventMob) {
+    const ev = run.ev;
+    if (ev && ev.type === 'forester') { const ok = e.tails === ev.want; endEvent(); if (ok) evLamp(2, 'The Freaky Forester takes the pheasant.'); else chat('Freaky Forester: That\'s the wrong pheasant!', 'r'); }
+    return;
   } else if (e.insane) {
     for (let i = 0; i < 8; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 120, y: e.y + (Math.random() - 0.5) * 120, v: Math.ceil(value * 1.5), t: 0 });
     chat(`You have defeated ${e.d.name}!`, 'r');
@@ -846,6 +1301,9 @@ function killEnemy(e) {
     maybeDropPotion(e);
   }
   if (e.d.explode) burst(e.x, e.y, '#5fd34a', 20);
+  if (e.superior) { for (let i = 0; i < 5; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 100, y: e.y + (Math.random() - 0.5) * 100, v: value, t: 0 }); const bag = Object.keys(POTIONS); pickups.push({ kind: 'potion', pot: evPick(bag), x: e.x + 30, y: e.y, t: 0 }); if (Math.random() < 0.2) pickups.push({ kind: 'clue', x: e.x - 30, y: e.y, t: 0 }); }
+  if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
+  maybeDropArtefact(e);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
   if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
 }
@@ -860,7 +1318,7 @@ function specialAttack() {
   // a sure hit: specs re-roll a miss once
   const roll = (base, e) => { let r = rollDamage(base, e, st); if (!r.dmg) r = rollDamage(base, e, st); return r; };
   const afterHit = (e, dmg) => {
-    if (S.heal && dmg > 0) p.hp = Math.min(st.maxHp, p.hp + dmg * S.heal);
+    if (S.heal && dmg > 0) p.hp = Math.min(st.maxHp, p.hp + dmg * S.heal * PLAYER_LEECH);
     if (S.weaken && !e.dead) { e.weak = S.weaken; e.weakT = 10; }
     if (S.bind && !e.dead && !e.d.boss) e.frozen = Math.max(e.frozen, S.bind);
   };
@@ -914,7 +1372,7 @@ function playerAttack(dt) {
   const p = run.p, st = stats(), w = st.weapon;
   p.atkT -= dt;
   if (p.eatT > 0) p.eatT -= dt;
-  if (p.atkT > 0 || p.frozen > 0 || p.eatT > 0) return;
+  if (p.atkT > 0 || p.frozen > 0 || p.eatT > 0 || run.frogT > 0) return;
   const reachMult = MELEE_REACH * (1 + 0.15 * bv('reach'));
   const reach = w.kind === 'swing' ? w.reach * reachMult : w.range * st.range;
   const target = nearestEnemy(p.x, p.y, reach + (w.kind === 'swing' ? 10 : 0));
@@ -959,7 +1417,7 @@ function playerAttack(dt) {
 
 function specHit(s, e, dmg) {
   const S = s.spec, st = stats();
-  if (S.heal && dmg > 0) run.p.hp = Math.min(st.maxHp, run.p.hp + dmg * S.heal);
+  if (S.heal && dmg > 0) run.p.hp = Math.min(st.maxHp, run.p.hp + dmg * S.heal * PLAYER_LEECH);
   if (S.weaken && !e.dead) { e.weak = S.weaken; e.weakT = 10; }
   if (S.aoe) {
     fx.push({ kind: 'boom', x: e.x, y: e.y - e.d.size * 0.35, r: S.aoe, color: '#ff8a2a', t: 0.35, max: 0.35 });
@@ -1064,13 +1522,15 @@ function updateShots(dt) {
 
 function hurtPlayer(raw, style, opts = {}) {
   const p = run.p, st = stats();
-  let dmg = raw * st.taken * (opts.pure ? 1 : 1 - st.reduce);
+  // frac: a share of max hitpoints (fracCur: of current hitpoints), for the big skill-check hits
+  const fixed = opts.frac || opts.fracCur;
+  let dmg = opts.frac ? st.maxHp * opts.frac : opts.fracCur ? p.hp * opts.fracCur : raw * st.taken * (opts.pure ? 1 : 1 - st.reduce);
   if (style === 'magic' && (run.hero.mods || {}).magicTaken) dmg *= run.hero.mods.magicTaken;
   if (run.buffs.lock && run.buffs.lock.t > 0) dmg *= 0.5;
   // OSRS protection prayers block all damage of their style (Quiet Prayers: 80%)
   if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= inv('quiet') ? 0.2 : 0;
   if (run.enraged && !opts.pure) dmg *= 1.5;
-  dmg = Math.round(dmg * (0.6 + Math.random() * 0.4));
+  dmg = Math.round(dmg * (fixed ? 1 : 0.6 + Math.random() * 0.4));
   p.hp -= dmg;
   p.hurtT = 0.15;
   splats.push({ x: p.x + (Math.random() - 0.5) * 14, y: p.y - 70, v: dmg, t: 0.8, kind: dmg === 0 ? 'miss' : 'hit' });
@@ -1125,8 +1585,14 @@ function updateEnemies(dt) {
       if (e.venomTick <= 0) { e.venomTick = 1; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.venomDps)), false, { venom: true }); if (e.dead) continue; }
     }
     if (e.frozen > 0) { e.frozen -= dt; continue; }
+    if (e.eventMob) { e.wt = (e.wt || 0) - dt; if (e.wt <= 0) { e.wt = 1.5; e.wa = Math.random() * 7; } e.x += Math.cos(e.wa) * e.d.spd * dt; e.y += Math.sin(e.wa) * e.d.spd * dt; continue; }
+    if (e.feeds) { feederMove(e, dt); continue; }
+    if (e.guardOf) { guardianTick(e, dt); continue; }
+    if (e.coreOf) { coreTick(e, dt); continue; }
+    if (THIEVES.has(e.id) && thiefMove(e, dt)) continue;
     if (e.d.boss) bossAI(e, dt);
     if (e.dead || e.ai.burrow > 0) continue;
+    if (e.d.clue) clueHelpers(e, dt);
     if (e.d.clue) { // clue bosses: a telegraphed special on top of their normal attack
       e.ai.t -= dt;
       if (e.ai.t <= 0) { e.ai.t = (3.2 + Math.random()) / (BOSS_TEMPO * invoTempo()); clueSpecial(e); }
@@ -1200,7 +1666,7 @@ function fan(e, n, step, speed, style, color, dmg, extra) {
 }
 function slam(x, y, r, delay, dmg, style, color, label, extra) {
   const ex = extra || {};
-  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!ex.noPray, heal: ex.heal, from: ex.from, freeze: ex.freeze, shape: ex.shape || 'circle', a: ex.a || 0, spread: ex.spread || 0.6, w: ex.w || 50 });
+  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!ex.noPray, heal: ex.heal, from: ex.from, freeze: ex.freeze, frac: ex.frac, shape: ex.shape || 'circle', a: ex.a || 0, spread: ex.spread || 0.6, w: ex.w || 50 });
 }
 function summon(e, id, n, opts = {}) {
   for (let i = 0; i < n; i++) {
@@ -1424,7 +1890,7 @@ function bossAI(e, dt) {
     if (e.ai.t <= 0) {
       e.ai.shots = (e.ai.shots || 0) + 1;
       e.ai.t = form.style === 'melee' ? 2.6 : 1.4;
-      if (form.style === 'melee') slam(p.x, p.y, 90, 1.1, e.dmg * 1.8, 'melee', form.color, 'Magma!');
+      if (form.style === 'melee') slam(p.x, p.y, 90, 1.1, 0, 'melee', form.color, 'Magma!', { frac: 0.45, freeze: 1 });
       else aimShot(e, 520, form.style, form.color, e.dmg, { r: 14 });
       if (e.ai.shots % 3 === 0) hazards.push({ x: clamp(p.x + (Math.random() - 0.5) * 200, 40, WORLD_W - 40), y: clamp(p.y + (Math.random() - 0.5) * 160, 120, WORLD_H - 40), r: 60, t: 8, color: '#5fd34a', dps: 6, poison: 4 });
       if (e.ai.shots >= 6) {
@@ -1446,7 +1912,8 @@ function bossAI(e, dt) {
       if (e.ai.windup.t <= 0) {
         const style = e.ai.windup.style;
         e.ai.windup = null; e.ai.t = 1.6;
-        aimShot(e, 700, style, style === 'magic' ? '#ff5a1a' : '#e8c060', 42, { r: 16, homing: true, full: true });
+        // like the real Jad: the right prayer blocks it all, the wrong one nearly kills you
+        aimShot(e, 700, style, style === 'magic' ? '#ff5a1a' : '#e8c060', 0, { r: 16, homing: true, frac: 0.75 });
       }
     }
     if (!e.ai.healers && hpf < 0.5) {
@@ -1471,7 +1938,7 @@ function bossAI(e, dt) {
         e.ai.spawn.summoned = true;
         chat('Vorkath freezes you and sends a zombified spawn! Kill it before it reaches you.', 'r');
       } else if (r === 4) {
-        slam(p.x, p.y, 70, 1.5, 80, 'magic', '#ff3a1a', 'Bomb! Move!');
+        slam(p.x, p.y, 70, 1.5, 0, 'magic', '#ff3a1a', 'Firebomb! Move!', { noPray: true, frac: 0.7 });
       } else {
         aimShot(e, 500, Math.random() < 0.5 ? 'magic' : 'ranged', '#ff6a1a', e.dmg, { r: 16 });
       }
@@ -1479,28 +1946,55 @@ function bossAI(e, dt) {
   } else if (k === 'wardens') {
     if (e.ai.t <= 0) {
       e.ai.t = 2.2;
-      const r = e.ai.phase++ % 4;
+      const r = e.ai.phase++ % 5;
       if (r === 0) { for (let i = 0; i < 5; i++) slam(60 + Math.random() * (WORLD_W - 120), 140 + Math.random() * (WORLD_H - 180), 90, 1.2, e.dmg, 'magic', '#ffd24a', 'Lightning!'); }
+      else if (r === 4) slam(p.x, p.y, 200, 1.3, 0, 'magic', '#ffd24a', 'Warden slam!', { shape: 'cross', w: 100, noPray: true, frac: 0.45 });
       else if (r === 2) { summon(e, 'scarab_swarm', 3); chat('The Warden calls a scarab swarm!', 'r'); }
       else aimShot(e, 520, r === 1 ? 'magic' : 'ranged', r === 1 ? '#4aa0ff' : '#c89a50', e.dmg, { r: 14 });
     }
     e.immune = hpf < 0.5 && (e.ai.phase % 8) < 2; // core retreats briefly in phase two
   } else if (k === 'olm') {
-    // Great Olm: sits in the wall, alternates magic and ranged, drops crystals and acid
+    // Great Olm: sits in the wall, alternates magic and ranged, drops crystals and acid.
+    // His claws must be disabled before the head takes damage (again after half health), and the flame wall nearly kills you.
+    const spawnClaws = () => {
+      e.ai.claws = [['olm_left_claw', -300], ['olm_right_claw', 300]].map(([id, ox]) => { const m = spawnMonster(id, clamp(e.x + ox, 80, WORLD_W - 80), e.y + 30); m.x = clamp(e.x + ox, 80, WORLD_W - 80); m.y = e.y + 30; m.hp = m.maxHp = Math.round(e.maxHp * 0.12); m.summoned = true; return m; });
+      chat('Great Olm raises his claws. Disable both before you can hurt his head.', 'r');
+    };
+    if (!e.ai.claws) spawnClaws();
+    if (hpf < 0.5 && !e.ai.claws2) { e.ai.claws2 = true; spawnClaws(); }
+    e.immune = e.ai.claws.some((m) => !m.dead);
     if (e.ai.t <= 0) {
       e.ai.t = 1.8;
       const r = e.ai.phase++ % 5;
+      if (r === 3 && e.ai.phase % 2 === 0) { telegraphs.push({ line: true, x: 0, y: p.y, a: 0, len: WORLD_W, w: 150, t: 1.8, max: 1.8, color: '#ff5a1a', dmg: 0, frac: 0.55, noPray: true, style: 'magic', label: 'Flame wall! Get out!' }); return; }
       if (r === 2) { for (let i = 0; i < 6; i++) slam(p.x + (Math.random() - 0.5) * 300, p.y + (Math.random() - 0.5) * 240, 55, 1.1, e.dmg * 0.9, 'melee', '#9a7aff', 'Crystal!'); }
       else if (r === 4) hazards.push({ x: p.x, y: p.y, r: 70, t: 6, color: '#5fd34a', dps: 10, poison: 4 });
       else aimShot(e, 560, r % 2 ? 'ranged' : 'magic', r % 2 ? '#7ad04a' : '#6a9aff', e.dmg, { r: 14 });
     }
   } else if (k === 'verzik') {
     const vp = e.ai.vphase || 1;
+    // Phase 1: hide behind a pillar from her big blast or it nearly kills you (Protect from Magic halves it)
+    if (vp === 1) {
+      if (!e.ai.pillars) { e.ai.pillars = [[0.25, 0.42], [0.75, 0.42], [0.25, 0.82], [0.75, 0.82]].map(([fx2, fy]) => ({ x: WORLD_W * fx2, y: WORLD_H * fy })); e.ai.blastT = 6; }
+      e.ai.blastT -= dt;
+      if (e.ai.blastT <= 0 && !e.ai.blast) { e.ai.blast = 2.2; chat('Verzik charges a huge blast. Hide behind a pillar!', 'r'); sfx(60, 0.6, 'sawtooth', 0.07); }
+      if (e.ai.blast > 0) {
+        e.ai.blast -= dt;
+        if (e.ai.blast <= 0) {
+          e.ai.blast = 0; e.ai.blastT = 10;
+          const safe = e.ai.pillars.some((pl) => Math.hypot(p.x - pl.x, p.y - pl.y) < 75);
+          fx.push({ kind: 'beam', x: e.x, y: e.y - 60, tx: p.x, ty: p.y - 30, t: 0.3, max: 0.3, color: safe ? '#888' : '#a01aff' });
+          if (!safe) hurtPlayer(0, 'magic', { pure: true, frac: run.prayer === 'magic' ? 0.42 : 0.85 });
+        }
+      }
+    } else e.ai.pillars = null;
     if (e.ai.t <= 0) {
       e.ai.t = vp === 1 ? 2.2 : vp === 2 ? 2.0 : 1.6;
       if (vp === 1) { fan(e, 8, 0.4, 320, 'magic', '#a01aff', e.dmg * 0.7); }
       else if (vp === 2) {
-        if (e.ai.phase++ % 3 === 0) { summon(e, ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'][Math.floor(Math.random() * 3)], 3); }
+        const v2 = e.ai.phase++ % 3;
+        if (v2 === 0) { summon(e, ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'][Math.floor(Math.random() * 3)], 3); }
+        else if (v2 === 1 && e.ai.phase % 2 === 0) { for (let i = 0; i < 2; i++) { const sp = edgeSpawn(); const m = spawnMonster('nylocas_matomenos', sp.x, sp.y); m.hp = m.maxHp = Math.round(e.maxHp * 0.04); m.feeds = e; m.summoned = true; } chat('Nylocas Matomenos crawl toward Verzik. Kill them before they heal her!', 'r'); }
         else slam(p.x, p.y, 80, 1.0, e.dmg * 1.2, 'ranged', '#a01a2a', 'Bounce!');
       } else {
         const vr = e.ai.phase++ % 4;
@@ -1509,6 +2003,7 @@ function bossAI(e, dt) {
           // webs: get caught and you're stuck in place
           for (let i = 0; i < 6; i++) slam(clamp(p.x + (i ? (Math.random() - 0.5) * 420 : 0), 40, WORLD_W - 40), clamp(p.y + (i ? (Math.random() - 0.5) * 300 : 0), 130, WORLD_H - 40), 55, 1.0, e.dmg * 0.8, 'magic', '#e8e8e8', i ? '' : 'Webs!', { noPray: true, freeze: 1.5 });
         }
+        else if (vr === 3) { aimShot(e, 240, 'magic', '#5fd34a', 0, { r: 22, pure: true, fracCur: 0.74 }); chat('Verzik throws a green ball. Dodge it!', 'r'); }
         else aimShot(e, 520, Math.random() < 0.5 ? 'ranged' : 'magic', '#e04a6a', e.dmg, { r: 14 });
       }
     }
@@ -1516,6 +2011,17 @@ function bossAI(e, dt) {
     // Nex: smoke, shadow, blood, ice, then Zaros
     const phases = ['smoke', 'shadow', 'blood', 'ice', 'zaros'];
     const ph = phases[Math.min(4, Math.floor((1 - hpf) * 5))];
+    // After each fifth of her health, the mage empowering that phase must die before she can be hurt again
+    if (!e.ai.mages) e.ai.mages = [];
+    ['fumus', 'umbra', 'cruor', 'glacies'].forEach((id, i) => {
+      const at = 0.8 - 0.2 * i;
+      if (e.hp / e.maxHp <= at && !e.ai.mages[i]) {
+        e.hp = Math.max(e.hp, e.maxHp * at);
+        const sp = edgeSpawn(); const m = spawnMonster(id, sp.x, sp.y); m.hp = m.maxHp = Math.round(e.maxHp * 0.06); m.dmg = e.dmg * 0.6; m.summoned = true; e.ai.mages[i] = m;
+        chat(`Nex: ${m.d.name}, don't fail me! She is immune until ${m.d.name} dies.`, 'r');
+      }
+    });
+    e.immune = e.ai.mages.some((m) => m && !m.dead);
     if (ph !== e.ai.nexPhase) { e.ai.nexPhase = ph; shout(e, 'nex_' + ph); }
     if (e.ai.t <= 0) {
       e.ai.t = 2.2;
@@ -1523,13 +2029,14 @@ function bossAI(e, dt) {
       else if (ph === 'shadow') { for (let i = 0; i < 4; i++) slam(p.x + (Math.random() - 0.5) * 240, p.y + (Math.random() - 0.5) * 200, 60, 1.0, e.dmg * 1.2, 'ranged', '#222', 'Shadow!'); }
       else if (ph === 'blood') {
         e.lifesteal = 1; aimShot(e, 500, 'magic', '#c01a1a', e.dmg, { r: 14 });
+        if (e.ai.siphon % 3 === 2) { slam(e.x, e.y, 300, 2.4, 0, 'magic', '#c01a1a', 'Blood Sacrifice! Run from Nex!', { noPray: true, frac: 0.7 }); }
         if (e.ai.siphon = (e.ai.siphon || 0) + 1, e.ai.siphon % 3 === 1) {
           // Blood Siphon: pools of blood around you feed Nex for every hit they do
           for (let i = 0; i < 5; i++) hazards.push({ x: clamp(p.x + (Math.random() - 0.5) * 360, 40, WORLD_W - 40), y: clamp(p.y + (Math.random() - 0.5) * 280, 130, WORLD_H - 40), r: 50, t: 6, color: '#a00a1a', dps: 24, heal: 4, from: e });
           chat('Nex: Blood Siphon! Her blood pools heal her. Stay out of them.', 'r');
         }
       }
-      else if (ph === 'ice') { fan(e, 6, 0.2, 380, 'magic', '#9fe8ff', e.dmg * 0.8, { freeze: 0.8 }); }
+      else if (ph === 'ice') { if (e.ai.icy = (e.ai.icy || 0) + 1, e.ai.icy % 3 === 0) slam(p.x, p.y, 90, 1.3, 0, 'magic', '#9fe8ff', 'Contain this!', { shape: 'square', noPray: true, frac: 0.5, freeze: 2 }); else fan(e, 6, 0.2, 380, 'magic', '#9fe8ff', e.dmg * 0.8, { freeze: 0.8 }); }
       else { fan(e, 7, 0.18, 420, 'magic', '#b04bff', e.dmg); }
     }
   } else if (k === 'zuk') {
@@ -1548,7 +2055,7 @@ function bossAI(e, dt) {
       if (e.ai.blast <= 0) {
         const safe = Math.abs(p.x - sh.x) < 85 && p.y > sh.y + 13;
         fx.push({ kind: 'beam', x: e.x, y: e.y - 60, tx: p.x, ty: p.y - 30, t: 0.3, max: 0.3, color: safe ? '#888' : '#ff3a1a' });
-        if (safe) burst(sh.x, sh.y + 13, '#ffb040', 20); else hurtPlayer(75, 'magic', { pure: true });
+        if (safe) burst(sh.x, sh.y + 13, '#ffb040', 20); else hurtPlayer(0, 'magic', { pure: true, frac: 0.85 });
       }
     }
     if (!e.ai.jad && hpf < 0.6) { e.ai.jad = true; const j = spawnMonster('jad', 200, 300); j.summoned = true; j.hp = j.maxHp = 2500; chat('TzKal-Zuk summons Jal-TokJad!', 'r'); }
@@ -1580,11 +2087,11 @@ function updateEnemyShots(dt) {
       if (t.line) {
         // distance from the player to the charge line
         const dx = p.x - t.x, dy = p.y - t.y, along = dx * Math.cos(t.a) + dy * Math.sin(t.a), off = Math.abs(-dx * Math.sin(t.a) + dy * Math.cos(t.a));
-        if (along > 0 && along < t.len && off < t.w / 2) hurtPlayer(t.dmg, t.style);
+        if (along > 0 && along < t.len && off < t.w / 2) hurtPlayer(t.dmg, t.style, { noPray: t.noPray, frac: t.frac });
       } else {
         if (t.shape === 'circle' || t.shape === 'ring') fx.push({ kind: 'boom', x: t.x, y: t.y, r: t.r, color: t.color, t: 0.35, max: 0.35 });
         else burst(t.x, t.y, t.color, 14);
-        if (inTelegraph(t, p.x, p.y)) hurtPlayer(t.dmg, t.style, { noPray: t.noPray, heal: t.heal, from: t.from, freeze: t.freeze });
+        if (inTelegraph(t, p.x, p.y)) hurtPlayer(t.dmg, t.style, { noPray: t.noPray, heal: t.heal, from: t.from, freeze: t.freeze, frac: t.frac });
       }
     }
   }
@@ -1668,6 +2175,7 @@ function updatePlayer(dt) {
     if (Math.hypot(p.x - pk.x, p.y - pk.y) < p.r + 22) {
       pk.got = true;
       if (pk.kind === 'clue') startClue();
+      else if (pk.kind === 'artefact') { const g = Math.round(pk.art.gold * (1 + areaIndex() * 0.15)); addGold(g, true); chat(`You pick up an ${pk.art.name}, worth ${g.toLocaleString()} coins.`, 'g'); sfx(1100, 0.2, 'triangle', 0.06); }
       else if (pk.kind === 'pie' && inv('diet')) { chat('You are On a Diet, so you leave the pie.', 'b'); }
       else if (pk.kind === 'pie') {
         const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal);
@@ -1792,6 +2300,7 @@ function step(dt) {
   if (mode !== 'play') return;
   if (pendingClue > 0) { pendingClue--; startClue(); }
   invoTick(dt);
+  eventTick(dt);
   spawnTick(dt);
   checkStageDone(dt);
 }
@@ -1947,18 +2456,23 @@ function draw() {
     ctx.fillStyle = 'rgba(255,220,120,0.25)'; ctx.beginPath(); ctx.arc(pk.x, pk.y, 30 + Math.sin(pk.t * 5) * 4, 0, 7); ctx.fill();
     const pot = pk.kind === 'potion' ? POTIONS[pk.pot] : null;
     const pie = pk.kind === 'pie';
-    const im = wikiImage(pot ? pot.file : pie ? PIE.file : pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
+    const art = pk.kind === 'artefact' ? pk.art : null;
+    const im = wikiImage(art ? art.file : pot ? pot.file : pie ? PIE.file : pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
     const w = pot ? 22 : pie ? 30 : 36;
     if (ready(im)) ctx.drawImage(im, pk.x - w / 2, pk.y - 22 + bob, w, w * im.naturalHeight / im.naturalWidth);
     else { ctx.fillStyle = pot ? '#4aa0ff' : pie ? '#c0304a' : pk.kind === 'clue' ? '#f0e0b0' : '#8a5a2a'; ctx.fillRect(pk.x - 14, pk.y - 14 + bob, 28, 22); }
-    text(pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
+    text(art ? art.name : pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
   }
 
+  drawEvent();
   const sprites = enemies.filter((e) => e.ai.burrow <= 0).map((e) => ({ y: e.y, e }));
   sprites.push({ y: run.p.y, player: true });
   sprites.sort((a, b) => a.y - b.y);
   for (const s of sprites) s.player ? drawPlayer() : drawEnemy(s.e);
 
+  if (bossAlive && !bossAlive.dead && bossAlive.ai.pillars) {
+    for (const pl of bossAlive.ai.pillars) { ctx.fillStyle = '#6a6a72'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pl.x, pl.y, 36, 0, 7); ctx.fill(); ctx.stroke(); text('Pillar', pl.x, pl.y + 4, 13, '#fff'); }
+  }
   if (bossAlive && bossAlive.d.boss === 'zuk' && bossAlive.ai.shield) {
     const sh = bossAlive.ai.shield;
     ctx.fillStyle = '#5a3a1a'; ctx.strokeStyle = '#ffb040'; ctx.lineWidth = 3;
@@ -2070,6 +2584,7 @@ function drawPlayer() {
   drawWeapon(p, h);
   if (p.frozen > 0) { ctx.fillStyle = 'rgba(160,220,255,0.45)'; ctx.fillRect(p.x - 26, p.y - h, 52, h + 4); }
   if (p.poison > 0) text('Poisoned', p.x, p.y + 18, 13, '#5fd34a');
+  if (run.frogT > 0) text('Frog!', p.x, p.y - HERO_H - 8, 16, '#5fd34a');
   if (p.doom >= 1) text(`Doom ${Math.floor(p.doom)}/12`, p.x, p.y + 56, 13, '#b06aff');
   // active potion buffs: icon and seconds left under the player
   const active = Object.values(run.buffs).filter((b) => b.t > 0);
@@ -2121,6 +2636,7 @@ function drawWeapon(p, h) {
 function drawEnemy(e) {
   const h = e.d.size;
   drawShadow(e.x, e.y + 2, e.r);
+  if (e.superior) { ctx.fillStyle = 'rgba(170,80,255,0.28)'; ctx.beginPath(); ctx.arc(e.x, e.y - h * 0.45, h * 0.6 + Math.sin(performance.now() / 180) * 4, 0, 7); ctx.fill(); }
   ctx.save();
   if (e.flash > 0) ctx.filter = 'brightness(1.8)';
   if (e.frozen > 0) ctx.filter = 'hue-rotate(160deg) brightness(1.2)';
@@ -2138,6 +2654,8 @@ function drawEnemy(e) {
     const sk = wikiImage(SKULL.file);
     if (ready(sk)) ctx.drawImage(sk, e.x - 10, Math.max(0, e.y - h - 44), 20, 20 * sk.naturalHeight / sk.naturalWidth);
   }
+  if (e.tails) text(`${e.tails} tail${e.tails > 1 ? 's' : ''}`, e.x, e.y - h - 10, 13, '#7fd060');
+  if (e.loot) text('Thief!', e.x, e.y - h - 10, 13, '#ffd34a');
   if (e.healer) text(e.aggro ? e.d.name : `${e.d.name} (healing)`, e.x, e.y - h - 18, 12, '#ff981f');
   if (e.immune) text('Immune', e.x, e.y - h - 30, 14, '#9fe8ff');
   if (e.d.boss === 'jad' && e.ai.windup) {
@@ -2219,7 +2737,7 @@ function drawHud() {
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
   const T = timeLimit(), tl = Math.max(0, Math.ceil(T - run.stageT));
   const timer = T ? (run.enraged ? ' · Enraged!' : ` · ${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')} left`) : '';
-  $('waveSub').textContent = `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '');
+  $('waveSub').textContent = run.bonus ? `Bonus round · ${left} left` : `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '');
   $('goldTxt').textContent = run.gold.toLocaleString();
   drawGearBar();
   $('sharkN').textContent = '×' + run.inv.shark;
@@ -2868,5 +3386,7 @@ window.__rr = {
   achEvent: (o, x) => achEvent(o, x),
   get meta() { return meta; },
   dropPie: () => pickups.push({ kind: 'pie', x: run.p.x + 60, y: run.p.y, t: 0 }),
+  event: (id) => { run.evSeen = RANDOM_EVENTS.filter((d) => d.id !== id).map((d) => d.id); startRandomEvent(); },
+  get ev() { return run.ev; }, bonus: () => startBonus(), superior: () => makeSuperior(enemies[0]), spawn: (id) => spawnMonster(id, 700, 420),
 };
 })();

@@ -229,6 +229,18 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
 .card.invo .lvl { font-size: 12px; font-weight: bold; color: var(--yellow); margin: 2px 0; }
 .card.invo.sel { outline: 2px solid var(--yellow); background: #4a3f2e; }
 .card.invo.locked { opacity: .5; }
+.ev-timer { height: 8px; background: #2a1c10; border: 1px solid #000; margin: 10px 0 4px; }
+.ev-timer > div { height: 100%; width: 100%; background: var(--orange); }
+@keyframes evbar { from { width: 100%; } to { width: 0%; } }
+.ev-prompt { color: var(--yellow) !important; font-weight: bold; font-size: 16px; }
+.ev-show { display: grid; place-items: center; height: 70px; margin: 6px 0; }
+.ev-show img { max-height: 64px; }
+.ev-big { font-size: 64px; text-align: center; color: var(--yellow); line-height: 1.1; }
+.ev-opts { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); margin-top: 8px; }
+.ev-opt { text-align: center; padding: 8px; min-height: 64px; }
+.ev-opt .art { height: 60px; }
+.ev-opt .art img { max-height: 54px; }
+.ev-opt .nm { font-size: 15px; }
 .card.r-uncommon { outline: 1px solid #3f9a3f; }
 .card.r-rare { outline: 1px solid #5ab4ff; }
 .card.r-ultra { outline: 2px solid var(--orange); background: #3d2d1c; }

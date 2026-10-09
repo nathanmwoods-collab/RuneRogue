@@ -359,6 +359,75 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Monster | Jal-ImKot | https://oldschool.runescape.wiki/w/File:Jal-ImKot.png |
 | Monster | Jal-Xil | https://oldschool.runescape.wiki/w/File:Jal-Xil.png |
 | Monster | Jal-Zek | https://oldschool.runescape.wiki/w/File:Jal-Zek.png |
+| Random events and helpers | Bee keeper | https://oldschool.runescape.wiki/w/File:Bee_keeper.png |
+| Random events and helpers | Capt' Arnav | https://oldschool.runescape.wiki/w/File:Capt'_Arnav.png |
+| Random events and helpers | Niles | https://oldschool.runescape.wiki/w/File:Niles.png |
+| Random events and helpers | Count Check | https://oldschool.runescape.wiki/w/File:Count_Check.png |
+| Random events and helpers | Sergeant Damien | https://oldschool.runescape.wiki/w/File:Sergeant_Damien.png |
+| Random events and helpers | Drunken Dwarf | https://oldschool.runescape.wiki/w/File:Drunken_Dwarf.png |
+| Random events and helpers | Evil Bob | https://oldschool.runescape.wiki/w/File:Evil_Bob.png |
+| Random events and helpers | Molly | https://oldschool.runescape.wiki/w/File:Molly.png |
+| Random events and helpers | Freaky Forester | https://oldschool.runescape.wiki/w/File:Freaky_Forester.png |
+| Random events and helpers | Genie | https://oldschool.runescape.wiki/w/File:Genie.png |
+| Random events and helpers | Leo | https://oldschool.runescape.wiki/w/File:Leo.png |
+| Random events and helpers | Dr Jekyll | https://oldschool.runescape.wiki/w/File:Dr_Jekyll.png |
+| Random events and helpers | Frog (Kiss the frog, crown) chathead | https://oldschool.runescape.wiki/w/File:Frog_(Kiss_the_frog,_crown)_chathead.png |
+| Random events and helpers | Frog (Kiss the frog) chathead | https://oldschool.runescape.wiki/w/File:Frog_(Kiss_the_frog)_chathead.png |
+| Random events and helpers | Mysterious Old Man | https://oldschool.runescape.wiki/w/File:Mysterious_Old_Man.png |
+| Random events and helpers | Mime | https://oldschool.runescape.wiki/w/File:Mime.png |
+| Random events and helpers | Pillory Guard chathead | https://oldschool.runescape.wiki/w/File:Pillory_Guard_chathead.png |
+| Random events and helpers | Flippa | https://oldschool.runescape.wiki/w/File:Flippa.png |
+| Random events and helpers | Prison Pete | https://oldschool.runescape.wiki/w/File:Prison_Pete.png |
+| Random events and helpers | Quiz Master | https://oldschool.runescape.wiki/w/File:Quiz_Master.png |
+| Random events and helpers | Rick Turpentine | https://oldschool.runescape.wiki/w/File:Rick_Turpentine.png |
+| Random events and helpers | Sandwich lady | https://oldschool.runescape.wiki/w/File:Sandwich_lady.png |
+| Random events and helpers | Strange plant | https://oldschool.runescape.wiki/w/File:Strange_plant.png |
+| Random events and helpers | Mr. Mordaut | https://oldschool.runescape.wiki/w/File:Mr._Mordaut.png |
+| Random events and helpers | Pheasant (1 tail) | https://oldschool.runescape.wiki/w/File:Pheasant_(1_tail).png |
+| Random events and helpers | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |
+| Random events and helpers | Triangle sandwich | https://oldschool.runescape.wiki/w/File:Triangle_sandwich.png |
+| Random events and helpers | Square sandwich | https://oldschool.runescape.wiki/w/File:Square_sandwich.png |
+| Random events and helpers | Chocolate bar | https://oldschool.runescape.wiki/w/File:Chocolate_bar.png |
+| Random events and helpers | Kebab | https://oldschool.runescape.wiki/w/File:Kebab.png |
+| Random events and helpers | Roll | https://oldschool.runescape.wiki/w/File:Roll.png |
+| Random events and helpers | Meat pie | https://oldschool.runescape.wiki/w/File:Meat_pie.png |
+| Random events and helpers | Rake | https://oldschool.runescape.wiki/w/File:Rake.png |
+| Random events and helpers | Bronze pickaxe | https://oldschool.runescape.wiki/w/File:Bronze_pickaxe.png |
+| Random events and helpers | Soft clay | https://oldschool.runescape.wiki/w/File:Soft_clay.png |
+| Random events and helpers | Bronze axe | https://oldschool.runescape.wiki/w/File:Bronze_axe.png |
+| Random events and helpers | Pot | https://oldschool.runescape.wiki/w/File:Pot.png |
+| Random events and helpers | Raw shrimps | https://oldschool.runescape.wiki/w/File:Raw_shrimps.png |
+| Random events and helpers | Raw sardine | https://oldschool.runescape.wiki/w/File:Raw_sardine.png |
+| Random events and helpers | Raw herring | https://oldschool.runescape.wiki/w/File:Raw_herring.png |
+| Random events and helpers | Raw anchovies | https://oldschool.runescape.wiki/w/File:Raw_anchovies.png |
+| Random events and helpers | Coins 100 | https://oldschool.runescape.wiki/w/File:Coins_100.png |
+| Random events and helpers | Gold ring | https://oldschool.runescape.wiki/w/File:Gold_ring.png |
+| Random events and helpers | Gold necklace | https://oldschool.runescape.wiki/w/File:Gold_necklace.png |
+| Random events and helpers | Gold bar | https://oldschool.runescape.wiki/w/File:Gold_bar.png |
+| Random events and helpers | Revenant Caves | https://oldschool.runescape.wiki/w/File:Revenant_Caves.png |
+| Random events and helpers | Revenant imp | https://oldschool.runescape.wiki/w/File:Revenant_imp.png |
+| Random events and helpers | Revenant goblin | https://oldschool.runescape.wiki/w/File:Revenant_goblin.png |
+| Random events and helpers | Revenant pyrefiend | https://oldschool.runescape.wiki/w/File:Revenant_pyrefiend.png |
+| Random events and helpers | Revenant hobgoblin | https://oldschool.runescape.wiki/w/File:Revenant_hobgoblin.png |
+| Random events and helpers | Revenant cyclops | https://oldschool.runescape.wiki/w/File:Revenant_cyclops.png |
+| Random events and helpers | Revenant hellhound | https://oldschool.runescape.wiki/w/File:Revenant_hellhound.png |
+| Random events and helpers | Revenant ork | https://oldschool.runescape.wiki/w/File:Revenant_ork.png |
+| Random events and helpers | Revenant demon | https://oldschool.runescape.wiki/w/File:Revenant_demon.png |
+| Random events and helpers | Revenant dark beast | https://oldschool.runescape.wiki/w/File:Revenant_dark_beast.png |
+| Random events and helpers | Revenant dragon | https://oldschool.runescape.wiki/w/File:Revenant_dragon.png |
+| Random events and helpers | Ancient emblem | https://oldschool.runescape.wiki/w/File:Ancient_emblem.png |
+| Random events and helpers | Ancient totem | https://oldschool.runescape.wiki/w/File:Ancient_totem.png |
+| Random events and helpers | Ancient statuette | https://oldschool.runescape.wiki/w/File:Ancient_statuette.png |
+| Random events and helpers | Ancient medallion | https://oldschool.runescape.wiki/w/File:Ancient_medallion.png |
+| Random events and helpers | Ancient effigy | https://oldschool.runescape.wiki/w/File:Ancient_effigy.png |
+| Random events and helpers | Ancient relic | https://oldschool.runescape.wiki/w/File:Ancient_relic.png |
+| Random events and helpers | Umbra | https://oldschool.runescape.wiki/w/File:Umbra.png |
+| Random events and helpers | Cruor | https://oldschool.runescape.wiki/w/File:Cruor.png |
+| Random events and helpers | Nylocas Matomenos | https://oldschool.runescape.wiki/w/File:Nylocas_Matomenos.png |
+| Random events and helpers | Skeleton Hellhound (Vet'ion) | https://oldschool.runescape.wiki/w/File:Skeleton_Hellhound_(Vet'ion).png |
+| Random events and helpers | Scorpia's guardian | https://oldschool.runescape.wiki/w/File:Scorpia's_guardian.png |
+| Random events and helpers | Dark energy core | https://oldschool.runescape.wiki/w/File:Dark_energy_core.png |
+| Music | Revenants | https://oldschool.runescape.wiki/w/File:Revenants.ogg |
 | PKer | PKMaster0036 | https://oldschool.runescape.wiki/w/File:PKMaster0036.png |
 | PKer | Purepker895 | https://oldschool.runescape.wiki/w/File:Purepker895.png |
 | PKer | Pete Kayer | https://oldschool.runescape.wiki/w/File:Pete_Kayer.png |
