@@ -2917,6 +2917,14 @@ function renderTitle() {
     const open = heroUnlocked(h);
     const c = el('button', 'card' + (h === pickedHero ? ' sel' : '') + (open ? '' : ' locked'));
     c.type = 'button';
+    if (!open && h.unlock.secret) {
+      // surprise unlock: a mystery card with only a hint
+      c.appendChild(el('div', 'art', '<span style="font-size:64px;line-height:1;color:var(--orange)">?</span>'));
+      c.appendChild(el('div', 'nm', '???'));
+      c.appendChild(el('div', 'ds', h.unlock.secret));
+      g.appendChild(c);
+      continue;
+    }
     const art = el('div', 'art'); art.appendChild(imgTag(h.file, h.name)); c.appendChild(art);
     c.appendChild(el('div', 'nm', h.name));
     const lane = el('div', 'lane'); lane.appendChild(imgTag(LANE_ICON[h.lane], LANE_NAME[h.lane])); lane.appendChild(document.createTextNode(`${heroBoostText(h)} · starts with ${ITEMS[h.weapon].name}`)); c.appendChild(lane);

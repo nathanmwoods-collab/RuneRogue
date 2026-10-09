@@ -48,7 +48,7 @@ const HEROES = [
   { id: 'bob', name: 'Bob the Jagex cat', file: 'Bob_the_Jagex_cat.png', lane: 'magic', weapon: 'staff_of_air', unlock: { sticks: 400 },
     perk: 'The famous cat of Gielinor. Nine lives: once per run, survive a killing blow with half your hitpoints.', mods: { lives: 1, gold: 1.3 },
     skills: { magic: 6, agility: 15, thieving: 15 }, quotes: [] },
-  { id: 'woox', name: 'Woox', file: 'Mysterious_Adventurer.png', lane: 'ranged', weapon: 'toxic_blowpipe', unlock: { boss: 'clue_corp' },
+  { id: 'woox', name: 'Woox', file: 'Mysterious_Adventurer.png', lane: 'ranged', weapon: 'toxic_blowpipe', unlock: { boss: 'clue_corp', secret: 'A wanderer in search of a new challenge. Prove you can stand alone against a beast few would face.' },
     perk: 'Jagex\'s Mysterious Adventurer, a tribute to Woox, the first player to solo the Corporeal Beast. Bosses take 20% more damage, +10% critical hits, and he moves 10% faster.', mods: { bossDmg: 1.2, crit: 0.1, speed: 1.1 },
     skills: { ranged: 20, agility: 10 }, quotes: ['He stares off stoically into the distance. In search of a new challenge, perhaps?'] },
 ];
