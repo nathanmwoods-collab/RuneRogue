@@ -1,17 +1,20 @@
 # RuneRogue (and RunePong)
 
-## RuneRogue
-An Old School RuneScape roguelike in one file: open `RuneRogue.html` in a browser (double-click it). It needs an internet connection so the images can load from the OSRS Wiki.
+Play it: https://nathanmwoods-collab.github.io/RuneRogue/ (works on phones).
 
-- **Heroes:** Level 3 Newb, Durial321 (melee), Wise Old Man, Archmage Sedridor (magic), Lord Iorwerth, Arianwyn (ranged). Each has a perk.
-- **Waves:** 15 waves from Lumbridge to the Fight Caves. Hordes of chickens, rats, goblins, skeletons and moss giants; elites like Hill Giants, Black Knights, dark wizards and demons.
-- **Bosses:** Obor (wave 5), Bryophyta (8), Giant Mole (10) as mini bosses; Elvarg (12), King Black Dragon (14) and TzTok-Jad (15).
-- **Between waves:** spend gold on skill levels (Attack, Strength, Ranged, Magic, Defence, Hitpoints, Prayer, Agility, Thieving, Slayer) and on gear from your combat style's shop.
-- **Controls:** WASD or arrows to move (touch: drag anywhere). Attacks are automatic. Prayers 1/2/3, eat a shark E, prayer potion Q, pause P.
-- **Jad:** watch the wind-up icon and pray Missiles (2) or Magic (3) to block the hit.
+## RuneRogue
+An Old School RuneScape roguelike. Images and music load live from the OSRS Wiki.
+
+- **Route:** 17 areas from Lumbridge to the Inferno. Each area has 2 waves, then its own boss: Brutus, Count Draynor, Delrith, Scurrius, Giant Mole, Elvarg, Kalphite Queen, King Black Dragon, General Graardor, Zulrah, TzTok-Jad, Vorkath, the Wardens, Great Olm, Verzik Vitur, Nex and TzKal-Zuk. A wave lasts until every enemy is dead.
+- **Heroes:** 6 to start (Level 3 Newb, Durial321, Wise Old Man, Archmage Sedridor, Lord Iorwerth, Arianwyn). 6 more unlock by beating an area's boss, and 3 can be bought with trading sticks. Each starts with a boost in their natural skill.
+- **Gear:** about 220 items across all 11 worn slots. Any hero can use any item. Your combat style comes from your weapon, and gear damage bonuses count when they match it. Rarer items turn up deeper into the route; the Scythe of Vitur, Twisted bow and Tumeken's shadow are mega rares.
+- **Clue scrolls:** a rare drop. Reading one summons a random boss from outside the route, scaled to how far you are. It drops a reward casket where you pick 1 of 3 items.
+- **Surprise:** sometimes Settled, the Swampletics ironman, shows up.
+- **Trading sticks:** every run earns them, even if you die. Spend them on permanent upgrades (damage, gold, luck, hitpoints and more) or on heroes.
+- **Controls:** WASD or arrows (touch: drag anywhere). Attacks are automatic. Prayers 1/2/3, shark E, prayer potion Q, music M, pause P.
 
 ## RunePong
-The original Pong duel: open `index.html`.
+The original Pong duel: `pong.html`.
 
 ## Images
-All images load live from the OSRS Wiki, so the games must be opened as files in a normal browser. The claude.ai artifact viewer blocks images from other sites, so a published artifact link shows drawn stand-ins instead. See `CREDITS.md`.
+All images and music load live from the OSRS Wiki, so the game needs an internet connection. See `CREDITS.md`.
