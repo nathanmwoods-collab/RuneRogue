@@ -359,6 +359,11 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Monster | Jal-ImKot | https://oldschool.runescape.wiki/w/File:Jal-ImKot.png |
 | Monster | Jal-Xil | https://oldschool.runescape.wiki/w/File:Jal-Xil.png |
 | Monster | Jal-Zek | https://oldschool.runescape.wiki/w/File:Jal-Zek.png |
+| PKer | PKMaster0036 | https://oldschool.runescape.wiki/w/File:PKMaster0036.png |
+| PKer | Purepker895 | https://oldschool.runescape.wiki/w/File:Purepker895.png |
+| PKer | Pete Kayer | https://oldschool.runescape.wiki/w/File:Pete_Kayer.png |
+| Invocation | Challenge Mode | https://oldschool.runescape.wiki/w/File:Chambers_of_Xeric_Challenge_Mode_icon.png |
+| Invocation | Corrupted | https://oldschool.runescape.wiki/w/File:Corrupted_Hunllef.png |
 | PKer | Revenant knight | https://oldschool.runescape.wiki/w/File:Revenant_knight.png |
 | PKer | Dark warrior | https://oldschool.runescape.wiki/w/File:Dark_warrior.png |
 | PKer | Rogue | https://oldschool.runescape.wiki/w/File:Rogue.png |
