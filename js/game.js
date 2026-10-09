@@ -250,15 +250,6 @@ function startStage() {
     chat(`${area.name}, wave ${sub + 1} of ${WAVES_PER_AREA}. Defeat every enemy.`, 'g');
   }
   if (sub === 0 && !isBoss) heroSays();
-  if (!isBoss && a >= 3 && !run.surprised && Math.random() < SURPRISE_CHANCE) {
-    run.surprised = true;
-    setTimeout(() => {
-      if (mode !== 'play') return;
-      spawnSurprise();
-      chat('Surprise! Settled wanders out of the Mort Myre swamp. Swampletics!', 'r');
-      sfx(196, 0.5, 'square', 0.07);
-    }, 4000);
-  }
   playMusic(area.music);
   mode = 'play';
   showScreen(null);
@@ -267,12 +258,6 @@ function startStage() {
   if (portrait && run.stage === 0) { portrait._retry = false; wireImg(portrait, run.hero.file, run.hero.name); }
 }
 
-function spawnSurprise() {
-  const pos = edgeSpawn();
-  const m = spawnMonster('swampletics', pos.x, pos.y);
-  m.clueBoss = true; m.surprise = true;
-  return m;
-}
 function heroSays() {
   const q = run.hero.quotes;
   if (q && q.length) say(run.p, q[Math.floor(Math.random() * q.length)]);
@@ -454,7 +439,6 @@ function killEnemy(e) {
     // remaining summons collapse with their master
     for (const m of enemies) if (m.summoned && !m.dead) { m.dead = true; burst(m.x, m.y, '#888', 8); }
   } else if (e.clueBoss) {
-    if (e.surprise) { meta.sticks += 25; saveMeta(); chat('You defeated the Swampletics ironman! +25 trading sticks.', 'r'); }
     pickups.push({ kind: 'casket', x: e.x, y: e.y, t: 0 });
     chat(`The ${e.d.name} drops a reward casket!`, 'r');
     burst(e.x, e.y, '#ffd060', 30);
@@ -570,13 +554,6 @@ function updateEnemies(dt) {
     if (e.frozen > 0) { e.frozen -= dt; continue; }
     if (e.d.boss) bossAI(e, dt);
     if (e.dead || e.ai.burrow > 0) continue;
-    if (e.d.surprise) {
-      e.ai.fungus = (e.ai.fungus || 7) - dt;
-      if (e.ai.fungus <= 0 && e.hp < e.maxHp * 0.8) {
-        e.ai.fungus = 7; e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.12);
-        e.over = { text: '*eats a Mort myre fungus*', t: 2 }; burst(e.x, e.y, '#5fd34a', 10);
-      }
-    }
     if (e.d.clue) { // clue bosses: a telegraphed special on top of their normal attack
       e.ai.t -= dt;
       if (e.ai.t <= 0) { e.ai.t = 3.2 + Math.random(); slam(p.x, p.y, 75, 1.1, e.dmg * 1.6, e.d.style, '#ff981f', 'Special!'); }
@@ -1817,7 +1794,7 @@ requestAnimationFrame(frame);
 window.__rr = {
   get mode() { return mode; }, get run() { return run; }, get enemies() { return enemies; }, get pickups() { return pickups; },
   start: (i) => { pickedHero = HEROES[i || 0]; begin(); }, endStage: () => endStage(),
-  skipTo: (stage) => { run.stage = stage - 1; startStage(); }, surprise: () => spawnSurprise().hp, dropClue: () => pickups.push({ kind: 'clue', x: run.p.x + 60, y: run.p.y, t: 0 }),
+  skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: () => pickups.push({ kind: 'clue', x: run.p.x + 60, y: run.p.y, t: 0 }),
   killAll: () => { for (const e of enemies) e.hp = 1; },
   die: () => die(),
 };

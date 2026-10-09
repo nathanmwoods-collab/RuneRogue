@@ -509,10 +509,6 @@ mon('clue_pestilent_bloat', 'Pestilent Bloat', 'Pestilent_Bloat.png', 312, 0, 70
 mon('clue_umbra', 'Umbra', 'Umbra.png', 285, 0, 90, 0, 90, 60, 'magic', { clue: true, clueMult: 1.1, caster: MAGIC_BOLT('#333') });
 mon('clue_cruor', 'Cruor', 'Cruor.png', 285, 0, 90, 0, 90, 60, 'magic', { clue: true, clueMult: 1.1, caster: MAGIC_BOLT('#c01a1a') });
 const CLUE_BOSSES = Object.keys(MONSTERS).filter((id) => MONSTERS[id].clue);
-// Surprise boss: Settled, the Swampletics ironman, wanders out of Mort Myre with his rune crossbow.
-// The wiki has no NPC of him, so he uses the wiki's render of a player wielding a rune crossbow.
-mon('swampletics', 'Settled (Swampletics)', 'Rune_crossbow_equipped.png', 126, 0, 115, 0, 90, 80, 'ranged', { clue: true, surprise: true, clueMult: 2, caster: { range: 420, cd: 1.1, color: '#6fd6ff', speed: 620 } });
-const SURPRISE_CHANCE = 0.05; // per wave from Varrock Sewers onward, once per run
 const CLUE_FILE = 'Clue_scroll_(hard).png';
 const CASKET_FILE = 'Reward_casket_(hard).png';
 

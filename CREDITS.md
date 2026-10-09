@@ -369,7 +369,6 @@ Most filenames were checked against their File: page on the wiki. Any that fail 
 | Clue boss | Pestilent Bloat | https://oldschool.runescape.wiki/w/File:Pestilent_Bloat.png |
 | Clue boss | Umbra | https://oldschool.runescape.wiki/w/File:Umbra.png |
 | Clue boss | Cruor | https://oldschool.runescape.wiki/w/File:Cruor.png |
-| Clue boss | Settled (Swampletics) | https://oldschool.runescape.wiki/w/File:Rune_crossbow_equipped.png |
 | Boss | Zulrah (magma) | https://oldschool.runescape.wiki/w/File:Zulrah_(magma).png |
 | Boss | Zulrah (tanzanite) | https://oldschool.runescape.wiki/w/File:Zulrah_(tanzanite).png |
 | Background | Lumbridge | https://oldschool.runescape.wiki/w/File:Lumbridge.png |

@@ -9,7 +9,6 @@ An Old School RuneScape roguelike. Images and music load live from the OSRS Wiki
 - **Heroes:** 6 to start (Level 3 Newb, Durial321, Wise Old Man, Archmage Sedridor, Lord Iorwerth, Arianwyn). 6 more unlock by beating an area's boss, and 3 can be bought with trading sticks. Each starts with a boost in their natural skill.
 - **Gear:** about 220 items across all 11 worn slots. Any hero can use any item. Your combat style comes from your weapon, and gear damage bonuses count when they match it. Rarer items turn up deeper into the route; the Scythe of Vitur, Twisted bow and Tumeken's shadow are mega rares.
 - **Clue scrolls:** a rare drop. Reading one summons a random boss from outside the route, scaled to how far you are. It drops a reward casket where you pick 1 of 3 items.
-- **Surprise:** sometimes Settled, the Swampletics ironman, shows up.
 - **Trading sticks:** every run earns them, even if you die. Spend them on permanent upgrades (damage, gold, luck, hitpoints and more) or on heroes.
 - **Controls:** WASD or arrows (touch: drag anywhere). Attacks are automatic. Prayers 1/2/3, shark E, prayer potion Q, music M, pause P.
 
