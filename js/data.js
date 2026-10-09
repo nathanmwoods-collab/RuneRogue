@@ -26,9 +26,9 @@ const HEROES = [
   { id: 'arianwyn', name: 'Arianwyn', file: 'Arianwyn.png', lane: 'ranged', weapon: 'shortbow',
     perk: 'Elf scout from Regicide. Moves 15% faster and shoots 20% further.', mods: { speed: 1.15, range: 1.2 },
     skills: { ranged: 8, agility: 5 }, quotes: ['Not yet, I will try to send word if we find out anything new.'] },
-  { id: 'islwyn', name: 'Islwyn', file: 'Islwyn.png', lane: 'ranged', weapon: 'shortbow',
-    perk: 'Elven bowyer who sells the crystal bow. 15% extra critical hit chance and arrows fly 15% further.', mods: { crit: 0.15, range: 1.15 },
-    skills: { ranged: 10 }, quotes: [] },
+  { id: 'sandwich', name: 'Sandwich lady', file: 'Sandwich_lady.png', lane: 'ranged', weapon: 'sandwich_tray',
+    perk: 'The random event who will not take no for an answer. Throws sandwiches, finds pies twice as often and they heal 50% more.', mods: { pieChance: 2, pieHeal: 1.5 },
+    skills: { ranged: 9, hitpoints: 12 }, quotes: ["Hey, I didn't say you could have that!", 'Maybe later.'] },
   // Unlockable heroes. unlock.area: clear that area's boss once. unlock.sticks: buy with trading sticks.
   { id: 'zanik', name: 'Zanik', file: 'Zanik.png', lane: 'ranged', weapon: 'dorgeshuun_crossbow', unlock: { area: 0 },
     perk: 'Cave goblin heroine of the Dorgeshuun, found under Lumbridge in The Lost Tribe. Moves 10% faster and takes 10% less damage.', mods: { speed: 1.1, taken: 0.9 },
@@ -90,6 +90,9 @@ item('elder_maul', 'Elder maul', 'melee', 'weapon', 13, 'rare', { w: { kind: 'sw
 item('scythe_of_vitur', 'Scythe of Vitur', 'melee', 'weapon', 13, 'mega', { w: { kind: 'swing', dmg: 70, cd: 0.6, reach: 140, arc: 3.2, hits: 3 } });
 // --- Ranged weapons
 item('shortbow', 'Shortbow', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 5, cd: 0.6, range: 380, speed: 760, pierce: 1, count: 1 } });
+// The Sandwich lady's sandwiches: each throw is one of the foods she offers in the random event.
+item('sandwich_tray', 'Sandwiches', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 6, cd: 0.55, range: 360, speed: 620, pierce: 1, count: 1, knock: 3,
+  foods: ['Baguette.png', 'Triangle_sandwich.png', 'Square_sandwich.png', 'Chocolate_bar.png', 'Kebab.png', 'Roll.png', 'Meat_pie.png'] } }, 'Triangle_sandwich.png');
 item('dorgeshuun_crossbow', 'Dorgeshuun crossbow', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 8, cd: 0.8, range: 400, speed: 950, pierce: 2, count: 1, bolt: true } });
 item('magic_shortbow', 'Magic shortbow', 'ranged', 'weapon', 1, 'common', { w: { kind: 'shot', dmg: 8, cd: 0.36, range: 420, speed: 900, pierce: 1, count: 1 } });
 item('rune_crossbow', 'Rune crossbow', 'ranged', 'weapon', 3, 'common', { w: { kind: 'shot', dmg: 22, cd: 0.8, range: 460, speed: 1050, pierce: 3, count: 1, bolt: true } });

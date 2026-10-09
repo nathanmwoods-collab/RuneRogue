@@ -44,7 +44,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Hero | Wise Old Man | https://oldschool.runescape.wiki/w/File:Wise_Old_Man.png |
 | Hero | Archmage Sedridor | https://oldschool.runescape.wiki/w/File:Archmage_Sedridor.png |
 | Hero | Arianwyn | https://oldschool.runescape.wiki/w/File:Arianwyn.png |
-| Hero | Islwyn | https://oldschool.runescape.wiki/w/File:Islwyn.png |
+| Hero | Sandwich lady | https://oldschool.runescape.wiki/w/File:Sandwich_lady.png |
 | Hero | Zanik | https://oldschool.runescape.wiki/w/File:Zanik.png |
 | Hero | Sir Amik Varze | https://oldschool.runescape.wiki/w/File:Sir_Amik_Varze.png |
 | Hero | Osmumten | https://oldschool.runescape.wiki/w/File:Osmumten.png |
@@ -65,6 +65,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Elder maul | https://oldschool.runescape.wiki/w/File:Elder_maul.png |
 | Item | Scythe of Vitur | https://oldschool.runescape.wiki/w/File:Scythe_of_Vitur.png |
 | Item | Shortbow | https://oldschool.runescape.wiki/w/File:Shortbow.png |
+| Item | Sandwiches | https://oldschool.runescape.wiki/w/File:Triangle_sandwich.png |
 | Item | Dorgeshuun crossbow | https://oldschool.runescape.wiki/w/File:Dorgeshuun_crossbow.png |
 | Item | Magic shortbow | https://oldschool.runescape.wiki/w/File:Magic_shortbow.png |
 | Item | Rune crossbow | https://oldschool.runescape.wiki/w/File:Rune_crossbow.png |
@@ -616,6 +617,13 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Ring of 3rd Age | https://oldschool.runescape.wiki/w/File:Ring_of_3rd_Age.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
+| Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |
+| Thrown food | Triangle sandwich | https://oldschool.runescape.wiki/w/File:Triangle_sandwich.png |
+| Thrown food | Square sandwich | https://oldschool.runescape.wiki/w/File:Square_sandwich.png |
+| Thrown food | Chocolate bar | https://oldschool.runescape.wiki/w/File:Chocolate_bar.png |
+| Thrown food | Kebab | https://oldschool.runescape.wiki/w/File:Kebab.png |
+| Thrown food | Roll | https://oldschool.runescape.wiki/w/File:Roll.png |
+| Thrown food | Meat pie | https://oldschool.runescape.wiki/w/File:Meat_pie.png |
 | NPC | Yama | https://oldschool.runescape.wiki/w/File:Yama.png |
 | Achievement tier | Easy | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_easy_tier_icon.png |
 | Achievement tier | Medium | https://oldschool.runescape.wiki/w/File:Combat_Achievements_-_medium_tier_icon.png |

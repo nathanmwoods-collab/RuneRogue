@@ -219,7 +219,7 @@ function newRun(hero) {
     invo: { ...(meta.invo || {}) }, raid: raidLevel(meta.invo || {}), livesUsed: 0, skull: false, skullAsked: false,
     inv: { shark: Math.round((2 + upVal('shark')) * supplyMult(meta.invo || {})), ppot: Math.round(supplyMult(meta.invo || {})) },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
-    spec: 100, contracts: {}, yamaSeen: 0, killsBy: {}, bossHurt: false, prayedEver: false, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
+    spec: 100, contracts: {}, yamaSeen: 0, killsBy: {}, bossHurt: false, prayedEver: false, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [], bought: 0, piesEaten: 0, specs: 0,
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
   };
@@ -651,7 +651,7 @@ function maybeDropPotion(e) {
     pickups.push({ kind: 'potion', pot: bag[Math.floor(Math.random() * bag.length)], x: e.x + 20, y: e.y, t: 0 });
   }
   const hurt = run.p.hp < stats().maxHp * 0.5 ? 2 : 1;
-  if (Math.random() < (e.d.elite || e.clueBoss ? PIE_CHANCE.elite : PIE_CHANCE.normal) * hurt * supplyMult(run.invo)) {
+  if (Math.random() < (e.d.elite || e.clueBoss ? PIE_CHANCE.elite : PIE_CHANCE.normal) * hurt * supplyMult(run.invo) * ((run.hero.mods || {}).pieChance || 1)) {
     pickups.push({ kind: 'pie', x: e.x - 20, y: e.y, t: 0 });
   }
 }
@@ -1447,7 +1447,7 @@ function specialAttack() {
   sfx(180, 0.25, 'sawtooth', 0.07); setTimeout(() => sfx(360, 0.2, 'square', 0.05), 80);
   burst(p.x, p.y - 30, '#ffd23a', 16);
   chat(`Special attack: ${S.name}.`, 'g');
-  achEvent('spec', run.gear.weapon);
+  run.specs++; achEvent('spec', run.gear.weapon);
 }
 
 // Melee swings reach this much farther than each weapon's listed reach, so melee heroes can hit from a safer distance.
@@ -1487,7 +1487,7 @@ function playerAttack(dt) {
     for (let i = 0; i < count; i++) {
       const a = ang + (i - (count - 1) / 2) * spread;
       shots.push({ kind: 'arrow', x: p.x, y: p.y - 30, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, life: (w.range * st.range) / w.speed + 0.1,
-        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null, proc: ammo && ammo.proc });
+        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), knock: w.knock, food: w.foods ? w.foods[Math.floor(Math.random() * w.foods.length)] : null, spin: Math.random() * 6, icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null, proc: ammo && ammo.proc });
     }
   } else {
     sfx(480, 0.09, 'sine', 0.04);
@@ -1588,7 +1588,7 @@ function updateShots(dt) {
         } else {
           let r = rollDamage(s.dmg, e, st);
           if (s.spec && !r.dmg) r = rollDamage(s.dmg, e, st);
-          damageEnemy(e, r.dmg, r.crit || !!s.spec);
+          damageEnemy(e, r.dmg, r.crit || !!s.spec, { knock: s.knock });
           if (s.spec) specHit(s, e, r.dmg);
           if (s.proc && !e.dead) boltProc(s.proc, e, r.dmg, st);
           if (s.bounce > 0) {
@@ -2269,11 +2269,11 @@ function updatePlayer(dt) {
       else if (pk.kind === 'artefact') { const g = Math.round(pk.art.gold * (1 + areaIndex() * 0.15)); addGold(g, true); chat(`You pick up an ${pk.art.name}, worth ${g.toLocaleString()} coins.`, 'g'); sfx(1100, 0.2, 'triangle', 0.06); }
       else if (pk.kind === 'pie' && inv('diet')) { chat('You are On a Diet, so you leave the pie.', 'b'); }
       else if (pk.kind === 'pie') {
-        const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal);
+        const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal * ((run.hero.mods || {}).pieHeal || 1));
         p.hp = Math.min(max, p.hp + heal);
         p.eatT = EAT_DELAY;
         chat(`You eat the Redberry pie. It heals ${heal} hitpoints.`, 'g');
-        achEvent('pie');
+        run.piesEaten++; achEvent('pie');
         burst(p.x, p.y - 20, '#ff4a6a', 12);
         sfx(620, 0.15, 'sine', 0.06);
       } else if (pk.kind === 'potion') {
@@ -2323,6 +2323,7 @@ function die() {
   mode = 'over';
   chat('Oh dear, you are dead!', 'r');
   if (run.skull) { run.skullDied = true; chat('You died skulled. The PKers loot half of this run\'s trading sticks.', 'r'); }
+  meta.deaths = (meta.deaths || 0) + 1; saveMeta();
   achEvent('death');
   sfx(110, 0.6, 'sawtooth', 0.08);
   saveBest();
@@ -2580,7 +2581,12 @@ function draw() {
 
   for (const s of shots) {
     const im = s.icon ? wikiImage(s.icon) : null;
-    if (s.kind === 'arrow') {
+    const fim = s.food ? wikiImage(s.food) : null;
+    if (s.food && ready(fim)) {
+      // Thrown food spins as it flies
+      ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.spin + (s.life || 0) * -14);
+      ctx.drawImage(fim, -15, -15, 30, 30); ctx.restore();
+    } else if (s.kind === 'arrow') {
       const a = Math.atan2(s.vy, s.vx);
       ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(a);
       ctx.strokeStyle = s.bolt ? '#9ad' : s.dart ? '#6fd06a' : '#c8a060'; ctx.lineWidth = s.bolt ? 4 : 3;
@@ -3048,7 +3054,7 @@ function buy(offer) {
   } else equip(it);
   run.gold -= it.price;
   offer.sold = true;
-  achEvent('buy', it); achEvent('gear', it);
+  run.bought++; achEvent('buy', it); achEvent('gear', it);
   chat(`You buy ${it.name}.`, 'g');
   sfx(900, 0.08, 'triangle', 0.05);
   renderShop();
@@ -3471,7 +3477,7 @@ renderTitle();
 requestAnimationFrame(frame);
 
 // Test hook
-window.RR = { get run() { return run; }, get meta() { return meta; } };
+window.RR = { get run() { return run; }, get meta() { return meta; }, stats: () => stats() };
 // ======================================================================
 // Creature and boss mechanics researched from each monster's OSRS Wiki page.
 // game.js calls these hooks; the data lives in data.js (TRAITS, SPOOF_AREAS, CAMEOS).
