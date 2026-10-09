@@ -183,6 +183,7 @@ function heroUnlocked(h) {
 }
 function unlockText(h) {
   if (h.unlock.area !== undefined) return `Clear ${AREAS[h.unlock.area].name} to unlock`;
+  if (h.unlock.boss) return `Defeat the ${MONSTERS[h.unlock.boss].name} to unlock`;
   return `Costs ${h.unlock.sticks} trading sticks`;
 }
 function upLevel(id) { return meta.up[id] || 0; }
@@ -3554,6 +3555,8 @@ function silentDeath(e) { e.dead = true; burst(e.x, e.y, '#888', 10); }
 function creatureDeath(e) {
   if (!CR) return;
   if (!e.summoned && !e.revived && !e.d.boss && !e.clueBoss && CR.dead.length < 30) CR.dead.push({ id: e.id, x: e.x, y: e.y });
+  // heroes unlocked by killing a boss (Woox: the Corporeal Beast)
+  for (const h of HEROES) if (h.unlock && h.unlock.boss === e.id && !meta.heroes.includes(h.id)) { meta.heroes.push(h.id); saveMeta(); chat(`New hero unlocked: ${h.name}!`, 'g'); }
   if (e.d.split) {
     const [into, n] = e.d.split, list = Array.isArray(into) ? into : Array(n).fill(into);
     list.forEach((id, i) => {
@@ -3692,7 +3695,7 @@ function creatureFrame(dt) {
   // The Mysterious Adventurer (a tribute to Woox) helps against late bosses
   if (isBoss && !CR.wooxDone && areaIndex() >= 7 && bossAlive && !bossAlive.dead && bossAlive.hp < bossAlive.maxHp * 0.6) {
     CR.wooxDone = true;
-    if (Math.random() < 0.35) addCameo('woox');
+    if (Math.random() < 0.35 && run.hero.id !== 'woox') addCameo('woox');
   }
   for (const c of CR.cameos) cameoTick(c, dt);
   CR.cameos = CR.cameos.filter((c) => !c.gone);
