@@ -743,3 +743,64 @@ const BOONS = [
   { id: 'execute', name: 'Ultimate Strength', file: 'Ultimate_Strength.png', max: 1, info: 'Normal enemies below 12% hitpoints die instantly' },
   { id: 'fleet', name: 'Fleet foot', file: 'Agility_icon.png', max: 3, info: '12% faster running' },
 ];
+
+// ---------------------------------------------------------------------------
+// Creature mechanics from each monster's OSRS Wiki page (used by js/creatures.js).
+// onHit: effects of its hits (poison, freeze, slow = Jal-MejRah draining run energy, weaken = the Weaken spell,
+// dragonfire = an anti-dragon or dragonfire shield blocks most of it, prayOff = switches your protection prayer off).
+// split: dies into smaller monsters. heals: heals monsters below half hp beside it. revive: brings slain monsters back.
+// dig: burrows to you if it can't reach you. lock: Nylocas only take full damage from their own style.
+// ---------------------------------------------------------------------------
+item('anti_dragon_shield', 'Anti-dragon shield', 'any', 'shield', 1, 'common', { def: 3, info: 'Blocks most dragonfire' });
+mon('tz_kek_s', 'Tz-Kek', 'Tz-Kek_(level_22).png', 22, 90, 110, 8, 46, 4, 'melee');
+mon('jal_akrek_ket', 'Jal-AkRek-Ket', 'Jal-AkRek-Ket.png', 70, 120, 110, 16, 40, 6, 'melee');
+mon('jal_akrek_xil', 'Jal-AkRek-Xil', 'Jal-AkRek-Xil.png', 70, 120, 100, 16, 40, 6, 'ranged', { caster: ARROW('#ffb040') });
+mon('jal_akrek_mej', 'Jal-AkRek-Mej', 'Jal-AkRek-Mej.png', 70, 120, 100, 16, 40, 6, 'magic', { caster: MAGIC_BOLT('#ff5a1a') });
+mon('shaman_spawn', 'Spawn', 'Spawn_(lizardman_shaman).png', 1, 30, 0, 0, 30, 0, 'melee', { fuse: 2.6 });
+mon('blood_reaver', 'Blood reaver', 'Blood_Reaver.png', 60, 125, 95, 14, 60, 0, 'melee');
+// Player spoofs (real NPCs that parody players, from the wiki's Player spoof category)
+mon('spoof_purepker', 'Purepker895', 'Purepker895.png', 52, 140, 150, 7, 60, 30, 'melee', { elite: true, spoof: 'A player.' });
+mon('spoof_pkmaster', 'PKMaster0036', 'PKMaster0036.png', 87, 260, 140, 10, 62, 45, 'melee', { elite: true, spoof: 'A master of the wilderness.' });
+mon('spoof_dscim', 'I DSCIM YOU', 'I_DSCIM_YOU.png', 495, 700, 190, 16, 66, 80, 'melee', { elite: true, spoof: 'Lives off of surge potions.', onHit: { prayOff: true } });
+
+const TRAITS = {
+  tz_kek: { split: ['tz_kek_s', 2], recoil: true },
+  yt_mejkot: { heals: true },
+  ket_zek: { closeMult: 2 },
+  tok_xil: { closeMult: 1.5 },
+  jal_mejrah: { onHit: { slow: 3 } },
+  jal_ak: { split: [['jal_akrek_ket', 'jal_akrek_xil', 'jal_akrek_mej'], 1], scan: true },
+  jal_imkot: { dig: true },
+  jal_zek: { revive: true, closeMult: 1.5 },
+  jal_xil: { closeMult: 1.5 },
+  dark_wizard: { onHit: { weaken: 5 } },
+  kalphite_guardian: { onHit: { poison: 6 } },
+  lizardman: { onHit: { poison: 5 } },
+  lizardman_brute: { onHit: { poison: 3 } },
+  lizardman_shaman: { onHit: { poison: 8 }, shaman: true },
+  snakeling: { onHit: { poison: 5 } },
+  green_dragon: { onHit: { dragonfire: true } },
+  brutal_black_dragon: { onHit: { dragonfire: true } },
+  fumus: { onHit: { poison: 5 } },
+  glacies: { onHit: { freeze: 0.8 } },
+  nylocas_ischyros: { lock: 'melee' },
+  nylocas_toxobolos: { lock: 'ranged' },
+  nylocas_hagios: { lock: 'magic' },
+};
+for (const id in TRAITS) Object.assign(MONSTERS[id], TRAITS[id]);
+
+// Spoofs that turn up in the second wave of an area.
+const SPOOF_AREAS = { 'Draynor Manor': 'spoof_purepker', Falador: 'spoof_pkmaster', 'God Wars Dungeon': 'spoof_dscim' };
+// Friendly spoofs. Lines are their in-game examine texts.
+const CAMEOS = {
+  cow31337: { name: 'Cow31337Killer', file: 'Cow31337Killer.png', size: 66, line: 'He hates cows so much.' },
+  hopleez: { name: 'Hopleez', file: 'Hopleez.png', size: 62, line: 'He was here first.' },
+  woox: { name: 'Mysterious Adventurer', file: 'Mysterious_Adventurer.png', size: 64, line: 'He stares off stoically into the distance. In search of a new challenge, perhaps?' },
+};
+// Lines bosses say with their attacks (Nex's are her real shouts; Brutus "*growls*" before a charge and "*snort*" before a stomp).
+Object.assign(QUOTES, {
+  nex_choke: ['Let the virus flow through you!'], nex_dash: ['There is... NO ESCAPE!'], nex_dark: ['Embrace darkness!'],
+  nex_smash: ['Fear the shadow!'], nex_sac: ['I demand a blood sacrifice!'], nex_siphon: ['A siphon will solve this!'],
+  nex_contain: ['Contain this!'], nex_prison: ['Die now, in a prison of ice!'], nex_wrath: ['Taste my wrath!'],
+});
+const INCANTATION = 'Carlem... Aber... Camerinthum... Purchai... Gabindo!';

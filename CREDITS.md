@@ -510,6 +510,24 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Boon | Ultimate Strength | https://oldschool.runescape.wiki/w/File:Ultimate_Strength.png |
 | Boon | Fleet foot | https://oldschool.runescape.wiki/w/File:Agility_icon.png |
 
+## Creature mechanics and player spoofs
+
+| Used as | Name | Source page |
+|---|---|---|
+| Monster | Tz-Kek (level 22) | https://oldschool.runescape.wiki/w/File:Tz-Kek_(level_22).png |
+| Monster | Jal-AkRek-Ket | https://oldschool.runescape.wiki/w/File:Jal-AkRek-Ket.png |
+| Monster | Jal-AkRek-Xil | https://oldschool.runescape.wiki/w/File:Jal-AkRek-Xil.png |
+| Monster | Jal-AkRek-Mej | https://oldschool.runescape.wiki/w/File:Jal-AkRek-Mej.png |
+| Monster | Spawn (lizardman shaman) | https://oldschool.runescape.wiki/w/File:Spawn_(lizardman_shaman).png |
+| Monster | Blood reaver | https://oldschool.runescape.wiki/w/File:Blood_Reaver.png |
+| Player spoof | Purepker895 | https://oldschool.runescape.wiki/w/File:Purepker895.png |
+| Player spoof | PKMaster0036 | https://oldschool.runescape.wiki/w/File:PKMaster0036.png |
+| Player spoof | I DSCIM YOU | https://oldschool.runescape.wiki/w/File:I_DSCIM_YOU.png |
+| Player spoof | Cow31337Killer | https://oldschool.runescape.wiki/w/File:Cow31337Killer.png |
+| Player spoof | Hopleez | https://oldschool.runescape.wiki/w/File:Hopleez.png |
+| Player spoof (Woox tribute) | Mysterious Adventurer | https://oldschool.runescape.wiki/w/File:Mysterious_Adventurer.png |
+| Item | Anti-dragon shield | https://oldschool.runescape.wiki/w/File:Anti-dragon_shield.png |
+
 ## RunePong
 
 | Used as | File | Source page |
