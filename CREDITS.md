@@ -421,6 +421,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Potion | Stamina potion | https://oldschool.runescape.wiki/w/File:Stamina_potion(4).png |
 | Icon | Clue scroll | https://oldschool.runescape.wiki/w/File:Clue_scroll_(hard).png |
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
+| Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Boon | Multishot | https://oldschool.runescape.wiki/w/File:Eagle_Eye.png |
 | Boon | Piercing | https://oldschool.runescape.wiki/w/File:Hawk_Eye.png |
 | Boon | Ricochet | https://oldschool.runescape.wiki/w/File:Sharp_Eye.png |

@@ -437,6 +437,10 @@ function maybeDropPotion(e) {
     const bag = Object.keys(POTIONS).flatMap((k) => (POTIONS[k].style === style ? [k, k] : [k]));
     pickups.push({ kind: 'potion', pot: bag[Math.floor(Math.random() * bag.length)], x: e.x + 20, y: e.y, t: 0 });
   }
+  const hurt = run.p.hp < stats().maxHp * 0.5 ? 2 : 1;
+  if (Math.random() < (e.d.elite || e.clueBoss ? PIE_CHANCE.elite : PIE_CHANCE.normal) * hurt) {
+    pickups.push({ kind: 'pie', x: e.x - 20, y: e.y, t: 0 });
+  }
 }
 function bv(id) { return (run && run.boons[id]) || 0; }
 function buffMult(stat) { const b = run.buffs[stat]; return b && b.t > 0 ? 1 + b.amount : 1; }
@@ -1131,11 +1135,17 @@ function updatePlayer(dt) {
   for (const k in run.buffs) run.buffs[k].t -= dt;
   for (const pk of pickups) {
     pk.t += dt;
-    if (pk.kind === 'potion' && pk.t > 20) { pk.got = true; continue; } // potions fade after a while
+    if ((pk.kind === 'potion' || pk.kind === 'pie') && pk.t > 20) { pk.got = true; continue; } // potions and pies fade after a while
     if (Math.hypot(p.x - pk.x, p.y - pk.y) < p.r + 22) {
       pk.got = true;
       if (pk.kind === 'clue') startClue();
-      else if (pk.kind === 'potion') {
+      else if (pk.kind === 'pie') {
+        const max = stats().maxHp, heal = Math.round(max * PIE.heal);
+        p.hp = Math.min(max, p.hp + heal);
+        chat(`You eat the Redberry pie. It heals ${heal} hitpoints.`, 'g');
+        burst(p.x, p.y - 20, '#ff4a6a', 12);
+        sfx(620, 0.15, 'sine', 0.06);
+      } else if (pk.kind === 'potion') {
         const pot = POTIONS[pk.pot];
         run.buffs[pot.stat] = { t: pot.secs, amount: pot.amount, name: pot.name, file: pot.file };
         chat(`You drink a ${pot.name}: ${pot.info} for ${pot.secs} seconds.`, 'g');
@@ -1375,11 +1385,12 @@ function draw() {
     const bob = Math.sin(pk.t * 4) * 4;
     ctx.fillStyle = 'rgba(255,220,120,0.25)'; ctx.beginPath(); ctx.arc(pk.x, pk.y, 30 + Math.sin(pk.t * 5) * 4, 0, 7); ctx.fill();
     const pot = pk.kind === 'potion' ? POTIONS[pk.pot] : null;
-    const im = wikiImage(pot ? pot.file : pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
-    const w = pot ? 22 : 36;
+    const pie = pk.kind === 'pie';
+    const im = wikiImage(pot ? pot.file : pie ? PIE.file : pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
+    const w = pot ? 22 : pie ? 30 : 36;
     if (ready(im)) ctx.drawImage(im, pk.x - w / 2, pk.y - 22 + bob, w, w * im.naturalHeight / im.naturalWidth);
-    else { ctx.fillStyle = pot ? '#4aa0ff' : pk.kind === 'clue' ? '#f0e0b0' : '#8a5a2a'; ctx.fillRect(pk.x - 14, pk.y - 14 + bob, 28, 22); }
-    text(pot ? pot.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : '#ff981f');
+    else { ctx.fillStyle = pot ? '#4aa0ff' : pie ? '#c0304a' : pk.kind === 'clue' ? '#f0e0b0' : '#8a5a2a'; ctx.fillRect(pk.x - 14, pk.y - 14 + bob, 28, 22); }
+    text(pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
   }
 
   const sprites = enemies.filter((e) => e.ai.burrow <= 0).map((e) => ({ y: e.y, e }));
@@ -2108,5 +2119,6 @@ window.__rr = {
   killAll: () => { for (const e of enemies) e.hp = 1; },
   die: () => die(),
   rollOffers: () => { rollOffers(true); return offers; },
+  dropPie: () => pickups.push({ kind: 'pie', x: run.p.x + 60, y: run.p.y, t: 0 }),
 };
 })();

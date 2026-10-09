@@ -543,6 +543,9 @@ const POTIONS = {
   stamina: { name: 'Stamina potion', file: 'Stamina_potion(4).png', stat: 'speed', amount: 0.3, secs: 15, info: '30% faster running' },
 };
 const POTION_CHANCE = { normal: 0.012, elite: 0.06 };
+// Redberry pie: a separate ground drop that heals. Likelier when you're hurt.
+const PIE = { name: 'Redberry pie', file: 'Redberry_pie.png', heal: 0.25 };
+const PIE_CHANCE = { normal: 0.015, elite: 0.07 };
 
 // Boons: run-only bonuses. After every boss you pick 1 of 3. max = how many times it can stack.
 const BOONS = [
