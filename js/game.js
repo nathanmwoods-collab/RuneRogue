@@ -250,6 +250,9 @@ function gearPenalty(gear, style) {
 }
 
 function gearItems() { return SLOTS.map((s) => run.gear[s]).filter(Boolean).map((id) => ITEMS[id]); }
+// Barrows: the set effect works only with all four pieces of one brother on.
+function barrowsSet() { for (const k in BARROWS_SETS) if (BARROWS_SETS[k].pieces.every((id) => SLOTS.some((sl) => run.gear[sl] === id))) return k; return null; }
+function eDrain(e) { return e && e.drainT > 0 ? 0.8 : 1; }
 
 function stats() {
   const h = run.hero, s = run.skills, m = h.mods || {};
@@ -1270,6 +1273,11 @@ function openCasket(pk) {
   const pool = Object.values(ITEMS).filter((it) => it.slot !== 'food' && !it.start &&
     it.tier <= a + T.casketLift && (it.rarity !== 'mega' || a >= 10 || tier >= 5) && run.gear[it.slot] !== it.id);
   const bag = pool.map((it) => ({ it, wt: rarityWeight(it) * (it.rarity === 'common' ? 0.5 / T.weight : 1.5 * T.weight) }));
+  // A Barrows brother's casket always offers one piece of his own set you aren't wearing yet.
+  if (pk.barrows) {
+    const own = BARROWS_SETS[pk.barrows].pieces.filter((id) => !SLOTS.some((sl) => run.gear[sl] === id));
+    if (own.length) { const it = ITEMS[evPick(own)]; choices.push(it); const j = bag.findIndex((b) => b.it === it); if (j >= 0) bag.splice(j, 1); }
+  }
   while (choices.length < (tier >= 5 ? 4 : 3) && bag.length) {
     const total = bag.reduce((x, b) => x + b.wt, 0);
     let r = Math.random() * total, i = 0;
@@ -1303,18 +1311,22 @@ function rollDamage(base, target, st) {
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
   if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
   if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
+  if (barrowsSet() === 'dharok') dmg *= 1 + 0.6 * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 
 function damageEnemy(e, dmg, crit, opts = {}) {
   if (e.dead) return;
+  const bset = !opts.venom && dmg > 0 && !e.immune && barrowsSet();
+  const proc = bset && bset !== 'dharok' && Math.random() < 0.25 ? bset : null;
+  if (proc === 'verac') dmg = Math.round(dmg * 1.25);
   if (e.immune) { dmg = 0; }
   else if (e.mirror && weaponStyle() !== e.mirror && dmg > 0) {
     // Nylocas Vasilias: the wrong style bounces back at you and heals it
     e.hp = Math.min(e.maxHp, e.hp + dmg); hurtPlayer(dmg * 0.5, e.mirror, { pure: true });
     if (!e.ai.mirrorTold) { e.ai.mirrorTold = true; chat('Wrong style! The damage bounces back and heals Nylocas Vasilias.', 'r'); }
     dmg = 0;
-  } else if (e.resist && e.resist[weaponStyle()]) dmg = Math.round(dmg * e.resist[weaponStyle()]);
+  } else if (e.resist && e.resist[weaponStyle()] && proc !== 'verac') dmg = Math.round(dmg * e.resist[weaponStyle()]);
   dmg = creatureDamage(e, dmg);
   // Xarpus: attacking him from the quadrant he stares at brings a poison retaliation
   if (e.d.boss === 'xarpus' && e.ai.stare !== undefined && e.hp < e.maxHp * 0.25 && dmg > 0 && quadOf(run.p.x, run.p.y) === e.ai.stare && (e.ai.ret = e.ai.ret || 0) <= run.stageT) {
@@ -1332,6 +1344,13 @@ function damageEnemy(e, dmg, crit, opts = {}) {
   if (opts.knock && !e.d.boss) {
     const a = Math.atan2(e.y - run.p.y, e.x - run.p.x);
     e.kx += Math.cos(a) * opts.knock * 4; e.ky += Math.sin(a) * opts.knock * 4;
+  }
+  if (proc && dmg > 0) {
+    if (proc === 'guthan') { const mx = stats().maxHp, h = Math.min(dmg * 0.5, mx * 0.08); run.p.hp = Math.min(mx, run.p.hp + h); splats.push({ x: run.p.x, y: run.p.y - 80, v: Math.round(h), t: 0.8, kind: 'heal' }); }
+    if (proc === 'torag') { e.bslow = 0.6; e.bslowT = 3; }
+    if (proc === 'karil') { e.bslow = Math.min(e.bslowT > 0 ? e.bslow : 1, 0.75); e.bslowT = Math.max(e.bslowT || 0, 5); }
+    if (proc === 'ahrim') e.drainT = 5;
+    fx.push({ kind: 'label', x: e.x, y: e.y - e.d.size * 0.6, t: 0.9, max: 0.9, txt: BARROWS_SETS[proc].effect, color: '#c8a0ff' });
   }
   const leech = (opts.leech || 0) + 0.03 * bv('vamp');
   if (leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech * PLAYER_LEECH);
@@ -1371,7 +1390,8 @@ function killEnemy(e) {
     maybeDropPotion(e);
   } else if (e.clueBoss) {
     const tier = e.clueTier ?? 3;
-    pickups.push({ kind: 'casket', tier, x: e.x, y: e.y, t: 0 });
+    const bro = e.id.replace('clue_', '');
+    pickups.push({ kind: 'casket', tier, x: e.x, y: e.y, t: 0, barrows: BARROWS_SETS[bro] ? bro : null });
     chat(`The ${e.d.name} drops ${aAn(CLUE_TIERS[tier].name).toLowerCase()} ${CLUE_TIERS[tier].name.toLowerCase()} reward casket!`, 'r');
     // on top of the casket: sometimes a clue one tier higher
     if (tier < 5 && Math.random() < CLUE_UPGRADE_CHANCE * (1 + luckVal() * 0.5)) {
@@ -1757,6 +1777,8 @@ function updateEnemies(dt) {
       e.venomT -= dt; e.venomTick = (e.venomTick || 1) - dt;
       if (e.venomTick <= 0) { e.venomTick = 1; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.venomDps)), false, { venom: true }); if (e.dead) continue; }
     }
+    if (e.bslowT > 0) e.bslowT -= dt;
+    if (e.drainT > 0) e.drainT -= dt;
     if (e.frozen > 0) { e.frozen -= dt; continue; }
     if (e.eventMob) { e.wt = (e.wt || 0) - dt; if (e.wt <= 0) { e.wt = 1.5; e.wa = Math.random() * 7; } e.x += Math.cos(e.wa) * e.d.spd * dt; e.y += Math.sin(e.wa) * e.d.spd * dt; continue; }
     if (e.feeds) { feederMove(e, dt); continue; }
@@ -1798,7 +1820,7 @@ function updateEnemies(dt) {
     }
     if (e.d.pker) pkerAct(e, dt, realDist, dx, dy);
     else if (!e.d.boss && !e.d.clue) minionMove(e, dt, realDist);
-    const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1) * (inv('haste') ? 1.2 : 1) * (run.enraged ? 1.25 : 1);
+    const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1) * (e.bslowT > 0 ? e.bslow : 1) * (inv('haste') ? 1.2 : 1) * (run.enraged ? 1.25 : 1);
     if (e.charge) {
       e.x += e.charge.vx * dt; e.y += e.charge.vy * dt; e.charge.t -= dt;
       if (e.charge.t <= 0) e.charge = null;
@@ -1808,8 +1830,8 @@ function updateEnemies(dt) {
     }
     if (tgt === p && realDist < e.r + p.r && e.hitCd <= 0) {
       e.hitCd = e.d.boss ? 1.2 : 0.9;
-      if (e.d.explode) { hurtPlayer(e.dmg, 'melee', { pure: true }); killEnemy(e); continue; }
-      hurtPlayer(e.dmg * (e.d.closeMult || 1), e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e, noPray: e.d.noPray, ...e.d.onHit });
+      if (e.d.explode) { hurtPlayer(eDrain(e) * e.dmg, 'melee', { pure: true }); killEnemy(e); continue; }
+      hurtPlayer(eDrain(e) * e.dmg * (e.d.closeMult || 1), e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e, noPray: e.d.noPray, ...e.d.onHit });
     }
   }
   // soft separation so hordes don't stack into one sprite
@@ -2055,7 +2077,7 @@ function bossAI(e, dt) {
         hurtPlayer(0, 'ranged', { frac: 0.3 });
         if (e.ai.phase++ === 0) chat('Graardor slams the ground! It hits the whole room. Protect from Missiles.', 'r');
       } else {
-        hurtPlayer(e.dmg * 2.0, 'melee', { from: e });
+        hurtPlayer(eDrain(e) * e.dmg * 2.0, 'melee', { from: e });
         burst(p.x, p.y - 20, '#ff4a1a', 12);
       }
       shout(e);
@@ -2725,6 +2747,8 @@ function draw() {
     } else if (f.kind === 'spark') {
       ctx.fillStyle = f.color; ctx.globalAlpha = Math.min(1, a * 2);
       ctx.fillRect(f.x - 2, f.y - 2, 4, 4); ctx.globalAlpha = 1;
+    } else if (f.kind === 'label') {
+      ctx.globalAlpha = Math.min(1, a * 2); text(f.txt, f.x, f.y - (1 - a) * 24, 14, f.color); ctx.globalAlpha = 1;
     } else if (f.kind === 'beam') {
       ctx.strokeStyle = f.color; ctx.globalAlpha = a; ctx.lineWidth = 14;
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.tx, f.ty); ctx.stroke(); ctx.globalAlpha = 1;
@@ -2873,7 +2897,7 @@ function drawSplat(s) {
   const a = Math.min(1, s.t * 3);
   const y = s.y - (0.8 - s.t) * 20;
   ctx.globalAlpha = a;
-  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : s.kind === 'venom' ? '#1f7a6a' : '#b00000';
+  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : s.kind === 'venom' ? '#1f7a6a' : s.kind === 'heal' ? '#c0309a' : '#b00000';
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   ctx.beginPath();
   const R = s.crit ? 19 : 15;
@@ -3126,6 +3150,7 @@ function itemStatsText(it) {
     const S = SPECS[it.id];
     if (S) bits.push(`<b>Special: ${S.name}</b> (${S.cost}% energy): ${S.info}`);
   }
+  if (it.barrows) { const B = BARROWS_SETS[it.barrows]; bits.push(`<b>${B.name} set (${B.effect})</b>, all 4 pieces: ${B.info}`); }
   if (it.proc) bits.push(`<b>${BOLT_PROCS[it.proc].name}</b>: ${BOLT_PROCS[it.proc].info}`);
   if (it.def) bits.push(`${it.def > 0 ? '+' : ''}${it.def} defence`);
   if (it.dmg) bits.push(`+${Math.round(it.dmg * 100)}% ${it.lane === 'any' ? '' : LANE_NAME[it.lane] + ' '}damage`);
@@ -3924,7 +3949,7 @@ const RAID_MECH = {
       // boulders roll down every lane but one: find the gap
       const lanes = 5, lh = (WORLD_H - ARENA_TOP) / lanes, gap = Math.floor(Math.random() * lanes);
       for (let i = 0; i < lanes; i++) if (i !== gap) telegraphs.push({ line: true, x: 0, y: ARENA_TOP + lh * (i + 0.5), a: 0, len: WORLD_W, w: lh - 6, t: 2.0, max: 2.0, color: '#a07a4a', dmg: 0, frac: 0.45, style: 'melee', label: i === (gap + 1) % lanes ? 'Boulders! Get in the gap!' : '', noPray: true });
-    } else if (near) hurtPlayer(e.dmg * 1.6, 'melee', { from: e });
+    } else if (near) hurtPlayer(eDrain(e) * e.dmg * 1.6, 'melee', { from: e });
   },
   kephri(e, dt, p, hpf) {
     // Kephri (wiki): shielded while her scarab swarms crawl in to heal her; dung bombs explode on the floor where you stand;
@@ -3961,7 +3986,7 @@ const RAID_MECH = {
       const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
       order.forEach((q, i) => quadTele(q, 1.6 + i * 0.8, '#b04bff', i === 0 ? 'Memory! Remember the order' : '', { frac: 0.5 }));
       chat('Akkha\'s quadrants explode one after another. Move into the one that just went off!', 'r');
-    } else if (st === 'melee') { if (near) hurtPlayer(e.dmg * 1.5, 'melee', { from: e }); else slam(p.x, p.y, 70, 1.1, 0, 'melee', '#d8c8a0', 'Akkha leaps!', { frac: 0.3 }); }
+    } else if (st === 'melee') { if (near) hurtPlayer(eDrain(e) * e.dmg * 1.5, 'melee', { from: e }); else slam(p.x, p.y, 70, 1.1, 0, 'melee', '#d8c8a0', 'Akkha leaps!', { frac: 0.3 }); }
     else styleShot(e, st, 1.3);
   },
   zebak(e, dt, p, hpf) {
@@ -4019,7 +4044,7 @@ const RAID_MECH = {
     const kind = e.id.split('_')[1];
     if (kind === 'ranged') { slam(p.x, p.y, 55, 1.2, 0, 'ranged', '#8a8a8a', 'Rocks!', { noPray: true, frac: 0.2 }); for (let i = 0; i < 2; i++) { const s = nearSpot(p, 200); slam(s.x, s.y, 55, 1.2, 0, 'ranged', '#8a8a8a', '', { noPray: true, frac: 0.2 }); } }
     else if (kind === 'magic') { if (e.ai.phase++ % 3 === 2) for (let i = 0; i < 3; i++) { const s = i ? nearSpot(p, 260) : p; slam(s.x, s.y, 70, 1.1, e.dmg * 1.4, 'magic', '#4aa0ff', i ? '' : 'Magic blast!'); } else styleShot(e, 'magic', 1.1); }
-    else if (near) hurtPlayer(e.dmg * 1.4, 'melee', { from: e });
+    else if (near) hurtPlayer(eDrain(e) * e.dmg * 1.4, 'melee', { from: e });
   },
   vasa(e, dt, p, hpf) {
     // Vasa Nistirio (wiki): heals from a glowing crystal (break it to stop him), throws boulders,
@@ -4127,7 +4152,7 @@ const RAID_MECH = {
     if (e.ai.walk <= 0) { e.ai.sleep = 4.5; e.resist = null; chat('The Pestilent Bloat stops to sleep. Hit it, then get clear before it wakes.', 'g'); return; }
     // flies: anyone in its line of sight gets hit
     e.ai.seen = !rectBlocks(e.x, e.y - 40, p.x, p.y - 20, tank);
-    if (e.ai.seen && (e.ai.fly = (e.ai.fly || 0) - dt) <= 0) { e.ai.fly = 0.6; hurtPlayer(e.dmg * 0.5, 'melee', { pure: true, from: e }); if (!e.ai.flyTold) { e.ai.flyTold = true; chat('Flies swarm anyone the Bloat can see. Hide behind the tank!', 'r'); } }
+    if (e.ai.seen && (e.ai.fly = (e.ai.fly || 0) - dt) <= 0) { e.ai.fly = 0.6; hurtPlayer(eDrain(e) * e.dmg * 0.5, 'melee', { pure: true, from: e }); if (!e.ai.flyTold) { e.ai.flyTold = true; chat('Flies swarm anyone the Bloat can see. Hide behind the tank!', 'r'); } }
     if (e.ai.t > 0) return;
     e.ai.t = 2.4;
     for (let i = 0; i < 5; i++) { const s = i ? roomSpot() : p; slam(s.x, s.y, 55, 1.3, 0, 'melee', '#c8a080', i ? '' : 'Falling limbs!', { noPray: true, frac: 0.2 }); }
@@ -4147,7 +4172,7 @@ const RAID_MECH = {
     if ((e.ai.nyT = (e.ai.nyT ?? 4) - dt) <= 0) { e.ai.nyT = 9; summon(e, ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'][Math.floor(Math.random() * 3)], 2); }
     if (e.ai.t > 0) return;
     e.ai.t = 1.9;
-    if (e.ai.form === 'melee') { if (near) hurtPlayer(e.dmg * 1.5, 'melee', { from: e }); }
+    if (e.ai.form === 'melee') { if (near) hurtPlayer(eDrain(e) * e.dmg * 1.5, 'melee', { from: e }); }
     else styleShot(e, e.ai.form, 1.3);
   },
   sotetseg(e, dt, p, hpf) {
@@ -4193,7 +4218,7 @@ const RAID_MECH = {
       for (const x of e.ai.ex) {
         x.t -= dt;
         const on = Math.hypot(p.x - x.x, p.y - x.y) < 42;
-        if (on) { x.held = true; if ((x.tick = (x.tick || 0) - dt) <= 0) { x.tick = 0.5; hurtPlayer(e.dmg * 0.3, 'magic', { pure: true, poison: 4 }); } }
+        if (on) { x.held = true; if ((x.tick = (x.tick || 0) - dt) <= 0) { x.tick = 0.5; hurtPlayer(eDrain(e) * e.dmg * 0.3, 'magic', { pure: true, poison: 4 }); } }
         if (x.t <= 0 && !x.held) { e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.05); burst(e.x, e.y, '#5fd34a', 10); }
       }
       e.ai.ex = e.ai.ex.filter((x) => x.t > 0);
@@ -4315,7 +4340,7 @@ function bossMech(e, dt) {
       if (r === 0) { for (let i = 0; i < 4; i++) slam(p.x + (i ? (Math.random() - 0.5) * 260 : 0), p.y + (i ? (Math.random() - 0.5) * 200 : 0), 70, 1.2, 0, 'melee', '#a08060', i ? '' : 'Falling bricks!', { noPray: true, frac: 0.2 }); }
       else if (r === 1) fan(e, 3, 0.2, 340, 'magic', '#6aa0ff', e.dmg * 0.9, { r: 10 });
       else if (r === 2) fan(e, 3, 0.2, 340, 'ranged', '#8a6a3c', e.dmg * 0.8, { r: 10, shape: 'blob' });
-      else if (r === 3 && near) { hurtPlayer(e.dmg * 1.6, 'melee', { from: e }); burst(p.x, p.y - 20, '#c8a080', 10); }
+      else if (r === 3 && near) { hurtPlayer(eDrain(e) * e.dmg * 1.6, 'melee', { from: e }); burst(p.x, p.y - 20, '#c8a080', 10); }
       else if (r === 4) { summon(e, 'giant_rat', 6); chat('Scurrius calls six giant rats!', 'r'); }
       else aimShot(e, 360, 'magic', '#6aa0ff', e.dmg, { r: 12 });
     }
@@ -4345,7 +4370,7 @@ function bossMech(e, dt) {
       sfx(70, 0.4, 'sawtooth', 0.06);
       if (e.ai.phase === 1) chat('The King Black Dragon breathes fire! An anti-dragon or dragonfire shield blocks most of it.', 'r');
     }
-    if (near && (e.ai.bite = (e.ai.bite || 0) - dt) <= 0) { e.ai.bite = 2.4; hurtPlayer(e.dmg * 1.1, 'melee', { from: e }); }
+    if (near && (e.ai.bite = (e.ai.bite || 0) - dt) <= 0) { e.ai.bite = 2.4; hurtPlayer(eDrain(e) * e.dmg * 1.1, 'melee', { from: e }); }
     return true;
   }
   if (k === 'zulrah') {
@@ -4378,7 +4403,7 @@ function bossMech(e, dt) {
     // TzTok-Jad bites with no warning when you stand in his reach (wiki), on top of his magic and ranged
     if (near && (e.ai.bite = (e.ai.bite ?? 1) - dt) <= 0) {
       e.ai.bite = 2.4;
-      hurtPlayer(e.dmg * 2.2, 'melee', { from: e });
+      hurtPlayer(eDrain(e) * e.dmg * 2.2, 'melee', { from: e });
       if (!e.ai.biteTold) { e.ai.biteTold = true; chat('Jad bites! Stay out of his reach, or pray Melee.', 'r'); }
     }
     return false;
@@ -4476,7 +4501,7 @@ function bossMech(e, dt) {
           if (e.dead || mode !== 'play') return;
           const d = Math.hypot(nx - p.x, ny - p.y);
           burst(p.x, p.y, '#b04bff', 16); p.x = nx; p.y = ny; burst(p.x, p.y, '#b04bff', 16);
-          hurtPlayer(e.dmg * d / 400, 'magic', { pure: true });
+          hurtPlayer(eDrain(e) * e.dmg * d / 400, 'magic', { pure: true });
           chat('Olm teleports you across the room!', 'r');
         }, 1100);
       } else if (sp === 'acid') {
@@ -4536,7 +4561,7 @@ function verzikMech(e, dt, near, hpf) {
     // Phase 2 (wiki): body slam up close, urnbombs, a lightning ball, purple Nylocas Athanatos that heal her,
     // and below 35% blood spells that heal her and two Nylocas Matomenos.
     if (near && (e.ai.slamCd = (e.ai.slamCd || 0) - dt) <= 0) {
-      e.ai.slamCd = 3; hurtPlayer(e.dmg * 2.2, 'melee', { from: e });
+      e.ai.slamCd = 3; hurtPlayer(eDrain(e) * e.dmg * 2.2, 'melee', { from: e });
       const a = Math.atan2(p.y - e.y, p.x - e.x); p.x = clamp(p.x + Math.cos(a) * 120, p.r, WORLD_W - p.r); p.y = clamp(p.y + Math.sin(a) * 120, 110, WORLD_H - p.r); p.frozen = Math.max(p.frozen, 0.8);
     }
     if (hpf < 0.35 && !e.ai.bloodTold) {
@@ -4564,7 +4589,7 @@ function verzikMech(e, dt, near, hpf) {
     CR.tornados.push({ x: e.x, y: e.y, e }); CR.tornados.push({ x: e.x + 80, y: e.y, e });
     chat('Verzik summons tornadoes! A hit takes half your hitpoints and heals her.', 'r');
   }
-  if (near && (e.ai.melee = (e.ai.melee || 0) - dt) <= 0) { e.ai.melee = 1.8; hurtPlayer(e.dmg * 1.8, 'melee', { from: e }); }
+  if (near && (e.ai.melee = (e.ai.melee || 0) - dt) <= 0) { e.ai.melee = 1.8; hurtPlayer(eDrain(e) * e.dmg * 1.8, 'melee', { from: e }); }
   if (e.ai.t <= 0) {
     e.ai.t = 1.6;
     if (++e.ai.phase % 5) { const s = Math.random() < 0.5 ? 'ranged' : 'magic'; aimShot(e, 520, s, s === 'ranged' ? '#c8c8a0' : '#4aa0ff', e.dmg, { r: 13, shape: s === 'ranged' ? 'spike' : 'orb' }); return true; }

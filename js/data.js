@@ -1090,3 +1090,31 @@ const PETS = [
   { id: 'rocky', name: 'Rocky', file: 'Rocky.png', from: ['goblin', 'hobgoblin', 'rev_goblin'], src: 'Goblins that steal your coins', thief: true },
 ];
 const PET_RATE = { route: 1 / 40, clue: 1 / 25, thief: 1 / 400 };
+
+// ---------- Barrows equipment and set effects (wear all four pieces of one brother) ----------
+item('dharoks_platelegs', "Dharok's platelegs", 'melee', 'legs', 7, 'uncommon', { def: 12, hp: 6 });
+item('dharoks_greataxe', "Dharok's greataxe", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 50, cd: 1.05, reach: 95, arc: 2.4 } });
+item('guthans_helm', "Guthan's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
+item('guthans_platebody', "Guthan's platebody", 'melee', 'body', 7, 'uncommon', { def: 15, hp: 10 });
+item('guthans_chainskirt', "Guthan's chainskirt", 'melee', 'legs', 7, 'uncommon', { def: 11, hp: 6 });
+item('guthans_warspear', "Guthan's warspear", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', dmg: 27, cd: 0.6, reach: 120, arc: 1.0 } });
+item('veracs_helm', "Verac's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
+item('veracs_brassard', "Verac's brassard", 'melee', 'body', 7, 'uncommon', { def: 13, hp: 8 });
+item('veracs_plateskirt', "Verac's plateskirt", 'melee', 'legs', 7, 'uncommon', { def: 11, hp: 6 });
+item('veracs_flail', "Verac's flail", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 29, cd: 0.6, reach: 92, arc: 1.8 } });
+item('torags_helm', "Torag's helm", 'melee', 'head', 7, 'uncommon', { def: 10, hp: 5 });
+item('torags_platebody', "Torag's platebody", 'melee', 'body', 7, 'uncommon', { def: 16, hp: 10 });
+item('torags_platelegs', "Torag's platelegs", 'melee', 'legs', 7, 'uncommon', { def: 13, hp: 6 });
+item('torags_hammers', "Torag's hammers", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 17, cd: 0.7, reach: 88, arc: 1.8, hits: 2 } });
+item('karils_crossbow', "Karil's crossbow", 'ranged', 'weapon', 6, 'uncommon', { w: { kind: 'shot', dmg: 30, cd: 0.55, range: 450, speed: 1080, pierce: 2, count: 1, bolt: true } });
+item('ahrims_staff', "Ahrim's staff", 'magic', 'weapon', 6, 'uncommon', { w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 30, cd: 0.78, range: 420, speed: 640, splash: 66, color: '#ff7a1a' } });
+// Set effects from the wiki, turned into this game's terms. 25% of hits trigger them (Dharok's always works).
+const BARROWS_SETS = {
+  dharok: { name: "Dharok's", effect: 'Wretched Strength', pieces: ['dharoks_helm', 'dharoks_platebody', 'dharoks_platelegs', 'dharoks_greataxe'], info: 'Up to +60% damage the lower your hitpoints are' },
+  guthan: { name: "Guthan's", effect: 'Infestation', pieces: ['guthans_helm', 'guthans_platebody', 'guthans_chainskirt', 'guthans_warspear'], info: '25% of hits heal you for half the damage dealt (up to 8% of your max HP per heal)' },
+  verac: { name: "Verac's", effect: 'Defiler', pieces: ['veracs_helm', 'veracs_brassard', 'veracs_plateskirt', 'veracs_flail'], info: '25% of hits ignore the enemy\'s resistance to your style and deal +25% damage' },
+  torag: { name: "Torag's", effect: 'Corruption', pieces: ['torags_helm', 'torags_platebody', 'torags_platelegs', 'torags_hammers'], info: '25% of hits drain the enemy\'s run energy: 40% slower for 3 sec' },
+  karil: { name: "Karil's", effect: 'Tainted Shot', pieces: ['karils_coif', 'karils_leathertop', 'karils_leatherskirt', 'karils_crossbow'], info: '25% of hits lower the enemy\'s Agility: 25% slower for 5 sec' },
+  ahrim: { name: "Ahrim's", effect: 'Blighted Aura', pieces: ['ahrims_hood', 'ahrims_robetop', 'ahrims_robeskirt', 'ahrims_staff'], info: '25% of hits lower the enemy\'s Strength: it hits you 20% softer for 5 sec' },
+};
+for (const k in BARROWS_SETS) for (const id of BARROWS_SETS[k].pieces) ITEMS[id].barrows = k;
