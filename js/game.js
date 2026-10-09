@@ -3044,6 +3044,10 @@ function renderTitle() {
   pb.appendChild(document.createTextNode(` Pets (${nPets}/${PETS.length})`));
   pb.classList.add('sticks-btn');
   r.appendChild(pb);
+  const hb = btn('', 'btn', () => RRScores.page(HEROES.filter((h) => heroUnlocked(h) || !h.unlock.secret), pickedHero, showScreen, renderTitle));
+  hb.appendChild(imgTag('HiScores_icon.png', 'High scores')); hb.appendChild(document.createTextNode(' High scores'));
+  hb.classList.add('sticks-btn');
+  r.appendChild(hb);
   const mb = btn(musicOn ? 'Music: on' : 'Music: off', 'btn', () => { toggleMusic(); mb.textContent = musicOn ? 'Music: on' : 'Music: off'; });
   r.appendChild(mb);
   r.appendChild(b);
@@ -3380,6 +3384,7 @@ function renderGameOver() {
   s.appendChild(el('p', '', `${run.hero.name} fell in ${area.name}${isBoss ? ` fighting ${MONSTERS[area.boss].name}` : ''}, with ${run.kills} kills and ${run.totalGold.toLocaleString()} coins earned.`));
   const r = el('div', 'row'); r.style.marginTop = '14px';
   s.appendChild(sticksLine());
+  s.appendChild(RRScores.box(run));
   r.appendChild(btn('Choose hero', 'btn', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
   r.appendChild(btn('Spend trading sticks', 'btn', renderUpgrades));
   const a = btn('Try again', 'btn big', () => newRun(run.hero));
@@ -3550,6 +3555,7 @@ function renderVictory() {
   const art = el('div', 'end-art'); art.appendChild(imgTag('Infernal_cape.png', 'Infernal cape')); s.appendChild(art);
   s.appendChild(el('p', '', `${run.hero.name} fought from Lumbridge to the Inferno with ${run.kills} kills and earned the Infernal cape.`));
   s.appendChild(sticksLine());
+  s.appendChild(RRScores.box(run));
   const r = el('div', 'row'); r.style.marginTop = '14px';
   r.appendChild(btn('Spend trading sticks', 'btn', renderUpgrades));
   r.appendChild(btn('Play again', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));

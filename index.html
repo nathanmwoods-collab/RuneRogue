@@ -171,6 +171,18 @@ img.wiki { image-rendering: auto; }
 .skill .cost { font-size: 12px; color: var(--yellow); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .skill:hover:not(:disabled) { outline: 1px solid var(--yellow); }
 .skill:disabled { opacity: .5; cursor: not-allowed; }
+/* High scores */
+.score-box { margin-top: 14px; text-align: left; }
+.score-form { justify-content: flex-start; margin-top: 8px; }
+.score-form input, .score-hero { font: 600 16px var(--font-body); color: var(--yellow); background: var(--stone-dark); border: 2px solid var(--ink); outline: 1px solid var(--rim); padding: 8px 10px; min-width: 0; flex: 1 1 160px; max-width: 260px; }
+.score-tabs { margin-top: 12px; justify-content: flex-start; }
+.scores { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+.scores li { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); column-gap: 6px; background: var(--stone-dark); border: 1px solid var(--ink); padding: 5px 8px; color: var(--yellow); }
+.scores li.me { outline: 2px solid var(--orange); }
+.scores li.empty { display: block; color: var(--muted); }
+.scores .rk { grid-row: span 2; font-weight: bold; font-variant-numeric: tabular-nums; }
+.scores .nm { font-weight: bold; overflow-wrap: anywhere; }
+.scores .rc { font-size: 12.5px; color: var(--muted); }
 .offers { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .offer .art { height: 64px; }
 .offer .art img { max-height: 56px; }
@@ -288,6 +300,8 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
 
 <script src="js/data.js"></script>
 <script src="js/achievements.js"></script>
+<script src="js/scores-config.js"></script>
+<script src="js/scores.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>
