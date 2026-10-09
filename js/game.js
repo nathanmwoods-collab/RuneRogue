@@ -89,6 +89,7 @@ addEventListener('keydown', (e) => {
   if (k === 'e') useItem('shark');
   if (k === 'q') useItem('ppot');
   if (k === ' ') specialAttack();
+  if (k === 'r') castSpell();
   if (k === 'p' || k === 'escape') togglePause();
 });
 addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
@@ -110,6 +111,7 @@ cv.addEventListener('pointerup', endStick);
 cv.addEventListener('pointercancel', endStick);
 
 document.getElementById('specBtn').addEventListener('click', () => specialAttack());
+document.getElementById('spellBtn').addEventListener('click', () => castSpell());
 document.querySelectorAll('.pbtn[data-pray], .pbtn[data-use]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.pray) togglePrayer(b.dataset.pray); else useItem(b.dataset.use);
 }));
@@ -219,7 +221,7 @@ function newRun(hero) {
   if (kit) { gear.weapon = kit.weapon; Object.assign(gear, kit.gear || {}); }
   gearBarKey = '';
   run = {
-    hero, skills, gear,
+    hero, skills, gear, sp: {}, spellCd: 0,
     invo: { ...(meta.invo || {}) }, raid: raidLevel(meta.invo || {}), livesUsed: 0, skull: false, skullAsked: false,
     inv: { shark: Math.round((2 + upVal('shark')) * supplyMult(meta.invo || {})), ppot: Math.round(supplyMult(meta.invo || {})) },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
@@ -264,6 +266,7 @@ function stats() {
   const weapon = ITEMS[run.gear.weapon].w;
   const lane = KIND_STYLE[weapon.kind];
   let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane)) * (1 + 0.15 * bv('might')) * (ycon('severance') ? 1.6 : 1);
+  if (run.sp && run.sp.charge > 0) dmgMult *= 1.4;
   if (run.weakT > 0) dmgMult *= 0.85; // the Weaken spell, King Black Dragon's shock breath
   let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd') * (1 + 0.15 * bv('haste')) * (ycon('bloodied') ? 1.5 : 1);
   const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach')) * (inv('myopia') ? 0.75 : 1);
@@ -282,7 +285,7 @@ function stats() {
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
     reduce: inv('relentless') ? 0 : Math.min(0.75, defPts / 100),
-    taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
+    taken: (m.taken || 1) * takenGear * (run.sp && run.sp.ward > 0 ? 0.75 : 1) * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: (run.p && run.p.slowT > 0 ? 0.6 : 1) * 230 * (run.frogT > 0 ? 0.5 : 1) * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
     goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1) * (run.skull ? SKULL.gold : 1),
     crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit') + (ycon('glyphic') ? 0.25 : 0),
@@ -555,6 +558,7 @@ function endStage() {
   if (isBoss && areaIndex() > meta.cleared) {
     meta.cleared = areaIndex(); saveMeta();
     for (const h of HEROES) if (h.unlock && h.unlock.area === meta.cleared) chat(`New hero unlocked: ${h.name}!`, 'r');
+    for (const b in SPELLBOOKS) if (SPELLBOOKS[b].area === meta.cleared) chat(`New spellbook unlocked: ${SPELLBOOKS[b].name}! Pick a spell from it on the Spellbook screen.`, 'r');
   }
   sfx(660, 0.12, 'triangle', 0.06); setTimeout(() => sfx(880, 0.18, 'triangle', 0.06), 120);
   if (run.stage >= TOTAL_STAGES - 1) { victory(); return; }
@@ -1314,6 +1318,7 @@ function rollDamage(base, target, st) {
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
   if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
   if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
+  if (run.sp.mark > 0) dmg *= 1.25;
   if (barrowsSet() === 'dharok') dmg *= 1 + 0.6 * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
@@ -1414,8 +1419,82 @@ function killEnemy(e) {
   if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
   maybeDropArtefact(e);
   maybeDropPet(e);
+  if (run.sp.dcharge > 0 && !e.summoned) run.spec = Math.min(100, run.spec + 15);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
   if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
+}
+
+// ---------- Spellbooks ----------
+const SPELL_BY_ID = {};
+for (const sp of SPELLS) SPELL_BY_ID[sp.id] = sp;
+function bookUnlocked(b) { return SPELLBOOKS[b].area < 0 || meta.cleared >= SPELLBOOKS[b].area; }
+function currentSpell() { const sp = SPELL_BY_ID[meta.spell]; return sp && bookUnlocked(sp.book) ? sp : SPELL_BY_ID.charge; }
+function thrallLvl() { return bv('thrall') + (run.sp && run.sp.thrall > 0 ? 2 : 0); }
+function castSpell() {
+  if (mode !== 'play' || !run) return;
+  const S = currentSpell(), p = run.p, st = stats();
+  if (run.spellCd > 0) { chat(`${S.name} is ready again in ${Math.ceil(run.spellCd)} sec.`, 'b'); return; }
+  if (S.book === 'ancient') {
+    const t = nearestEnemy(p.x, p.y, 520);
+    if (!t) { chat('There is nothing in range to cast it on.', 'b'); return; }
+    const R = 150, hit = enemies.filter((e) => !e.dead && !e.untargetable && e.ai.burrow <= 0 && Math.hypot(e.x - t.x, e.y - t.y) < R + e.r);
+    const base = Math.max(10, weaponDps(st) * 2.5);
+    let total = 0;
+    for (const e of hit) {
+      const before = e.hp;
+      damageEnemy(e, Math.round(base * (e.d.boss ? 0.7 : 1) * (0.8 + Math.random() * 0.2)), false);
+      total += Math.max(0, before - Math.max(0, e.hp));
+      if (e.dead) continue;
+      if (S.id === 'ice_barrage' && !e.d.boss) e.frozen = Math.max(e.frozen, 4);
+      if (S.id === 'smoke_barrage') { e.venomT = 6; e.venomDps = base * 0.12; }
+      if (S.id === 'shadow_barrage') e.drainT = 6;
+    }
+    if (S.id === 'blood_barrage') { const h = Math.min(st.maxHp * 0.25, total * 0.25); p.hp = Math.min(st.maxHp, p.hp + h); if (h >= 1) splats.push({ x: p.x, y: p.y - 80, v: Math.round(h), t: 0.8, kind: 'heal' }); }
+    fx.push({ kind: 'boom', x: t.x, y: t.y, r: R, t: 0.5, max: 0.5, color: S.color });
+    burst(t.x, t.y, S.color, 30);
+  } else if (S.id === 'charge') { run.sp.charge = 10; chat('You feel charged with magic power.', 'b'); }
+  else if (S.id === 'entangle') {
+    let n = 0;
+    for (const e of enemies) if (!e.dead && !e.d.boss && Math.hypot(e.x - p.x, e.y - p.y) < 300) { e.frozen = Math.max(e.frozen, 3); n++; }
+    fx.push({ kind: 'boom', x: p.x, y: p.y, r: 300, t: 0.5, max: 0.5, color: '#5fae3a' });
+  }
+  else if (S.id === 'thrall') run.sp.thrall = 20;
+  else if (S.id === 'mark') run.sp.mark = 15;
+  else if (S.id === 'ward') run.sp.ward = 12;
+  else if (S.id === 'dcharge') run.sp.dcharge = 20;
+  else if (S.id === 'veng') run.sp.veng = true;
+  else if (S.id === 'heal_group') { const h = st.maxHp * 0.3; p.hp = Math.min(st.maxHp, p.hp + h); splats.push({ x: p.x, y: p.y - 80, v: Math.round(h), t: 0.8, kind: 'heal' }); }
+  run.spellCd = S.cd;
+  sfx(700, 0.15, 'sine', 0.06); setTimeout(() => sfx(1050, 0.2, 'sine', 0.05), 90);
+}
+function renderSpells() {
+  if (run && mode !== 'over') return;
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Spellbook'));
+  head.appendChild(el('div', 'purse txt', `Carrying: ${currentSpell().name}`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', 'Your weapon keeps attacking on its own. You also carry one spell you cast yourself with the spell button (or R), then it needs time to recharge. Beat an area\'s boss once to unlock its spellbook for good.'));
+  for (const b in SPELLBOOKS) {
+    const B = SPELLBOOKS[b], open = bookUnlocked(b);
+    const h = el('div', 'sec-title', B.name + (open ? '' : ` (locked: beat the ${AREAS[B.area].name} boss)`)); h.style.marginTop = '14px'; s.appendChild(h);
+    const g = el('div', 'grid offers invos'); s.appendChild(g);
+    for (const sp of SPELLS.filter((x) => x.book === b)) {
+      const on = currentSpell().id === sp.id;
+      const c = el('button', 'card offer invo' + (on ? ' sel' : '') + (open ? '' : ' locked')); c.type = 'button';
+      const art = el('div', 'art'); art.appendChild(imgTag(sp.file, sp.name)); c.appendChild(art);
+      c.appendChild(el('div', 'nm', sp.name));
+      c.appendChild(el('div', 'lvl', `Recharge: ${sp.cd} sec`));
+      c.appendChild(el('div', 'ds', sp.info));
+      c.addEventListener('click', () => { if (!open) return; meta.spell = sp.id; saveMeta(); sfx(620, 0.06, 'triangle', 0.05); renderSpells(); });
+      g.appendChild(c);
+    }
+  }
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
+  s.appendChild(r);
+  $('hud').hidden = true;
+  screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
 }
 
 // ---------- Pets (cosmetic only) ----------
@@ -1738,6 +1817,10 @@ function hurtPlayer(raw, style, opts = {}) {
   }
   if (inv('arterial') && opts.from && !opts.from.dead && dmg > 0) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg);
   if (bv('thorns') && opts.from && !opts.from.dead && dmg > 0) damageEnemy(opts.from, Math.round(dmg * 0.5 * bv('thorns')), false);
+  if (run.sp.veng && dmg > 0) {
+    const t = opts.from && !opts.from.dead ? opts.from : nearestEnemy(p.x, p.y, 700);
+    if (t) { run.sp.veng = false; p.over = { text: 'Taste vengeance!', t: 1.6 }; damageEnemy(t, Math.round(dmg * 0.75), false); }
+  }
   if (bv('veng') && dmg > 0 && !(run.vengT > 0)) {
     const t = opts.from && !opts.from.dead ? opts.from : nearestEnemy(p.x, p.y, 700);
     if (t) { run.vengT = 20; p.over = { text: 'Taste vengeance!', t: 1.6 }; damageEnemy(t, Math.round(dmg * 0.75 * bv('veng')), false); }
@@ -2364,12 +2447,14 @@ function updatePlayer(dt) {
   for (const k in run.buffs) run.buffs[k].t -= dt;
   run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * dt);
   if (run.vengT > 0) run.vengT -= dt;
-  if (bv('thrall')) {
+  for (const k in run.sp) if (typeof run.sp[k] === 'number') run.sp[k] -= dt;
+  if (run.spellCd > 0) run.spellCd -= dt;
+  if (thrallLvl()) {
     run.thrallT = (run.thrallT || 0) - dt;
     if (run.thrallT <= 0) {
       const t = nearestEnemy(p.x, p.y, 420);
       run.thrallT = t ? 1 : 0.2;
-      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * bv('thrall') * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
+      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * thrallLvl() * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
     }
   }
   for (const pk of pickups) {
@@ -2789,7 +2874,7 @@ function drawPlayer() {
     if (ready(sk)) ctx.drawImage(sk, p.x - 11, sy, 22, 22 * sk.naturalHeight / sk.naturalWidth);
     else text('☠', p.x, sy + 18, 20, '#fff');
   }
-  if (bv('thrall')) {
+  if (thrallLvl()) {
     const tb = Math.sin(performance.now() / 300) * 5;
     ctx.save(); ctx.globalAlpha = 0.85;
     drawSprite(wikiImage(THRALL_FILE), p.x + (p.flip ? 48 : -48), p.y - 6 + tb, 58, { color: '#9ab8d8', label: 'G' });
@@ -2970,6 +3055,15 @@ function drawHud() {
     sb.classList.toggle('none', !S);
     sb.title = S ? `${S.name}: ${specCost(S)}% energy (Space)` : 'This weapon has no special attack';
   }
+  const spb = $('spellBtn');
+  if (spb) {
+    const S = currentSpell();
+    if (spb.dataset.sp !== S.id) { spb.dataset.sp = S.id; const old = spb.querySelector('img'); if (old) old.remove(); spb.insertBefore(imgTag(S.file, S.name), $('spellN')); spb.title = `${S.name}: ${S.info} (R)`; }
+    const cd = run.spellCd;
+    $('spellN').textContent = cd > 0 ? `${Math.ceil(cd)}s` : 'ready';
+    spb.classList.toggle('ready', !(cd > 0));
+    spb.style.setProperty('--fill', `${cd > 0 ? 100 - cd / S.cd * 100 : 100}%`);
+  }
   const bb = $('bossbar');
   if (bossAlive && !bossAlive.dead) {
     bb.hidden = false;
@@ -3080,6 +3174,10 @@ function renderTitle() {
   ib.appendChild(imgTag(INVO_ICON.warden, 'Invocations')); ib.appendChild(document.createTextNode(` Invocations (raid level ${rl})`));
   ib.classList.add('sticks-btn');
   r.appendChild(ib);
+  const spl = btn('', 'btn', renderSpells);
+  spl.appendChild(imgTag(currentSpell().file, 'Spellbook')); spl.appendChild(document.createTextNode(` Spellbook (${currentSpell().name})`));
+  spl.classList.add('sticks-btn');
+  r.appendChild(spl);
   const nPets = Object.keys(meta.pets || {}).length;
   const pb = btn('', 'btn', renderPets);
   const shown = PETS.find((x) => x.id === meta.pet) || PETS.find((x) => (meta.pets || {})[x.id]);
