@@ -7,16 +7,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          V=2026-08-12_a
-          mkdir -p probe; i=0
-          for u in \
-            "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/2/0_50_50.png" \
-            "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/3/0_100_100.png" \
-            "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/2/0_50_-51.png" \
-            "https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/2/0_50_-51.png" \
-            "https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/2/0_50_50.png" \
-            "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/7/3/0_89_167.png" \
-            ; do i=$((i+1)); echo "$i $(curl -s -o probe/$i.png -w '%{http_code} %{content_type} %{size_download}' "$u") $u" >> probe/result.txt; done
-          curl -s "https://maps.runescape.wiki/osrs/versions/" | head -c 2000 > probe/versions.txt
+          rm -rf probe; mkdir -p probe
+          # name map x y  (game coords; zoom 3 => 32 squares per 256px tile)
+          while read n m x y; do
+            tx=$((x/32)); ty=$((y/32))
+            for dx in -3 -2 -1 0 1 2; do for dy in -2 -1 0 1; do
+              X=$((tx+dx)); Y=$((ty+dy))
+              curl -s -o probe/${n}_${X}_${Y}.png -w "%{http_code}\n" "https://maps.runescape.wiki/osrs/tiles/${m}_2019-10-31_1/3/0_${X}_${Y}.png" | grep -q 200 || rm -f probe/${n}_${X}_${Y}.png
+            done; done
+          done <<'LIST'
+          lum 0 3222 3218
+          dray 0 3109 3353
+          varr 0 3212 3425
+          sew 12 3237 9866
+          fal 0 2965 3378
+          cran 0 2845 3260
+          kq 8 3480 9500
+          wild 0 3110 3790
+          gwd 7 2864 5360
+          zul 0 2200 3060
+          caves 23 2400 5085
+          ung 0 2272 4050
+          toa 0 3300 2780
+          cox 0 1250 3560
+          tob 0 3660 3220
+          nex 7 2925 5330
+          inf 23 2489 5118
+          LIST
+          ls probe | wc -l
           git config user.name probe; git config user.email probe@example.com
-          git add probe && git commit -m "probe results" && git push
+          git add -A probe && git commit -qm "probe tiles" && git push

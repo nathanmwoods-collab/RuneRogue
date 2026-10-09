@@ -1,6 +1,0 @@
-1 200 image/png 17926 https://maps.runescape.wiki/osrs/versions/2026-08-12_a/tiles/rendered/0/2/0_50_50.png
-2 200 image/png 5915 https://maps.runescape.wiki/osrs/versions/2026-08-12_a/tiles/rendered/0/3/0_100_100.png
-3 404 text/html 162 https://maps.runescape.wiki/osrs/versions/2026-08-12_a/tiles/rendered/0/2/0_50_-51.png
-4 404 text/html 162 https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/2/0_50_-51.png
-5 200 image/png 7873 https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/2/0_50_50.png
-6 200 image/png 2030 https://maps.runescape.wiki/osrs/versions/2026-08-12_a/tiles/rendered/7/3/0_89_167.png
