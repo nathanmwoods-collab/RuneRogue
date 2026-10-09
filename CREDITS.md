@@ -42,11 +42,11 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Hero | Durial321 | https://oldschool.runescape.wiki/w/File:Durial321.png |
 | Hero | Wise Old Man | https://oldschool.runescape.wiki/w/File:Wise_Old_Man.png |
 | Hero | Archmage Sedridor | https://oldschool.runescape.wiki/w/File:Archmage_Sedridor.png |
-| Hero | Lord Iorwerth | https://oldschool.runescape.wiki/w/File:Lord_Iorwerth.png |
 | Hero | Arianwyn | https://oldschool.runescape.wiki/w/File:Arianwyn.png |
-| Hero | Duke Horacio | https://oldschool.runescape.wiki/w/File:Duke_Horacio.png |
-| Hero | King Roald | https://oldschool.runescape.wiki/w/File:King_Roald.png |
+| Hero | Lowe | https://oldschool.runescape.wiki/w/File:Lowe.png |
+| Hero | Nemarti | https://oldschool.runescape.wiki/w/File:Ranged_combat_tutor.png |
 | Hero | Sir Amik Varze | https://oldschool.runescape.wiki/w/File:Sir_Amik_Varze.png |
+| Hero | Kolodion | https://oldschool.runescape.wiki/w/File:Kolodion.png |
 | Hero | Osmumten | https://oldschool.runescape.wiki/w/File:Osmumten.png |
 | Hero | Nieve | https://oldschool.runescape.wiki/w/File:Nieve.png |
 | Hero | Bob the Jagex cat | https://oldschool.runescape.wiki/w/File:Bob_the_Jagex_cat.png |
@@ -311,6 +311,8 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Monster | Ogre | https://oldschool.runescape.wiki/w/File:Ogre.png |
 | Monster | Hobgoblin | https://oldschool.runescape.wiki/w/File:Hobgoblin.png |
 | Monster | Sergeant Strongstack | https://oldschool.runescape.wiki/w/File:Sergeant_Strongstack.png |
+| Monster | Sergeant Steelwill | https://oldschool.runescape.wiki/w/File:Sergeant_Steelwill.png |
+| Monster | Sergeant Grimspike | https://oldschool.runescape.wiki/w/File:Sergeant_Grimspike.png |
 | Monster | Snakeling | https://oldschool.runescape.wiki/w/File:Snakeling.png |
 | Monster | Lizardman | https://oldschool.runescape.wiki/w/File:Lizardman_(level_53).png |
 | Monster | Lizardman brute | https://oldschool.runescape.wiki/w/File:Lizardman_brute.png |
