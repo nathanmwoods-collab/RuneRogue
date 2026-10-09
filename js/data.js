@@ -36,7 +36,7 @@ const HEROES = [
   { id: 'amik', name: 'Sir Amik Varze', file: 'Sir_Amik_Varze.png', lane: 'melee', weapon: 'rune_scimitar', unlock: { area: 4 },
     perk: 'Leader of the White Knights of Falador. +20 max hitpoints and prayer drains 30% slower.', mods: { hp: 20, ppDrain: 0.7 },
     skills: { attack: 10, strength: 10, defence: 10 }, quotes: [] },
-  { id: 'osmumten', name: 'Osmumten', file: 'Osmumten.png', lane: 'melee', weapon: 'abyssal_tentacle', unlock: { area: 12 },
+  { id: 'osmumten', name: 'Osmumten', file: 'Osmumten.png', lane: 'melee', weapon: 'abyssal_tentacle', unlock: { area: 13 },
     perk: 'The archaeologist of the Tombs of Amascut. Dragonfire and other magic hit 30% softer, and +30 max hitpoints.', mods: { magicTaken: 0.7, hp: 30 },
     skills: { attack: 30, strength: 30, defence: 20 }, quotes: [] },
   { id: 'merlin', name: 'Merlin', file: 'Merlin.png', lane: 'magic', weapon: 'staff_of_fire', unlock: { sticks: 300 },
@@ -143,6 +143,11 @@ item('primordial_boots', 'Primordial boots', 'melee', 'feet', 10, 'uncommon', { 
 item('obsidian_cape', 'Obsidian cape', 'melee', 'cape', 3, 'common', { def: 3, dmg: 0.05 });
 item('fire_cape', 'Fire cape', 'any', 'cape', 11, 'uncommon', { def: 5, dmg: 0.1, hp: 10 });
 item('infernal_cape', 'Infernal cape', 'any', 'cape', 15, 'rare', { def: 8, dmg: 0.16, hp: 15 });
+// Max capes: the best capes for each style (the imbued god max cape is the best magic cape)
+item('max_cape', 'Max cape', 'any', 'cape', 12, 'ultra', { def: 6, dmg: 0.06, pp: 4, hp: 10 });
+item('infernal_max_cape', 'Infernal max cape', 'melee', 'cape', 16, 'ultra', { def: 9, dmg: 0.2, hp: 18, pp: 4 });
+item('imbued_saradomin_max_cape', 'Imbued Saradomin max cape', 'magic', 'cape', 13, 'ultra', { def: 6, dmg: 0.18, hp: 10, pp: 4 }, 'Imbued_Saradomin_max_cape.png');
+item('masori_assembler_max_cape', 'Masori assembler max cape', 'ranged', 'cape', 16, 'ultra', { aspd: 0.18, range: 0.25, dmg: 0.15, pp: 4 });
 item('amulet_of_strength', 'Amulet of strength', 'melee', 'neck', 1, 'common', { dmg: 0.08 });
 item('amulet_of_fury', 'Amulet of fury', 'any', 'neck', 6, 'uncommon', { def: 4, dmg: 0.1, pp: 5 });
 item('amulet_of_torture', 'Amulet of torture', 'melee', 'neck', 10, 'uncommon', { dmg: 0.18, aspd: 0.05 });
@@ -180,9 +185,15 @@ item('necklace_of_anguish', 'Necklace of anguish', 'ranged', 'neck', 10, 'uncomm
 item('archers_ring', 'Archers ring', 'ranged', 'ring', 5, 'common', { dmg: 0.1 });
 item('venator_ring', 'Venator ring', 'ranged', 'ring', 13, 'rare', { dmg: 0.2 });
 item('bronze_arrow', 'Bronze arrow', 'ranged', 'ammo', 0, 'common', { dmg: 0.03 }, 'Bronze_arrow_5.png');
+item('adamant_arrow', 'Adamant arrow', 'ranged', 'ammo', 2, 'common', { dmg: 0.07 }, 'Adamant_arrow_5.png');
 item('rune_arrow', 'Rune arrow', 'ranged', 'ammo', 3, 'common', { dmg: 0.1 }, 'Rune_arrow_5.png');
 item('amethyst_arrow', 'Amethyst arrow', 'ranged', 'ammo', 6, 'common', { dmg: 0.14, pierce: 1 }, 'Amethyst_arrow_5.png');
 item('dragon_arrow', 'Dragon arrow', 'ranged', 'ammo', 10, 'uncommon', { dmg: 0.22, pierce: 1 }, 'Dragon_arrow_5.png');
+// Enchanted dragon bolts: each has its real bolt effect (proc) from the wiki.
+item('dragonstone_dragon_bolts_e', 'Dragonstone dragon bolts (e)', 'ranged', 'ammo', 7, 'uncommon', { dmg: 0.15, proc: 'dragonstone' }, 'Dragonstone_dragon_bolts_(e)_detail.png');
+item('ruby_dragon_bolts_e', 'Ruby dragon bolts (e)', 'ranged', 'ammo', 8, 'rare', { dmg: 0.16, proc: 'ruby' }, 'Ruby_dragon_bolts_(e)_detail.png');
+item('diamond_dragon_bolts_e', 'Diamond dragon bolts (e)', 'ranged', 'ammo', 9, 'rare', { dmg: 0.18, proc: 'diamond' }, 'Diamond_dragon_bolts_(e)_1.png');
+item('onyx_dragon_bolts_e', 'Onyx dragon bolts (e)', 'ranged', 'ammo', 11, 'rare', { dmg: 0.2, proc: 'onyx' }, 'Onyx_dragon_bolts_(e)_1.png');
 // --- Magic armour
 item('blue_wizard_hat', 'Blue wizard hat', 'magic', 'head', 0, 'common', { def: 1, dmg: 0.03 });
 item('mystic_hat', 'Mystic hat', 'magic', 'head', 2, 'common', { def: 2, dmg: 0.05 });
@@ -208,6 +219,7 @@ item('mages_book', "Mage's book", 'magic', 'shield', 4, 'common', { dmg: 0.1 });
 item('arcane_spirit_shield', 'Arcane spirit shield', 'magic', 'shield', 11, 'rare', { def: 10, dmg: 0.12 });
 item('saradomin_cape', 'Saradomin cape', 'magic', 'cape', 3, 'common', { dmg: 0.06 });
 item('imbued_saradomin_cape', 'Imbued Saradomin cape', 'magic', 'cape', 8, 'uncommon', { dmg: 0.12 });
+item('imbued_zamorak_cape', 'Imbued Zamorak cape', 'magic', 'cape', 9, 'uncommon', { dmg: 0.12, def: 2 });
 item('amulet_of_magic', 'Amulet of magic', 'magic', 'neck', 1, 'common', { dmg: 0.08 });
 item('occult_necklace', 'Occult necklace', 'magic', 'neck', 6, 'uncommon', { dmg: 0.2 });
 item('seers_ring', 'Seers ring', 'magic', 'ring', 5, 'common', { dmg: 0.1 });
@@ -216,6 +228,7 @@ item('magus_ring', 'Magus ring', 'magic', 'ring', 13, 'rare', { dmg: 0.2 });
 item('amulet_of_glory', 'Amulet of glory', 'any', 'neck', 2, 'common', { def: 3, dmg: 0.06 }, 'Amulet_of_glory.png');
 item('ring_of_wealth', 'Ring of wealth', 'any', 'ring', 1, 'common', { gold: 0.25 });
 item('holy_blessing', 'Holy blessing', 'any', 'ammo', 2, 'common', { pp: 10, def: 1 });
+item('radas_blessing_4', "Rada's blessing 4", 'any', 'ammo', 6, 'uncommon', { pp: 20, def: 2, gold: 0.08 }, "Rada's_blessing_4.png");
 item('shark', 'Shark', 'any', 'food', 0, 'common', { price: 22, desc: 'Heals 20 hitpoints. Eat with E. Carry up to 5.' });
 item('ppot', 'Prayer potion', 'any', 'food', 0, 'common', { price: 26, desc: 'Restores 20 prayer points. Drink with Q. Carry up to 5.' }, 'Prayer_potion(4).png');
 
@@ -442,10 +455,10 @@ mon('graardor', 'General Graardor', 'General_Graardor.png', 624, 5000, 150, 28, 
 mon('zulrah', 'Zulrah', 'Zulrah_(serpentine).png', 725, 5600, 0, 30, 200, 380, 'ranged', { boss: 'zulrah' });
 mon('jad', 'TzTok-Jad', 'TzTok-Jad.png', 702, 6400, 55, 32, 230, 420, 'melee', { boss: 'jad' });
 mon('vorkath', 'Vorkath', 'Vorkath.png', 732, 7600, 0, 34, 230, 480, 'magic', { boss: 'vorkath' });
-mon('wardens', "Tumeken's Warden", "Tumeken's_Warden.png", 544, 8800, 0, 36, 230, 540, 'magic', { boss: 'wardens' });
-mon('olm', 'Great Olm', 'Great_Olm.png', 1043, 10000, 0, 38, 240, 600, 'magic', { boss: 'olm' });
-mon('verzik', 'Verzik Vitur', 'Verzik_Vitur.png', 1040, 11500, 70, 40, 230, 680, 'magic', { boss: 'verzik' });
-mon('nex', 'Nex', 'Nex.png', 1001, 13000, 95, 44, 190, 760, 'magic', { boss: 'nex' });
+mon('wardens', "Tumeken's Warden", "Tumeken's_Warden.png", 544, 10000, 0, 38, 230, 540, 'magic', { boss: 'wardens' });
+mon('olm', 'Great Olm', 'Great_Olm.png', 1043, 11500, 0, 40, 240, 600, 'magic', { boss: 'olm' });
+mon('verzik', 'Verzik Vitur', 'Verzik_Vitur.png', 1040, 13000, 70, 44, 230, 680, 'magic', { boss: 'verzik' });
+mon('nex', 'Nex', 'Nex.png', 1001, 8800, 95, 36, 190, 760, 'magic', { boss: 'nex' });
 mon('zuk', 'TzKal-Zuk', 'TzKal-Zuk.png', 1400, 16000, 0, 60, 280, 0, 'magic', { boss: 'zuk' });
 
 // Zulrah's three forms
@@ -474,10 +487,10 @@ const AREAS = [
   { name: 'Zul-Andra', map: [0, 0, 2250, 3090, 1], bg: 'Zul-Andra.png', music: 'Coil.ogg', hordes: ['snakeling', 'lizardman'], elites: ['lizardman_brute'], boss: 'zulrah', look: ['#2e5a4a', '#244a3c', '#3a6a58'] },
   { name: 'Fight Caves', map: [23, 0, 2440, 5150, 1], bg: 'TzHaar_Fight_Cave.png', music: 'TzHaar!.ogg', hordes: ['tz_kih', 'tz_kek', 'tok_xil'], elites: ['yt_mejkot', 'ket_zek'], boss: 'jad', look: ['#3a1a10', '#2b130b', '#6b2a0e'] },
   { name: 'Ungael', map: [0, 0, 2272, 4062, 1.6], bg: 'Ungael.png', music: 'On_Thin_Ice.ogg', hordes: ['zombie', 'skeleton'], elites: ['brutal_black_dragon'], boss: 'vorkath', look: ['#5a6a7a', '#4a5a6a', '#6a7a8a'] },
+  { name: 'Ancient Prison', map: [7, 2, 2912, 5335, 1.3], bg: 'Fighting_Nex.png', music: 'The_Ancient_Prison.ogg', hordes: ['spiritual_warrior', 'spiritual_ranger', 'spiritual_mage'], elites: ['fumus', 'glacies'], boss: 'nex', look: ['#3a2a4a', '#2e223c', '#4a3a5a'] },
   { name: 'Tombs of Amascut', map: [0, 0, 3262, 2785, 1.3], bg: "Tombs_of_Amascut_-_fighting_Tumeken's_Warden.png", music: "Amascut's_Promise.ogg", hordes: ['scarab_swarm', 'baboon_brawler', 'baboon_thrower'], elites: ['baboon_mage'], boss: 'wardens', look: ['#8a6a3a', '#7a5a2e', '#9a7a48'] },
   { name: 'Chambers of Xeric', map: [0, 0, 1250, 3560, 1], bg: 'Fighting_Great_Olm.png', music: 'Fire_in_the_Deep.ogg', hordes: ['deathly_ranger', 'deathly_mage'], elites: ['lizardman_shaman', 'skeletal_mystic'], boss: 'olm', look: ['#2e3a4a', '#25303c', '#3a4858'] },
   { name: 'Theatre of Blood', map: [0, 0, 3660, 3220, 1], bg: 'Fighting_Verzik_Vitur.png', music: 'The_Fat_Lady_Sings.ogg', hordes: ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'], elites: [], boss: 'verzik', look: ['#4a1a1a', '#3a1414', '#5a2424'] },
-  { name: 'Ancient Prison', map: [7, 2, 2912, 5335, 1.3], bg: 'Fighting_Nex.png', music: 'The_Ancient_Prison.ogg', hordes: ['spiritual_warrior', 'spiritual_ranger', 'spiritual_mage'], elites: ['fumus', 'glacies'], boss: 'nex', look: ['#3a2a4a', '#2e223c', '#4a3a5a'] },
   { name: 'The Inferno', map: [23, 0, 2500, 5100, 1], bg: 'Inferno_arena_overview.png', music: 'Inferno.ogg', hordes: ['jal_nib', 'jal_mejrah', 'jal_ak'], elites: ['jal_imkot', 'jal_xil', 'jal_zek'], boss: 'zuk', look: ['#4a1408', '#3a1006', '#6a200a'] },
 ];
 const WAVES_PER_AREA = 2;
@@ -635,6 +648,28 @@ const CONTRACTS = [
   { id: 'clouding', name: 'Contract of Sensory Clouding', gain: '+2 Multishot', cost: 'Enemies hit 35% harder' },
   { id: 'glyphic', name: 'Contract of Glyphic Attenuation', gain: '+25% critical hit chance and a full special attack bar', cost: 'Enemies have 40% more hitpoints' },
 ];
+// Enchanted bolt effects (OSRS names and odds from the wiki).
+const BOLT_PROCS = {
+  dragonstone: { name: "Dragon's breath", chance: 0.06, info: "6%: dragonfire for extra damage based on your Ranged level" },
+  ruby: { name: 'Blood Forfeit', chance: 0.06, info: '6%: takes 20% of the target\'s hitpoints, costs you 10% of yours' },
+  diamond: { name: 'Armour Piercing', chance: 0.1, info: '10%: a guaranteed hit with 15% more damage' },
+  onyx: { name: 'Life Leech', chance: 0.11, info: '11%: 20% extra damage and heals you for a quarter of it' },
+};
+// Minion attacks: on top of walking into you, these enemies have a telegraphed move.
+// lunge: dashes along a line. smash: ground-pound square around itself. spit: lobbed splash where you stand.
+// breath: a cone. volley: three projectiles. nova: a ring around itself (stand close to dodge). cross: a plus-shaped blast on you.
+const MINION_ATK = {
+  giant_rat: 'lunge', skeleton: 'lunge', ghost: 'nova', giant_bat: 'lunge', dark_wizard: 'cross', guard: 'lunge', barbarian: 'smash',
+  black_knight: 'lunge', moss_giant: 'smash', dwarf: 'smash', white_knight: 'lunge', hill_giant: 'smash', lesser_demon: 'spit',
+  kalphite_worker: 'lunge', kalphite_soldier: 'smash', kalphite_guardian: 'smash', green_dragon: 'breath', ankou: 'nova',
+  greater_demon: 'spit', black_demon: 'smash', ork: 'lunge', ogre: 'smash', hobgoblin: 'lunge', snakeling: 'spit', lizardman: 'spit',
+  lizardman_brute: 'smash', tz_kih: 'lunge', tz_kek: 'smash', tok_xil: 'volley', yt_mejkot: 'nova', ket_zek: 'cross',
+  brutal_black_dragon: 'breath', scarab_swarm: 'lunge', baboon_brawler: 'lunge', baboon_thrower: 'volley', baboon_mage: 'cross',
+  deathly_ranger: 'volley', deathly_mage: 'cross', lizardman_shaman: 'spit', skeletal_mystic: 'nova', nylocas_ischyros: 'smash',
+  nylocas_toxobolos: 'volley', nylocas_hagios: 'cross', spiritual_warrior: 'lunge', spiritual_ranger: 'volley', spiritual_mage: 'cross',
+  fumus: 'spit', glacies: 'nova', jal_mejrah: 'lunge', jal_ak: 'spit', jal_imkot: 'smash', jal_xil: 'volley', jal_zek: 'cross',
+  sergeant_strongstack: 'smash', sergeant_steelwill: 'cross', sergeant_grimspike: 'volley', cow: 'lunge', chicken: 'lunge',
+};
 const POTION_CHANCE = { normal: 0.012, elite: 0.06 };
 // Redberry pie: a separate ground drop that heals. Likelier when you're hurt.
 const PIE = { name: 'Redberry pie', file: 'Redberry_pie.png', heal: 0.25 };

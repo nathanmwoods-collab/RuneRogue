@@ -26,10 +26,10 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Zul-Andra | https://oldschool.runescape.wiki/w/File:Coil.ogg |
 | Fight Caves | https://oldschool.runescape.wiki/w/File:TzHaar!.ogg |
 | Ungael | https://oldschool.runescape.wiki/w/File:On_Thin_Ice.ogg |
+| Ancient Prison | https://oldschool.runescape.wiki/w/File:The_Ancient_Prison.ogg |
 | Tombs of Amascut | https://oldschool.runescape.wiki/w/File:Amascut%27s_Promise.ogg |
 | Chambers of Xeric | https://oldschool.runescape.wiki/w/File:Fire_in_the_Deep.ogg |
 | Theatre of Blood | https://oldschool.runescape.wiki/w/File:The_Fat_Lady_Sings.ogg |
-| Ancient Prison | https://oldschool.runescape.wiki/w/File:The_Ancient_Prison.ogg |
 | The Inferno | https://oldschool.runescape.wiki/w/File:Inferno.ogg |
 | Title screen | https://oldschool.runescape.wiki/w/File:Scape_Main.ogg |
 | Shop | https://oldschool.runescape.wiki/w/File:Sea_Shanty_2.ogg |
@@ -120,6 +120,10 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Obsidian cape | https://oldschool.runescape.wiki/w/File:Obsidian_cape.png |
 | Item | Fire cape | https://oldschool.runescape.wiki/w/File:Fire_cape.png |
 | Item | Infernal cape | https://oldschool.runescape.wiki/w/File:Infernal_cape.png |
+| Item | Max cape | https://oldschool.runescape.wiki/w/File:Max_cape.png |
+| Item | Infernal max cape | https://oldschool.runescape.wiki/w/File:Infernal_max_cape.png |
+| Item | Imbued Saradomin max cape | https://oldschool.runescape.wiki/w/File:Imbued_Saradomin_max_cape.png |
+| Item | Masori assembler max cape | https://oldschool.runescape.wiki/w/File:Masori_assembler_max_cape.png |
 | Item | Amulet of strength | https://oldschool.runescape.wiki/w/File:Amulet_of_strength.png |
 | Item | Amulet of fury | https://oldschool.runescape.wiki/w/File:Amulet_of_fury.png |
 | Item | Amulet of torture | https://oldschool.runescape.wiki/w/File:Amulet_of_torture.png |
@@ -156,9 +160,14 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Archers ring | https://oldschool.runescape.wiki/w/File:Archers_ring.png |
 | Item | Venator ring | https://oldschool.runescape.wiki/w/File:Venator_ring.png |
 | Item | Bronze arrow | https://oldschool.runescape.wiki/w/File:Bronze_arrow_5.png |
+| Item | Adamant arrow | https://oldschool.runescape.wiki/w/File:Adamant_arrow_5.png |
 | Item | Rune arrow | https://oldschool.runescape.wiki/w/File:Rune_arrow_5.png |
 | Item | Amethyst arrow | https://oldschool.runescape.wiki/w/File:Amethyst_arrow_5.png |
 | Item | Dragon arrow | https://oldschool.runescape.wiki/w/File:Dragon_arrow_5.png |
+| Item | Dragonstone dragon bolts (e) | https://oldschool.runescape.wiki/w/File:Dragonstone_dragon_bolts_(e)_detail.png |
+| Item | Ruby dragon bolts (e) | https://oldschool.runescape.wiki/w/File:Ruby_dragon_bolts_(e)_detail.png |
+| Item | Diamond dragon bolts (e) | https://oldschool.runescape.wiki/w/File:Diamond_dragon_bolts_(e)_1.png |
+| Item | Onyx dragon bolts (e) | https://oldschool.runescape.wiki/w/File:Onyx_dragon_bolts_(e)_1.png |
 | Item | Blue wizard hat | https://oldschool.runescape.wiki/w/File:Blue_wizard_hat.png |
 | Item | Mystic hat | https://oldschool.runescape.wiki/w/File:Mystic_hat.png |
 | Item | Ahrim's hood | https://oldschool.runescape.wiki/w/File:Ahrim%27s_hood.png |
@@ -183,6 +192,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Arcane spirit shield | https://oldschool.runescape.wiki/w/File:Arcane_spirit_shield.png |
 | Item | Saradomin cape | https://oldschool.runescape.wiki/w/File:Saradomin_cape.png |
 | Item | Imbued Saradomin cape | https://oldschool.runescape.wiki/w/File:Imbued_Saradomin_cape.png |
+| Item | Imbued Zamorak cape | https://oldschool.runescape.wiki/w/File:Imbued_Zamorak_cape.png |
 | Item | Amulet of magic | https://oldschool.runescape.wiki/w/File:Amulet_of_magic.png |
 | Item | Occult necklace | https://oldschool.runescape.wiki/w/File:Occult_necklace.png |
 | Item | Seers ring | https://oldschool.runescape.wiki/w/File:Seers_ring.png |
@@ -190,6 +200,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Amulet of glory | https://oldschool.runescape.wiki/w/File:Amulet_of_glory.png |
 | Item | Ring of wealth | https://oldschool.runescape.wiki/w/File:Ring_of_wealth.png |
 | Item | Holy blessing | https://oldschool.runescape.wiki/w/File:Holy_blessing.png |
+| Item | Rada's blessing 4 | https://oldschool.runescape.wiki/w/File:Rada%27s_blessing_4.png |
 | Item | Shark | https://oldschool.runescape.wiki/w/File:Shark.png |
 | Item | Prayer potion | https://oldschool.runescape.wiki/w/File:Prayer_potion(4).png |
 | Item | Adamant scimitar | https://oldschool.runescape.wiki/w/File:Adamant_scimitar.png |
@@ -424,10 +435,10 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Background | Zul-Andra | https://oldschool.runescape.wiki/w/File:Zul-Andra.png |
 | Background | Fight Caves | https://oldschool.runescape.wiki/w/File:TzHaar_Fight_Cave.png |
 | Background | Ungael | https://oldschool.runescape.wiki/w/File:Ungael.png |
+| Background | Ancient Prison | https://oldschool.runescape.wiki/w/File:Fighting_Nex.png |
 | Background | Tombs of Amascut | https://oldschool.runescape.wiki/w/File:Tombs_of_Amascut_-_fighting_Tumeken%27s_Warden.png |
 | Background | Chambers of Xeric | https://oldschool.runescape.wiki/w/File:Fighting_Great_Olm.png |
 | Background | Theatre of Blood | https://oldschool.runescape.wiki/w/File:Fighting_Verzik_Vitur.png |
-| Background | Ancient Prison | https://oldschool.runescape.wiki/w/File:Fighting_Nex.png |
 | Background | The Inferno | https://oldschool.runescape.wiki/w/File:Inferno_arena_overview.png |
 | Skill | Attack | https://oldschool.runescape.wiki/w/File:Attack_icon.png |
 | Skill | Strength | https://oldschool.runescape.wiki/w/File:Strength_icon.png |

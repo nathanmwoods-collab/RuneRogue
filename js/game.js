@@ -767,7 +767,7 @@ function playerAttack(dt) {
     for (let i = 0; i < count; i++) {
       const a = ang + (i - (count - 1) / 2) * spread;
       shots.push({ kind: 'arrow', x: p.x, y: p.y - 30, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, life: (w.range * st.range) / w.speed + 0.1,
-        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null });
+        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null, proc: ammo && ammo.proc });
     }
   } else {
     sfx(480, 0.09, 'sine', 0.04);
@@ -791,6 +791,55 @@ function specHit(s, e, dmg) {
       if (Math.hypot(o.x - e.x, o.y - e.y) < S.aoe + o.r * 0.5) { const r = rollDamage(s.dmg * 0.6, o, st); damageEnemy(o, r.dmg, r.crit); }
     }
   }
+}
+
+// Enchanted bolt effects
+function boltProc(kind, e, dmg, st) {
+  const P = BOLT_PROCS[kind];
+  if (!P || Math.random() >= P.chance) return;
+  const p = run.p;
+  let extra = 0;
+  if (kind === 'ruby') { extra = Math.min(Math.round(e.hp * 0.2), 100 + 25 * run.stage); p.hp = Math.max(1, p.hp - Math.round(p.hp * 0.1)); }
+  else if (kind === 'diamond') extra = Math.round(Math.max(dmg, 1) * 0.15 + 4 + run.stage);
+  else if (kind === 'onyx') { extra = Math.round(Math.max(dmg, 1) * 0.2 + 3); p.hp = Math.min(st.maxHp, p.hp + (dmg + extra) * 0.25); }
+  else if (kind === 'dragonstone') extra = Math.round(run.skills.ranged * 0.2 * (1 + run.stage * 0.08)) + 2;
+  if (extra > 0) { damageEnemy(e, extra, true); burst(e.x, e.y - e.d.size * 0.4, kind === 'ruby' ? '#e0103a' : kind === 'onyx' ? '#7a3a8a' : kind === 'diamond' ? '#e8f8ff' : '#ff6a1a', 12); }
+}
+
+// Is (x, y) inside a telegraphed attack's area?
+function inTelegraph(t, x, y) {
+  const dx = x - t.x, dy = y - t.y, d = Math.hypot(dx, dy);
+  if (t.shape === 'ring') return d < t.r && d > t.r * 0.45;
+  if (t.shape === 'square') return Math.abs(dx) < t.r && Math.abs(dy) < t.r;
+  if (t.shape === 'cross') return (Math.abs(dx) < t.w / 2 && Math.abs(dy) < t.r) || (Math.abs(dy) < t.w / 2 && Math.abs(dx) < t.r);
+  if (t.shape === 'cone') {
+    const da = Math.abs(((Math.atan2(dy, dx) - t.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    return d < t.r && da < t.spread / 2;
+  }
+  return d < t.r;
+}
+
+// Minion telegraphed moves (MINION_ATK in data.js)
+function minionMove(e, dt, dist) {
+  const kind = MINION_ATK[e.id];
+  if (!kind || e.summoned && e.d.boss) return;
+  e.mvT = (e.mvT === undefined ? 1.5 + Math.random() * 2.5 : e.mvT) - dt;
+  const reach = { lunge: 280, smash: 110, spit: 400, breath: 280, volley: 420, nova: 200, cross: 360 }[kind];
+  if (e.mvT > 0 || dist > reach) return;
+  e.mvT = 3.2 + Math.random() * 2.2;
+  const p = run.p, a = Math.atan2(p.y - e.y, p.x - e.x), dmg = e.dmg;
+  const col = e.d.style === 'magic' ? '#b070ff' : e.d.style === 'ranged' ? '#7fd04a' : '#ff8a3a';
+  if (kind === 'lunge') {
+    telegraphs.push({ line: true, x: e.x, y: e.y, a, len: 300, w: 46, t: 0.55, max: 0.55, color: '#ffd23a', dmg: dmg * 1.4, style: 'melee', label: '' });
+    setTimeout(() => { if (!e.dead && mode === 'play') e.charge = { vx: Math.cos(a) * 760, vy: Math.sin(a) * 760, t: 0.38, spd: 0 }; }, 550);
+  } else if (kind === 'smash') slam(e.x, e.y - 10, 85, 0.7, dmg * 1.6, 'melee', '#c8a060', '', { shape: 'square' });
+  else if (kind === 'spit') {
+    slam(p.x, p.y, 58, 1.0, dmg * 1.3, e.d.style === 'melee' ? 'ranged' : e.d.style, '#7fd04a', '');
+    eshots.push({ x: e.x, y: e.y - e.d.size * 0.5, vx: (p.x - e.x) / 1.0, vy: (p.y - e.y) / 1.0, r: 7, dmg: 0, style: 'ranged', color: '#7fd04a', life: 1, shape: 'blob', harmless: true });
+  } else if (kind === 'breath') slam(e.x, e.y - 20, 280, 0.75, dmg * 1.5, 'magic', '#ff6a1a', '', { shape: 'cone', a, spread: 0.75 });
+  else if (kind === 'volley') { for (let i = -1; i <= 1; i++) aimShot(e, 430, e.d.style === 'melee' ? 'ranged' : e.d.style, col, dmg, { r: 8, shape: e.d.style === 'magic' ? 'orb' : 'arrow' }, i * 0.2); }
+  else if (kind === 'nova') slam(e.x, e.y - 10, 190, 0.9, dmg * 1.4, e.d.style === 'melee' ? 'magic' : e.d.style, '#9fd8ff', '', { shape: 'ring' });
+  else if (kind === 'cross') slam(p.x, p.y, 210, 0.9, dmg * 1.4, e.d.style === 'melee' ? 'magic' : e.d.style, col, '', { shape: 'cross', w: 52 });
 }
 
 function updateShots(dt) {
@@ -820,6 +869,7 @@ function updateShots(dt) {
           if (s.spec && !r.dmg) r = rollDamage(s.dmg, e, st);
           damageEnemy(e, r.dmg, r.crit || !!s.spec);
           if (s.spec) specHit(s, e, r.dmg);
+          if (s.proc && !e.dead) boltProc(s.proc, e, r.dmg, st);
           if (s.bounce > 0) {
             // Venator bow: the arrow bounces to the next nearby enemy
             const next = enemies.find((o) => !o.dead && !s.hit.has(o) && Math.hypot(o.x - e.x, o.y - e.y) < 220);
@@ -902,6 +952,7 @@ function updateEnemies(dt) {
         eshots.push({ x: e.x, y: e.y - e.d.size * 0.5, vx: dx / dist * sp, vy: (dy + e.d.size * 0.5) / dist * sp, r: 9, dmg: e.dmg, style: e.d.style, color: e.d.caster.color, life: 3 });
       }
     }
+    if (!e.d.boss && !e.d.clue) minionMove(e, dt, realDist);
     const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1);
     if (e.charge) {
       e.x += e.charge.vx * dt; e.y += e.charge.vy * dt; e.charge.t -= dt;
@@ -945,7 +996,8 @@ function fan(e, n, step, speed, style, color, dmg, extra) {
   for (let i = 0; i < n; i++) aimShot(e, speed, style, color, dmg, extra, (i - (n - 1) / 2) * step);
 }
 function slam(x, y, r, delay, dmg, style, color, label, extra) {
-  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!(extra && extra.noPray) });
+  const ex = extra || {};
+  telegraphs.push({ x, y, r, t: delay, max: delay, color, dmg, style, label, noPray: !!ex.noPray, shape: ex.shape || 'circle', a: ex.a || 0, spread: ex.spread || 0.6, w: ex.w || 50 });
 }
 function summon(e, id, n, opts = {}) {
   for (let i = 0; i < n; i++) {
@@ -983,7 +1035,8 @@ function clueSpecial(e) {
   const p = run.p, m = e.d.mech || 'slam', dmg = e.dmg;
   const np = { noPray: true };
   if (m === 'bombs') {
-    for (let i = 0; i < 5; i++) slam(p.x + (i ? (Math.random() - 0.5) * 300 : 0), p.y + (i ? (Math.random() - 0.5) * 240 : 0), 60, 1.0 + i * 0.15, dmg * 1.4, e.d.style, '#ff981f', i ? '' : 'Special!');
+    const shapes = ['circle', 'square', 'cross'], sh = shapes[(e.ai.bombN = (e.ai.bombN || 0) + 1) % 3];
+    for (let i = 0; i < 5; i++) slam(p.x + (i ? (Math.random() - 0.5) * 300 : 0), p.y + (i ? (Math.random() - 0.5) * 240 : 0), sh === 'cross' ? 110 : 60, 1.0 + i * 0.15, dmg * 1.4, e.d.style, '#ff981f', i ? '' : 'Special!', { shape: sh, w: 40 });
   } else if (m === 'volley') {
     fan(e, 7, 0.14, 420, e.d.style === 'melee' ? 'ranged' : e.d.style, (e.d.caster && e.d.caster.color) || '#ff981f', dmg);
   } else if (m === 'summon') {
@@ -1285,7 +1338,7 @@ function updateEnemyShots(dt) {
       s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp;
     }
     s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
-    if (Math.hypot(p.x - s.x, p.y - 30 - s.y) < p.r + s.r) {
+    if (!s.harmless && Math.hypot(p.x - s.x, p.y - 30 - s.y) < p.r + s.r) {
       s.life = 0;
       hurtPlayer(s.dmg, s.style, s);
     }
@@ -1301,8 +1354,9 @@ function updateEnemyShots(dt) {
         const dx = p.x - t.x, dy = p.y - t.y, along = dx * Math.cos(t.a) + dy * Math.sin(t.a), off = Math.abs(-dx * Math.sin(t.a) + dy * Math.cos(t.a));
         if (along > 0 && along < t.len && off < t.w / 2) hurtPlayer(t.dmg, t.style);
       } else {
-        fx.push({ kind: 'boom', x: t.x, y: t.y, r: t.r, color: t.color, t: 0.35, max: 0.35 });
-        if (Math.hypot(p.x - t.x, p.y - t.y) < t.r) hurtPlayer(t.dmg, t.style, { noPray: t.noPray });
+        if (t.shape === 'circle' || t.shape === 'ring') fx.push({ kind: 'boom', x: t.x, y: t.y, r: t.r, color: t.color, t: 0.35, max: 0.35 });
+        else burst(t.x, t.y, t.color, 14);
+        if (inTelegraph(t, p.x, p.y)) hurtPlayer(t.dmg, t.style, { noPray: t.noPray });
       }
     }
   }
@@ -1609,6 +1663,25 @@ function draw() {
       ctx.fillStyle = t.color + '66'; ctx.fillRect(0, -t.w / 2, t.len * k, t.w);
       ctx.restore();
       text(t.label, t.x + Math.cos(t.a) * 120, t.y + Math.sin(t.a) * 120, 22, '#fff');
+    } else if (t.shape === 'square') {
+      ctx.fillRect(t.x - t.r, t.y - t.r, t.r * 2, t.r * 2); ctx.strokeRect(t.x - t.r, t.y - t.r, t.r * 2, t.r * 2);
+      ctx.fillStyle = t.color + '66'; ctx.fillRect(t.x - t.r * k, t.y - t.r * k, t.r * 2 * k, t.r * 2 * k);
+      text(t.label, t.x, t.y, 18, '#fff');
+    } else if (t.shape === 'cross') {
+      const w = t.w;
+      for (const [rw, rh] of [[t.r * 2, w], [w, t.r * 2]]) { ctx.fillRect(t.x - rw / 2, t.y - rh / 2, rw, rh); ctx.strokeRect(t.x - rw / 2, t.y - rh / 2, rw, rh); }
+      ctx.fillStyle = t.color + '66';
+      ctx.fillRect(t.x - t.r * k, t.y - w / 2, t.r * 2 * k, w); ctx.fillRect(t.x - w / 2, t.y - t.r * k, w, t.r * 2 * k);
+      text(t.label, t.x, t.y, 18, '#fff');
+    } else if (t.shape === 'cone') {
+      ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.arc(t.x, t.y, t.r, t.a - t.spread / 2, t.a + t.spread / 2); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = t.color + '66';
+      ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.arc(t.x, t.y, t.r * k, t.a - t.spread / 2, t.a + t.spread / 2); ctx.closePath(); ctx.fill();
+    } else if (t.shape === 'ring') {
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.arc(t.x, t.y, t.r * 0.45, 0, Math.PI * 2, true); ctx.fill('evenodd'); ctx.stroke();
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 0.45, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = t.color + '66';
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 0.45 + t.r * 0.55 * k, 0, Math.PI * 2); ctx.arc(t.x, t.y, t.r * 0.45, 0, Math.PI * 2, true); ctx.fill('evenodd');
     } else {
       ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       ctx.fillStyle = t.color + '66';
@@ -1665,9 +1738,28 @@ function draw() {
     }
   }
   for (const s of eshots) {
-    ctx.fillStyle = s.color; ctx.shadowColor = s.color; ctx.shadowBlur = 14;
-    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+    const shape = s.shape || (s.style === 'ranged' ? 'arrow' : s.style === 'melee' ? 'rock' : 'orb');
+    const ang = Math.atan2(s.vy, s.vx);
+    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(ang);
+    ctx.fillStyle = s.color; ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+    if (shape === 'arrow') {
+      ctx.fillRect(-s.r * 2.2, -1.5, s.r * 2.6, 3);
+      ctx.beginPath(); ctx.moveTo(s.r * 1.2, 0); ctx.lineTo(s.r * 0.2, -s.r * 0.6); ctx.lineTo(s.r * 0.2, s.r * 0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#eee'; ctx.fillRect(-s.r * 2.2, -3, 5, 6);
+    } else if (shape === 'rock') {
+      ctx.rotate(s.x * 0.05);
+      ctx.beginPath(); for (let i = 0; i < 6; i++) { const rr = s.r * (0.75 + (i % 2) * 0.35); ctx.lineTo(Math.cos(i * 1.05) * rr, Math.sin(i * 1.05) * rr); } ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (shape === 'blob') {
+      ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.ellipse(0, 0, s.r * 1.4, s.r, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else if (shape === 'spike') {
+      ctx.beginPath(); ctx.moveTo(s.r * 1.6, 0); ctx.lineTo(-s.r, -s.r * 0.6); ctx.lineTo(-s.r * 0.5, 0); ctx.lineTo(-s.r, s.r * 0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else {
+      // magic orb with a fading tail
+      ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.ellipse(-s.r * 1.4, 0, s.r * 1.6, s.r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1; ctx.shadowColor = s.color; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(0, 0, s.r, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
+    }
+    ctx.restore();
   }
 
   for (const f of fx) {
@@ -2039,6 +2131,7 @@ function itemStatsText(it) {
     const S = SPECS[it.id];
     if (S) bits.push(`<b>Special: ${S.name}</b> (${S.cost}% energy): ${S.info}`);
   }
+  if (it.proc) bits.push(`<b>${BOLT_PROCS[it.proc].name}</b>: ${BOLT_PROCS[it.proc].info}`);
   if (it.def) bits.push(`${it.def > 0 ? '+' : ''}${it.def} defence`);
   if (it.dmg) bits.push(`+${Math.round(it.dmg * 100)}% ${it.lane === 'any' ? '' : LANE_NAME[it.lane] + ' '}damage`);
   if (it.hp) bits.push(`+${it.hp} hitpoints`);
