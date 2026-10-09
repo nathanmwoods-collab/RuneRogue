@@ -458,7 +458,10 @@ function startClue() {
   const id = pool[Math.floor(Math.random() * pool.length)];
   run.clueSeen.push(id);
   run.clues++;
-  const pos = edgeSpawn();
+  const pos = spreadSpawn();
+  // keep the whole sprite and its health bar on screen
+  pos.y = clamp(pos.y, 130 + MONSTERS[id].size, WORLD_H - 40);
+  pos.x = clamp(pos.x, 40 + MONSTERS[id].size * 0.4, WORLD_W - 40 - MONSTERS[id].size * 0.4);
   const m = spawnMonster(id, pos.x, pos.y);
   m.clueBoss = true;
   chat(`You read the clue scroll. A ${m.d.name} appears!`, 'r');
@@ -1523,10 +1526,11 @@ function drawEnemy(e) {
   ctx.restore();
   if (e.hp < e.maxHp && !e.d.boss) {
     const w = Math.max(30, e.r * 1.6);
-    ctx.fillStyle = '#c00'; ctx.fillRect(e.x - w / 2, e.y - h - 8, w, 5);
-    ctx.fillStyle = '#0c0'; ctx.fillRect(e.x - w / 2, e.y - h - 8, w * Math.max(0, e.hp / e.maxHp), 5);
+    const by = Math.max(4, e.y - h - 8);
+    ctx.fillStyle = '#c00'; ctx.fillRect(e.x - w / 2, by, w, 5);
+    ctx.fillStyle = '#0c0'; ctx.fillRect(e.x - w / 2, by, w * Math.max(0, e.hp / e.maxHp), 5);
   }
-  if ((e.d.elite || e.clueBoss) && !e.d.boss) text(`${e.d.name} (level-${e.d.lvl})`, e.x, e.y - h - 18, 12, e.clueBoss ? '#ff981f' : '#ffff00');
+  if ((e.d.elite || e.clueBoss) && !e.d.boss) text(`${e.d.name} (level-${e.d.lvl})`, e.x, Math.max(14, e.y - h - 18), 12, e.clueBoss ? '#ff981f' : '#ffff00');
   if (e.healer) text(e.aggro ? e.d.name : `${e.d.name} (healing)`, e.x, e.y - h - 18, 12, '#ff981f');
   if (e.immune) text('Immune', e.x, e.y - h - 30, 14, '#9fe8ff');
   if (e.d.boss === 'jad' && e.ai.windup) {
