@@ -377,6 +377,8 @@ mon('ork', 'Ork', 'Ork.png', 107, 160, 100, 13, 70, 14, 'melee');
 mon('ogre', 'Ogre', 'Ogre.png', 53, 150, 80, 12, 92, 14, 'melee');
 mon('hobgoblin', 'Hobgoblin', 'Hobgoblin.png', 28, 110, 108, 11, 58, 12, 'melee');
 mon('sergeant_strongstack', 'Sergeant Strongstack', 'Sergeant_Strongstack.png', 141, 300, 95, 16, 64, 25, 'melee', { elite: true });
+mon('sergeant_steelwill', 'Sergeant Steelwill', 'Sergeant_Steelwill.png', 142, 280, 80, 15, 64, 25, 'magic', { caster: { range: 300, cd: 1.8, color: '#ffd23a', speed: 340 } });
+mon('sergeant_grimspike', 'Sergeant Grimspike', 'Sergeant_Grimspike.png', 142, 280, 80, 21, 64, 25, 'ranged', { caster: { range: 340, cd: 1.6, color: '#b0a080', speed: 460 } });
 // Zul-Andra
 mon('snakeling', 'Snakeling', 'Snakeling.png', 90, 60, 140, 12, 40, 10, 'magic');
 mon('lizardman', 'Lizardman', 'Lizardman_(level_53).png', 53, 140, 100, 13, 70, 14, 'ranged', { caster: ARROW('#7ad04a') });
@@ -428,7 +430,7 @@ mon('giant_mole', 'Giant Mole', 'Giant_Mole.png', 230, 1700, 100, 14, 150, 150, 
 mon('elvarg', 'Elvarg', 'Elvarg.png', 83, 2800, 95, 20, 190, 180, 'melee', { boss: 'dragon' });
 mon('kalphite_queen', 'Kalphite Queen', 'Kalphite_Queen.png', 333, 3000, 95, 24, 190, 220, 'melee', { boss: 'kq', noPray: true });
 mon('kbd', 'King Black Dragon', 'King_Black_Dragon.png', 276, 4400, 85, 26, 220, 260, 'melee', { boss: 'kbd' });
-mon('graardor', 'General Graardor', 'General_Graardor.png', 624, 5000, 85, 28, 200, 320, 'melee', { boss: 'graardor' });
+mon('graardor', 'General Graardor', 'General_Graardor.png', 624, 5000, 150, 28, 200, 320, 'melee', { boss: 'graardor' });
 mon('zulrah', 'Zulrah', 'Zulrah_(serpentine).png', 725, 5600, 0, 30, 200, 380, 'ranged', { boss: 'zulrah' });
 mon('jad', 'TzTok-Jad', 'TzTok-Jad.png', 702, 6400, 55, 32, 230, 420, 'melee', { boss: 'jad' });
 mon('vorkath', 'Vorkath', 'Vorkath.png', 732, 7600, 0, 34, 230, 480, 'magic', { boss: 'vorkath' });

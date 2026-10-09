@@ -873,11 +873,37 @@ function bossAI(e, dt) {
       sfx(90, 0.25, 'square', 0.05);
     }
   } else if (k === 'graardor') {
-    if (e.ai.t <= 0) {
-      e.ai.t = 3;
+    // General Graardor (wiki): fights with his three sergeants. In melee range he punches hard (2/3) or slams the
+    // ground (1/3), a ranged hit that reaches you anywhere in the room. Out of range he charges you down.
+    if (!e.ai.guards) {
+      e.ai.guards = true; e.ai.t = 1.5;
+      for (const [id, ox] of [['sergeant_strongstack', -150], ['sergeant_steelwill', 150], ['sergeant_grimspike', 0]]) {
+        const m = spawnMonster(id, clamp(e.x + ox, 60, WORLD_W - 60), clamp(e.y + (ox ? 40 : -60), 130, WORLD_H - 60));
+        m.summoned = true;
+      }
+      chat('General Graardor and his sergeants: Strongstack (melee), Steelwill (magic) and Grimspike (ranged).', 'r');
+    }
+    const d = Math.hypot(p.x - e.x, p.y - e.y), reach = e.r + p.r + 40;
+    if (!e.charge && d > 380 && (e.ai.ct = (e.ai.ct || 0) - dt) <= 0) {
+      e.ai.ct = 4;
+      const a = Math.atan2(p.y - e.y, p.x - e.x);
+      say(e, 'CHAAARGE!');
+      e.charge = { vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, t: 0.6, spd: 0 };
+    }
+    if (e.ai.t <= 0 && d < reach) {
+      e.ai.t = 2.2;
+      if (Math.random() < 1 / 3) {
+        // ground slam: hits wherever you stand; only Protect from Missiles helps
+        burst(e.x, e.y, '#c8a060', 40);
+        for (let i = 0; i < 6; i++) burst(e.x + (Math.random() - 0.5) * 500, e.y + (Math.random() - 0.5) * 400, '#8a6a3c', 10);
+        sfx(55, 0.5, 'sawtooth', 0.08);
+        hurtPlayer(e.dmg * 1.1, 'ranged');
+        if (e.ai.phase++ === 0) chat('Graardor slams the ground! It hits the whole room. Protect from Missiles.', 'r');
+      } else {
+        hurtPlayer(e.dmg * 2.0, 'melee', { from: e });
+        burst(p.x, p.y - 20, '#ff4a1a', 12);
+      }
       shout(e);
-      if (e.ai.phase++ % 3 === 2) summon(e, 'sergeant_strongstack', 1);
-      else slam(p.x, p.y, 120, 1.0, e.dmg * 1.2, 'ranged', '#c8a060', 'Smash!');
     }
   } else if (k === 'zulrah') {
     // Zulrah: rotates forms. Serpentine = ranged, magma = melee slams, tanzanite = magic. Leaves venom clouds.
