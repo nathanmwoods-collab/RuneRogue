@@ -322,18 +322,40 @@ function edgeSpawn() {
   return safeSpot(20, 120);
 }
 
+// Pick a spawn point anywhere on the map, away from the player and from other enemies, so the horde comes from every side.
+function spreadSpawn() {
+  const p = run.p;
+  let best = null, bestScore = -1;
+  for (let i = 0; i < 10; i++) {
+    const x = 40 + Math.random() * (WORLD_W - 80), y = 130 + Math.random() * (WORLD_H - 160);
+    const dp = Math.hypot(x - p.x, y - p.y);
+    if (dp < SAFE_SPAWN + 40) continue;
+    let near = 1e9;
+    for (const e of enemies) near = Math.min(near, Math.hypot(e.x - x, e.y - y));
+    // favour spots ahead of where the player is running, so circling runs into new enemies
+    const ahead = (p.vx || 0) * (x - p.x) + (p.vy || 0) * (y - p.y) > 0 ? 120 : 0;
+    const score = Math.min(near, 500) + ahead - Math.max(0, dp - 650) * 0.3;
+    if (score > bestScore) { bestScore = score; best = { x, y }; }
+  }
+  return best || edgeSpawn();
+}
+
 function spawnTick(dt) {
   if (toSpawn <= 0 || (isBoss && (!bossAlive || bossAlive.dead))) return;
   spawnT -= dt;
-  if (spawnT > 0 || enemies.length > 60) return;
   const a = areaIndex();
-  spawnT = isBoss ? 4 : Math.max(0.45, 1.4 - a * 0.05);
-  const group = Math.min(toSpawn, 1 + Math.floor(Math.random() * Math.min(4, 2 + a / 3)));
-  const pos = edgeSpawn();
+  // trickle in: only a limited number alive at once
+  const maxAlive = isBoss ? 4 + a : 7 + Math.floor(a * 0.8) + subIndex() * 2;
+  if (spawnT > 0 || enemies.length >= maxAlive) return;
+  spawnT = isBoss ? 4 : Math.max(0.7, 1.7 - a * 0.05);
+  const group = Math.min(toSpawn, 1 + Math.floor(Math.random() * 2));
   for (let i = 0; i < group; i++) {
     let id = area.hordes[Math.floor(Math.random() * area.hordes.length)];
     if (area.elites.length && Math.random() < Math.min(0.4, 0.1 + subIndex() * 0.08 + a * 0.015)) id = area.elites[Math.floor(Math.random() * area.elites.length)];
-    spawnMonster(id, pos.x + (Math.random() - 0.5) * 60, pos.y + (Math.random() - 0.5) * 60);
+    const pos = spreadSpawn();
+    const m = spawnMonster(id, pos.x, pos.y);
+    burst(pos.x, pos.y, '#d8c8a0', 8);
+    if (m && Math.random() < 0.45) m.lead = 0.5 + Math.random() * 0.7; // cuts you off instead of chasing your tail
   }
   toSpawn -= group;
 }
@@ -636,6 +658,11 @@ function hurtPlayer(raw, style, opts = {}) {
 
 function updateEnemies(dt) {
   const p = run.p;
+  if (dt > 0) {
+    const ivx = (p.x - (p.lx ?? p.x)) / dt, ivy = (p.y - (p.ly ?? p.y)) / dt;
+    p.vx = (p.vx || 0) * 0.85 + ivx * 0.15; p.vy = (p.vy || 0) * 0.85 + ivy * 0.15;
+    p.lx = p.x; p.ly = p.y;
+  }
   for (const e of enemies) {
     if (e.dead) continue;
     e.flash = Math.max(0, e.flash - dt);
@@ -652,7 +679,14 @@ function updateEnemies(dt) {
     if (e.d.spd === 0 && !e.d.caster) continue; // stationary bosses
 
     const tgt = e.healer && !e.aggro && bossAlive && !bossAlive.dead ? bossAlive : p;
-    const dx = tgt.x - e.x, dy = tgt.y - e.y, dist = Math.hypot(dx, dy) || 1;
+    let dx = tgt.x - e.x, dy = tgt.y - e.y, dist = Math.hypot(dx, dy) || 1;
+    const realDist = dist;
+    if (e.lead && tgt === p && dist > 90 && e.d.spd) {
+      // aim where the player is heading
+      const t = Math.min(e.lead, dist / e.d.spd);
+      dx = p.x + (p.vx || 0) * t - e.x; dy = p.y + (p.vy || 0) * t - e.y;
+      dist = Math.hypot(dx, dy) || 1;
+    }
     let want = tgt === p ? 1 : dist > e.r + bossAlive.r ? 1 : 0;
     if (e.d.caster && !e.d.boss) {
       want = dist > e.d.caster.range ? 1 : dist < e.d.caster.range * 0.7 ? -0.6 : 0;
@@ -671,7 +705,7 @@ function updateEnemies(dt) {
       e.x += dx / dist * spd * want * dt;
       e.y += dy / dist * spd * want * dt;
     }
-    if (tgt === p && dist < e.r + p.r && e.hitCd <= 0) {
+    if (tgt === p && realDist < e.r + p.r && e.hitCd <= 0) {
       e.hitCd = e.d.boss ? 1.2 : 0.9;
       if (e.d.explode) { hurtPlayer(e.dmg, 'melee', { pure: true }); killEnemy(e); continue; }
       hurtPlayer(e.dmg, e.d.style === 'magic' && !e.d.caster ? 'magic' : 'melee', { drain: e.d.drain, heal: e.lifesteal, from: e, noPray: e.d.noPray });
