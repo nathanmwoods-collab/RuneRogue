@@ -1896,7 +1896,7 @@ function renderCasket(choices) {
   const s = el('div', 'sheet'); s.style.maxWidth = '720px';
   const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
   head.appendChild(imgTag(CASKET_FILE, 'Reward casket'));
-  const t = el('div'); t.appendChild(el('h2', '', 'You open the reward casket')); t.appendChild(el('p', '', 'Pick one item to keep. It is equipped straight away.'));
+  const t = el('div'); t.appendChild(el('h2', '', 'You open the reward casket')); t.appendChild(el('p', '', 'Pick one item to keep. It is equipped straight away. Or skip to keep your current gear.'));
   head.appendChild(t);
   s.appendChild(head);
   const g = el('div', 'grid offers'); g.style.marginTop = '12px';
@@ -1910,6 +1910,12 @@ function renderCasket(choices) {
   }
   if (!choices.length) g.appendChild(el('p', '', 'The casket is empty.'));
   s.appendChild(g);
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn(choices.length ? 'Skip, keep my gear' : 'Close', 'btn', () => {
+    chat('You leave the casket items behind.', 'b');
+    mode = 'play'; showScreen(null);
+  }));
+  s.appendChild(r);
   showScreen(s);
 }
 
