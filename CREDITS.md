@@ -45,14 +45,11 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Hero | Lord Iorwerth | https://oldschool.runescape.wiki/w/File:Lord_Iorwerth.png |
 | Hero | Arianwyn | https://oldschool.runescape.wiki/w/File:Arianwyn.png |
 | Hero | Duke Horacio | https://oldschool.runescape.wiki/w/File:Duke_Horacio.png |
-| Hero | Sir Prysin | https://oldschool.runescape.wiki/w/File:Sir_Prysin.png |
+| Hero | King Roald | https://oldschool.runescape.wiki/w/File:King_Roald.png |
 | Hero | Sir Amik Varze | https://oldschool.runescape.wiki/w/File:Sir_Amik_Varze.png |
-| Hero | Oziach | https://oldschool.runescape.wiki/w/File:Oziach.png |
-| Hero | Zul-Cheray | https://oldschool.runescape.wiki/w/File:Zul-Cheray.png |
-| Hero | TzHaar-Mej-Jal | https://oldschool.runescape.wiki/w/File:TzHaar-Mej-Jal.png |
-| Hero | Hans | https://oldschool.runescape.wiki/w/File:Hans.png |
-| Hero | Captain Ned | https://oldschool.runescape.wiki/w/File:Ned.png |
-| Hero | Party Pete | https://oldschool.runescape.wiki/w/File:Party_Pete.png |
+| Hero | Osmumten | https://oldschool.runescape.wiki/w/File:Osmumten.png |
+| Hero | Nieve | https://oldschool.runescape.wiki/w/File:Nieve.png |
+| Hero | Bob the Jagex cat | https://oldschool.runescape.wiki/w/File:Bob_the_Jagex_cat.png |
 | Item | Bronze sword | https://oldschool.runescape.wiki/w/File:Bronze_sword.png |
 | Item | Rune scimitar | https://oldschool.runescape.wiki/w/File:Rune_scimitar.png |
 | Item | Dragon scimitar | https://oldschool.runescape.wiki/w/File:Dragon_scimitar.png |
