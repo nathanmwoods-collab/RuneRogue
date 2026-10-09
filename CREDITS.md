@@ -798,7 +798,7 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Player spoof | I DSCIM YOU | https://oldschool.runescape.wiki/w/File:I_DSCIM_YOU.png |
 | Player spoof | Cow31337Killer | https://oldschool.runescape.wiki/w/File:Cow31337Killer.png |
 | Player spoof | Hopleez | https://oldschool.runescape.wiki/w/File:Hopleez.png |
-| Player spoof (Woox tribute) | Mysterious Adventurer | https://oldschool.runescape.wiki/w/File:Mysterious_Adventurer.png |
+| Player spoof (Woox tribute) and the Woox hero | Mysterious Adventurer | https://oldschool.runescape.wiki/w/File:Mysterious_Adventurer.png |
 | Item | Anti-dragon shield | https://oldschool.runescape.wiki/w/File:Anti-dragon_shield.png |
 
 ## RunePong

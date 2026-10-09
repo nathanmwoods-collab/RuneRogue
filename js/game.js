@@ -183,6 +183,7 @@ function heroUnlocked(h) {
 }
 function unlockText(h) {
   if (h.unlock.area !== undefined) return `Clear ${AREAS[h.unlock.area].name} to unlock`;
+  if (h.unlock.boss) return `Defeat the ${MONSTERS[h.unlock.boss].name} to unlock`;
   return `Costs ${h.unlock.sticks} trading sticks`;
 }
 function upLevel(id) { return meta.up[id] || 0; }
@@ -2990,6 +2991,14 @@ function renderTitle() {
     const open = heroUnlocked(h);
     const c = el('button', 'card' + (h === pickedHero ? ' sel' : '') + (open ? '' : ' locked'));
     c.type = 'button';
+    if (!open && h.unlock.secret) {
+      // surprise unlock: a mystery card with only a hint
+      c.appendChild(el('div', 'art', '<span style="font-size:64px;line-height:1;color:var(--orange)">?</span>'));
+      c.appendChild(el('div', 'nm', '???'));
+      c.appendChild(el('div', 'ds', h.unlock.secret));
+      g.appendChild(c);
+      continue;
+    }
     const art = el('div', 'art'); art.appendChild(imgTag(h.file, h.name)); c.appendChild(art);
     c.appendChild(el('div', 'nm', h.name));
     const lane = el('div', 'lane'); lane.appendChild(imgTag(LANE_ICON[h.lane], LANE_NAME[h.lane])); lane.appendChild(document.createTextNode(`${heroBoostText(h)} · starts with ${ITEMS[h.weapon].name}`)); c.appendChild(lane);
@@ -3635,6 +3644,8 @@ function silentDeath(e) { e.dead = true; burst(e.x, e.y, '#888', 10); }
 function creatureDeath(e) {
   if (!CR) return;
   if (!e.summoned && !e.revived && !e.d.boss && !e.clueBoss && CR.dead.length < 30) CR.dead.push({ id: e.id, x: e.x, y: e.y });
+  // heroes unlocked by killing a boss (Woox: the Corporeal Beast)
+  for (const h of HEROES) if (h.unlock && h.unlock.boss === e.id && !meta.heroes.includes(h.id)) { meta.heroes.push(h.id); saveMeta(); chat(`New hero unlocked: ${h.name}!`, 'g'); }
   if (e.d.split) {
     const [into, n] = e.d.split, list = Array.isArray(into) ? into : Array(n).fill(into);
     list.forEach((id, i) => {
@@ -3773,7 +3784,7 @@ function creatureFrame(dt) {
   // The Mysterious Adventurer (a tribute to Woox) helps against late bosses
   if (isBoss && !CR.wooxDone && areaIndex() >= 7 && bossAlive && !bossAlive.dead && bossAlive.hp < bossAlive.maxHp * 0.6) {
     CR.wooxDone = true;
-    if (Math.random() < 0.35) addCameo('woox');
+    if (Math.random() < 0.35 && run.hero.id !== 'woox') addCameo('woox');
   }
   for (const c of CR.cameos) cameoTick(c, dt);
   CR.cameos = CR.cameos.filter((c) => !c.gone);
