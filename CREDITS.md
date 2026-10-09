@@ -6,6 +6,10 @@ RuneRogue and RunePong are fan-made, non-commercial games for playing with frien
 
 Most filenames were checked against their File: page on the wiki. Any that fail to load fall back to a drawn stand-in.
 
+## Maps
+
+Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.runescape.wiki/osrs/, 2019-10-31 render without icons). Screenshots below are used if the tiles can't load.
+
 ## Music
 
 | Area | Track |
@@ -410,6 +414,9 @@ Most filenames were checked against their File: page on the wiki. Any that fail 
 | Upgrade | Packed lunch | https://oldschool.runescape.wiki/w/File:Shark.png |
 | Upgrade | Free rerolls | https://oldschool.runescape.wiki/w/File:Trading_sticks_1000.png |
 | Icon | Trading sticks | https://oldschool.runescape.wiki/w/File:Trading_sticks_1000.png |
+| Potion | Super attack | https://oldschool.runescape.wiki/w/File:Super_attack(4).png |
+| Potion | Super strength | https://oldschool.runescape.wiki/w/File:Super_strength(4).png |
+| Potion | Stamina potion | https://oldschool.runescape.wiki/w/File:Stamina_potion(4).png |
 | Icon | Clue scroll | https://oldschool.runescape.wiki/w/File:Clue_scroll_(hard).png |
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
 

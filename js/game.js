@@ -169,7 +169,7 @@ function newRun(hero) {
   run = {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
-    freeRerolls: 0,
+    freeRerolls: 0, buffs: {},
     gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
@@ -195,27 +195,28 @@ function stats() {
   const sum = (k) => gear.reduce((a, it) => a + (it[k] || 0), 0);
   const weapon = ITEMS[run.gear.weapon].w;
   const lane = KIND_STYLE[weapon.kind];
-  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0));
-  let aspd = 1 + sum('aspd') + upVal('aspd');
+  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg') * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0));
+  let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd');
   const range = (m.range || 1) * (1 + sum('range'));
   let splash = (m.splash || 1);
-  if (lane === 'melee') { dmgMult *= 1 + 0.07 * (s.strength - 1); aspd *= 1 + 0.04 * (s.attack - 1); }
-  if (lane === 'ranged') { dmgMult *= 1 + 0.07 * (s.ranged - 1); aspd *= 1 + 0.03 * (s.ranged - 1); }
-  if (lane === 'magic') { dmgMult *= 1 + 0.07 * (s.magic - 1); splash *= 1 + 0.03 * (s.magic - 1); }
-  const defPts = sum('def') * 1.2 + (s.defence - 1) * 2.5;
+  // Skill levels run to 99, so each level is a small step.
+  if (lane === 'melee') { dmgMult *= 1 + 0.03 * (s.strength - 1); aspd *= 1 + 0.01 * (s.attack - 1); }
+  if (lane === 'ranged') { dmgMult *= 1 + 0.03 * (s.ranged - 1); aspd *= 1 + 0.01 * (s.ranged - 1); }
+  if (lane === 'magic') { dmgMult *= 1 + 0.03 * (s.magic - 1); splash *= 1 + 0.01 * (s.magic - 1); }
+  const defPts = sum('def') * 1.2 + (s.defence - 1) * 0.7;
   const takenGear = gear.reduce((a, it) => a * (it.taken || 1), 1);
   return {
     lane, weapon, dmgMult, aspd, range, splash,
     pierce: sum('pierce'),
     regen: sum('regen'),
     maxHp: 50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0),
-    maxPp: 20 + 5 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
-    ppDrain: 1.6 * (m.ppDrain || 1) / (1 + 0.12 * (s.prayer - 1)),
+    maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
+    ppDrain: 1.6 * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
     reduce: Math.min(0.75, defPts / 100),
     taken: (m.taken || 1) * takenGear * (1 - upVal('def')),
-    speed: 230 * (m.speed || 1) * (1 + 0.04 * (s.agility - 1) + sum('speed') + upVal('speed')),
-    goldMult: (m.gold || 1) * (1 + 0.08 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')),
-    crit: 0.05 + (m.crit || 0) + 0.02 * (s.slayer - 1) + upVal('crit'),
+    speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
+    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')),
+    crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit'),
   };
 }
 
@@ -326,6 +327,7 @@ function endStage() {
   // unopened clue scrolls on the ground still count
   for (const pk of pickups) if (pk.kind === 'clue') startClue();
   pickups = [];
+  run.buffs = {};
   const st = stats();
   const bonus = Math.round((15 + run.stage * 6) * st.goldMult * (isBoss ? 2 : 1));
   addGold(bonus, false);
@@ -346,6 +348,15 @@ function endStage() {
 // ======================================================================
 // Treasure Trails: clue scroll -> clue mini boss -> reward casket (pick 1 of 3)
 // ======================================================================
+function maybeDropPotion(e) {
+  if (e.d.boss || e.summoned) return;
+  const chance = (e.d.elite || e.clueBoss ? POTION_CHANCE.elite : POTION_CHANCE.normal) * (1 + upVal('luck') * 0.5);
+  if (Math.random() < chance) {
+    const keys = Object.keys(POTIONS);
+    pickups.push({ kind: 'potion', pot: keys[Math.floor(Math.random() * keys.length)], x: e.x + 20, y: e.y, t: 0 });
+  }
+}
+function buffMult(stat) { const b = run.buffs[stat]; return b && b.t > 0 ? 1 + b.amount : 1; }
 function maybeDropClue(e) {
   if (e.d.boss || e.d.clue || e.summoned) return;
   const chance = (e.d.elite ? 0.02 : 0.005) * (1 + upVal('luck'));
@@ -446,6 +457,7 @@ function killEnemy(e) {
     if (value > 0) coins.push({ x: e.x, y: e.y, v: value, t: 0 });
     burst(e.x, e.y, '#d8c9a3', 6);
     maybeDropClue(e);
+    maybeDropPotion(e);
   }
   if (e.d.explode) burst(e.x, e.y, '#5fd34a', 20);
 }
@@ -945,12 +957,19 @@ function updatePlayer(dt) {
     if (d < p.r + 8) { addGold(c.v, true); c.got = true; }
   }
   coins = coins.filter((c) => !c.got);
+  for (const k in run.buffs) run.buffs[k].t -= dt;
   for (const pk of pickups) {
     pk.t += dt;
+    if (pk.kind === 'potion' && pk.t > 20) { pk.got = true; continue; } // potions fade after a while
     if (Math.hypot(p.x - pk.x, p.y - pk.y) < p.r + 22) {
       pk.got = true;
       if (pk.kind === 'clue') startClue();
-      else { sfx(700, 0.2, 'triangle', 0.06); openCasket(pk); }
+      else if (pk.kind === 'potion') {
+        const pot = POTIONS[pk.pot];
+        run.buffs[pot.stat] = { t: pot.secs, amount: pot.amount, name: pot.name, file: pot.file };
+        chat(`You drink a ${pot.name}: ${pot.info} for ${pot.secs} seconds.`, 'g');
+        sfx(520, 0.15, 'sine', 0.06);
+      } else { sfx(700, 0.2, 'triangle', 0.06); openCasket(pk); }
     }
   }
   pickups = pickups.filter((pk) => !pk.got);
@@ -1057,10 +1076,54 @@ function step(dt) {
 // ======================================================================
 // Drawing
 // ======================================================================
+// Top-down world map tiles for each area. Each tile is cached once; failures are remembered.
+const tileCache = {};
+function mapTile(m, plane, tx, ty) {
+  const key = `${m}_${plane}_${tx}_${ty}`;
+  if (tileCache[key]) return tileCache[key];
+  const im = new Image();
+  im.decoding = 'async';
+  im.onerror = () => { im._failed = true; };
+  im.src = `${MAP_TILES}${m}_${MAP_VERSION}/3/${plane}_${tx}_${ty}.png`;
+  tileCache[key] = im;
+  return im;
+}
+// Calls fn(image, x, y, size) for every map tile covering the arena.
+function forEachMapTile(ar, fn) {
+  const [m, plane, cx, cy, sc] = ar.map;
+  const px = 8 * sc, size = 256 * sc; // zoom 3 = 8px per game tile
+  const tx0 = Math.floor((cx - WORLD_W / 2 / px) / 32), tx1 = Math.floor((cx + WORLD_W / 2 / px) / 32);
+  const ty0 = Math.floor((cy - WORLD_H / 2 / px) / 32), ty1 = Math.floor((cy + WORLD_H / 2 / px) / 32);
+  for (let tx = tx0; tx <= tx1; tx++) for (let ty = ty0; ty <= ty1; ty++) {
+    fn(mapTile(m, plane, tx, ty), WORLD_W / 2 + (tx * 32 - cx) * px, WORLD_H / 2 - ((ty + 1) * 32 - cy) * px, size);
+  }
+}
+function preloadMap(ar) { if (ar && ar.map) forEachMapTile(ar, () => {}); }
+function mapReady(ar) {
+  let ok = 0, all = 0;
+  forEachMapTile(ar, (im) => { all++; if (ready(im) || im._failed) ok++; });
+  return all > 0 && ok === all;
+}
+
 function drawGround() {
   const ar = area || AREAS[0];
+  if (ar.map && mapReady(ar) && !ar.mapFailed) {
+    // Aerial view: base colour first, then the map in 'screen' mode so empty black map areas take the base colour.
+    ctx.fillStyle = ar.look[1]; ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = 'screen';
+    let drawn = 0;
+    forEachMapTile(ar, (im, x, y, size) => { if (ready(im)) { ctx.drawImage(im, x, y, size + 0.5, size + 0.5); drawn++; } });
+    ctx.restore();
+    if (!drawn) ar.mapFailed = true; // nothing loaded: fall back to the screenshot next frame
+    ctx.fillStyle = 'rgba(10,8,4,0.22)'; ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, WORLD_W - 6, WORLD_H - 6);
+    return;
+  }
   const bg = wikiImage(ar.bg);
-  if (ready(bg)) {
+  if (ar.map && !ar.mapFailed && !mapReady(ar)) { /* map still loading: show plain ground */ }
+  else if (ready(bg)) {
     // cover the arena with the area's wiki screenshot, darkened so sprites stand out
     const s = Math.max(WORLD_W / bg.naturalWidth, WORLD_H / bg.naturalHeight);
     const w = bg.naturalWidth * s, h = bg.naturalHeight * s;
@@ -1140,10 +1203,12 @@ function draw() {
   for (const pk of pickups) {
     const bob = Math.sin(pk.t * 4) * 4;
     ctx.fillStyle = 'rgba(255,220,120,0.25)'; ctx.beginPath(); ctx.arc(pk.x, pk.y, 30 + Math.sin(pk.t * 5) * 4, 0, 7); ctx.fill();
-    const im = wikiImage(pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
-    if (ready(im)) ctx.drawImage(im, pk.x - 18, pk.y - 22 + bob, 36, 36 * im.naturalHeight / im.naturalWidth);
-    else { ctx.fillStyle = pk.kind === 'clue' ? '#f0e0b0' : '#8a5a2a'; ctx.fillRect(pk.x - 14, pk.y - 14 + bob, 28, 22); }
-    text(pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, '#ff981f');
+    const pot = pk.kind === 'potion' ? POTIONS[pk.pot] : null;
+    const im = wikiImage(pot ? pot.file : pk.kind === 'clue' ? CLUE_FILE : CASKET_FILE);
+    const w = pot ? 22 : 36;
+    if (ready(im)) ctx.drawImage(im, pk.x - w / 2, pk.y - 22 + bob, w, w * im.naturalHeight / im.naturalWidth);
+    else { ctx.fillStyle = pot ? '#4aa0ff' : pk.kind === 'clue' ? '#f0e0b0' : '#8a5a2a'; ctx.fillRect(pk.x - 14, pk.y - 14 + bob, 28, 22); }
+    text(pot ? pot.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : '#ff981f');
   }
 
   const sprites = enemies.filter((e) => e.ai.burrow <= 0).map((e) => ({ y: e.y, e }));
@@ -1232,6 +1297,14 @@ function drawPlayer() {
   drawWeapon(p, h);
   if (p.frozen > 0) { ctx.fillStyle = 'rgba(160,220,255,0.45)'; ctx.fillRect(p.x - 26, p.y - h, 52, h + 4); }
   if (p.poison > 0) text('Poisoned', p.x, p.y + 18, 13, '#5fd34a');
+  // active potion buffs: icon and seconds left under the player
+  const active = Object.values(run.buffs).filter((b) => b.t > 0);
+  active.forEach((b, i) => {
+    const bx = p.x + (i - (active.length - 1) / 2) * 30, by = p.y + 26;
+    const im = wikiImage(b.file);
+    if (ready(im)) ctx.drawImage(im, bx - 8, by, 16, 16 * im.naturalHeight / im.naturalWidth);
+    text(String(Math.ceil(b.t)), bx, by + 30, 11, '#7fd0ff');
+  });
 }
 
 // The equipped weapon's wiki sprite, animated: swings through its arc, draws and fires, or raises and casts.
@@ -1439,6 +1512,8 @@ function renderTitle() {
   ub.appendChild(imgTag(STICKS_FILE, 'Trading sticks')); ub.appendChild(document.createTextNode(` Upgrades (${meta.sticks.toLocaleString()} sticks)`));
   ub.classList.add('sticks-btn');
   r.appendChild(ub);
+  const mb = btn(musicOn ? 'Music: on' : 'Music: off', 'btn', () => { toggleMusic(); mb.textContent = musicOn ? 'Music: on' : 'Music: off'; });
+  r.appendChild(mb);
   r.appendChild(b);
   s.appendChild(r);
   s.appendChild(el('div', 'sec-title', 'The route')).style.marginTop = '14px';
@@ -1489,8 +1564,9 @@ function rollOffers(fresh) {
 }
 
 function skillCost(sk) {
-  const lvl = run.skills[sk.id] - (sk.id === 'hitpoints' ? 9 : 0);
-  return Math.round((14 + 9 * (lvl - 1) + 0.6 * (lvl - 1) * (lvl - 1)) * ((run.hero.mods || {}).skillCost || 1));
+  // Tuned so a run that focuses one skill can reach 99 by the end (about 14,500 gp from 1 to 99).
+  const lvl = run.skills[sk.id];
+  return Math.round((4 + 0.045 * lvl * lvl) * ((run.hero.mods || {}).skillCost || 1));
 }
 
 function itemStatsText(it) {
@@ -1546,12 +1622,21 @@ function buy(offer) {
   renderShop();
 }
 
+let trainStep = 1; // levels bought per tap: 1, 5 or 10
+function trainCost(sk, n) {
+  let total = 0;
+  const lv = run.skills[sk.id];
+  for (let i = 0; i < n && lv + i < 99; i++) { run.skills[sk.id] = lv + i; total += skillCost(sk); }
+  run.skills[sk.id] = lv;
+  return total;
+}
 function trainSkill(sk) {
-  const cost = skillCost(sk);
-  if (run.gold < cost || run.skills[sk.id] >= 99) return;
+  const n = Math.min(trainStep, 99 - run.skills[sk.id]);
+  const cost = trainCost(sk, n);
+  if (n <= 0 || run.gold < cost) return;
   const st0 = stats();
   run.gold -= cost;
-  run.skills[sk.id]++;
+  run.skills[sk.id] += n;
   const st1 = stats();
   run.p.hp += Math.max(0, st1.maxHp - st0.maxHp);
   chat(`Congratulations, you've just advanced your ${sk.name} level. You are now level ${run.skills[sk.id]}.`, 'b');
@@ -1606,16 +1691,25 @@ function renderShop() {
 
   const grid = el('div', 'grid shop');
   const left = el('div');
-  left.appendChild(el('div', 'sec-title', 'Train skills'));
+  const trainHead = el('div', 'row'); trainHead.style.justifyContent = 'space-between';
+  trainHead.appendChild(el('div', 'sec-title', 'Train skills'));
+  const steps = el('div', 'steps');
+  for (const n of [1, 5, 10]) {
+    const sb = btn(`+${n}`, 'btn step' + (trainStep === n ? ' on' : ''), () => { trainStep = n; renderShop(); });
+    steps.appendChild(sb);
+  }
+  trainHead.appendChild(steps);
+  left.appendChild(trainHead);
   const sk = el('div', 'skills');
   for (const k of SKILLS) {
-    const cost = skillCost(k);
+    const maxed = run.skills[k.id] >= 99;
+    const cost = trainCost(k, trainStep);
     const b = el('button', 'skill'); b.type = 'button';
-    b.title = k.info; b.disabled = run.gold < cost;
+    b.title = k.info; b.disabled = maxed || run.gold < cost;
     b.appendChild(imgTag(k.file, k.name));
     const mid = el('div'); mid.appendChild(el('div', 'lv', String(run.skills[k.id]))); mid.appendChild(el('div', 'nm', `${k.name}<br>${k.info}`));
     b.appendChild(mid);
-    b.appendChild(el('div', 'cost', `${cost} gp`));
+    b.appendChild(el('div', 'cost', maxed ? '99' : `${cost.toLocaleString()} gp`));
     b.addEventListener('click', () => trainSkill(k));
     sk.appendChild(b);
   }
@@ -1772,13 +1866,13 @@ function renderVictory() {
 // Preload arena sprites and the first area
 for (const h of HEROES) wikiImage(h.file);
 for (const id of [...AREAS[0].hordes, ...AREAS[0].elites, AREAS[0].boss]) wikiImage(MONSTERS[id].file);
-wikiImage(AREAS[0].bg);
+wikiImage(AREAS[0].bg); preloadMap(AREAS[0]);
 [STICKS_FILE, 'Coins_10000.png', 'Protect_from_Melee.png', 'Protect_from_Missiles.png', 'Protect_from_Magic.png', CLUE_FILE, CASKET_FILE].forEach(wikiImage);
 // Warm the next area's art while you play
 setInterval(() => {
   if (!run) return;
   const nxt = AREAS[Math.min(AREAS.length - 1, areaIndex() + 1)];
-  wikiImage(nxt.bg);
+  wikiImage(nxt.bg); preloadMap(nxt); preloadMap(area);
   for (const id of [...nxt.hordes, ...nxt.elites, nxt.boss]) wikiImage(MONSTERS[id].file);
   for (const it of Object.values(ITEMS)) if (it.tier <= areaIndex() + 2) wikiImage(it.file);
 }, 4000);

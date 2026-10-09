@@ -326,16 +326,16 @@ item('bellator_ring', 'Bellator ring', 'melee', 'ring', 13, 'rare', { dmg: 0.16,
 // Skills: gold buys levels. Combat skills boost whichever style your weapon uses.
 // ---------------------------------------------------------------------------
 const SKILLS = [
-  { id: 'attack', name: 'Attack', file: 'Attack_icon.png', lane: 'melee', start: 1, info: '+4% attack speed' },
-  { id: 'strength', name: 'Strength', file: 'Strength_icon.png', lane: 'melee', start: 1, info: '+7% melee damage' },
-  { id: 'ranged', name: 'Ranged', file: 'Ranged_icon.png', lane: 'ranged', start: 1, info: '+7% damage, +3% speed' },
-  { id: 'magic', name: 'Magic', file: 'Magic_icon.png', lane: 'magic', start: 1, info: '+7% damage, +3% splash' },
-  { id: 'defence', name: 'Defence', file: 'Defence_icon.png', lane: 'any', start: 1, info: '-2.5% damage taken' },
+  { id: 'attack', name: 'Attack', file: 'Attack_icon.png', lane: 'melee', start: 1, info: '+1% melee attack speed' },
+  { id: 'strength', name: 'Strength', file: 'Strength_icon.png', lane: 'melee', start: 1, info: '+3% melee damage' },
+  { id: 'ranged', name: 'Ranged', file: 'Ranged_icon.png', lane: 'ranged', start: 1, info: '+3% ranged damage, +1% speed' },
+  { id: 'magic', name: 'Magic', file: 'Magic_icon.png', lane: 'magic', start: 1, info: '+3% magic damage, +1% splash' },
+  { id: 'defence', name: 'Defence', file: 'Defence_icon.png', lane: 'any', start: 1, info: 'blocks more damage' },
   { id: 'hitpoints', name: 'Hitpoints', file: 'Hitpoints_icon.png', lane: 'any', start: 10, info: '+5 max hitpoints' },
-  { id: 'prayer', name: 'Prayer', file: 'Prayer_icon.png', lane: 'any', start: 1, info: '+5 prayer, slower drain' },
-  { id: 'agility', name: 'Agility', file: 'Agility_icon.png', lane: 'any', start: 1, info: '+4% run speed' },
-  { id: 'thieving', name: 'Thieving', file: 'Thieving_icon.png', lane: 'any', start: 1, info: '+8% gold from kills' },
-  { id: 'slayer', name: 'Slayer', file: 'Slayer_icon.png', lane: 'any', start: 1, info: '+2% critical hits' },
+  { id: 'prayer', name: 'Prayer', file: 'Prayer_icon.png', lane: 'any', start: 1, info: '+2 prayer, slower drain' },
+  { id: 'agility', name: 'Agility', file: 'Agility_icon.png', lane: 'any', start: 1, info: '+0.6% run speed' },
+  { id: 'thieving', name: 'Thieving', file: 'Thieving_icon.png', lane: 'any', start: 1, info: '+2% gold from kills' },
+  { id: 'slayer', name: 'Slayer', file: 'Slayer_icon.png', lane: 'any', start: 1, info: '+0.5% critical hits' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -456,29 +456,33 @@ const ZULRAH_FORMS = [
 
 // ---------------------------------------------------------------------------
 // The route: each area has two waves, then its own boss.
-// bg: a wiki screenshot of the place. music: the in-game track.
+// map: [mapId, plane, x, y, scale] for the top-down OSRS Wiki world map, centred on game tile x,y.
+// bg: a wiki screenshot of the place (used if the map tiles can't load). music: the in-game track.
 // look: fallback tile colours if the screenshot can't load.
 // ---------------------------------------------------------------------------
 const AREAS = [
-  { name: 'Lumbridge', bg: 'Lumbridge.png', music: 'Harmony.ogg', hordes: ['chicken', 'cow', 'giant_rat', 'goblin'], elites: ['man'], boss: 'cow_boss', look: ['#4a7a30', '#3f6a2a', '#5b8c3a'] },
-  { name: 'Draynor Manor', bg: 'Draynor_Manor.png', music: 'Spooky.ogg', hordes: ['zombie', 'skeleton', 'ghost', 'giant_bat'], elites: ['dark_wizard'], boss: 'count_draynor', look: ['#3a3a2e', '#2e2e25', '#46463a'] },
-  { name: 'Varrock', bg: 'Varrock.png', music: 'Adventure.ogg', hordes: ['guard', 'barbarian', 'man'], elites: ['dark_wizard', 'black_knight'], boss: 'delrith', look: ['#6a6458', '#5a5448', '#7a7468'] },
-  { name: 'Varrock Sewers', bg: 'Varrock_Sewers.png', music: 'Oh_Rats!.ogg', hordes: ['giant_rat', 'zombie', 'skeleton'], elites: ['moss_giant'], boss: 'scurrius', look: ['#3e4a36', '#333d2c', '#4a5940'] },
-  { name: 'Falador', bg: 'Falador.png', music: 'Fanfare.ogg', hordes: ['dwarf', 'guard', 'giant_rat'], elites: ['white_knight', 'black_knight', 'hill_giant'], boss: 'giant_mole', look: ['#4f8536', '#43732d', '#5f9a40'] },
-  { name: 'Crandor', bg: 'Crandor.png', music: 'The_Shadow.ogg', hordes: ['skeleton', 'moss_giant'], elites: ['lesser_demon'], boss: 'elvarg', look: ['#5a4a3a', '#4b3c2f', '#6b3a22'] },
-  { name: 'Kalphite Lair', bg: 'Fighting_Kalphite_Queen.png', music: 'Insect_Queen.ogg', hordes: ['kalphite_worker', 'kalphite_soldier'], elites: ['kalphite_guardian'], boss: 'kalphite_queen', look: ['#7a6440', '#6a5434', '#8a744e'] },
-  { name: 'Wilderness', bg: 'Wilderness.png', music: 'Attack_5.ogg', hordes: ['ankou', 'green_dragon', 'skeleton'], elites: ['greater_demon', 'black_demon'], boss: 'kbd', look: ['#5a4a32', '#4b3d29', '#6b5a3f'] },
-  { name: 'God Wars Dungeon', bg: 'God_Wars_Dungeon_Entrance.png', music: 'Bandos_Battalion.ogg', hordes: ['goblin', 'hobgoblin', 'ork', 'ogre'], elites: ['sergeant_strongstack'], boss: 'graardor', look: ['#5a4232', '#4a3628', '#6a5040'] },
-  { name: 'Zul-Andra', bg: 'Zul-Andra.png', music: 'Coil.ogg', hordes: ['snakeling', 'lizardman'], elites: ['lizardman_brute'], boss: 'zulrah', look: ['#2e5a4a', '#244a3c', '#3a6a58'] },
-  { name: 'Fight Caves', bg: 'TzHaar_Fight_Cave.png', music: 'TzHaar!.ogg', hordes: ['tz_kih', 'tz_kek', 'tok_xil'], elites: ['yt_mejkot', 'ket_zek'], boss: 'jad', look: ['#3a1a10', '#2b130b', '#6b2a0e'] },
-  { name: 'Ungael', bg: 'Ungael.png', music: 'On_Thin_Ice.ogg', hordes: ['zombie', 'skeleton'], elites: ['brutal_black_dragon'], boss: 'vorkath', look: ['#5a6a7a', '#4a5a6a', '#6a7a8a'] },
-  { name: 'Tombs of Amascut', bg: "Tombs_of_Amascut_-_fighting_Tumeken's_Warden.png", music: "Amascut's_Promise.ogg", hordes: ['scarab_swarm', 'baboon_brawler', 'baboon_thrower'], elites: ['baboon_mage'], boss: 'wardens', look: ['#8a6a3a', '#7a5a2e', '#9a7a48'] },
-  { name: 'Chambers of Xeric', bg: 'Fighting_Great_Olm.png', music: 'Fire_in_the_Deep.ogg', hordes: ['deathly_ranger', 'deathly_mage'], elites: ['lizardman_shaman', 'skeletal_mystic'], boss: 'olm', look: ['#2e3a4a', '#25303c', '#3a4858'] },
-  { name: 'Theatre of Blood', bg: 'Fighting_Verzik_Vitur.png', music: 'The_Fat_Lady_Sings.ogg', hordes: ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'], elites: [], boss: 'verzik', look: ['#4a1a1a', '#3a1414', '#5a2424'] },
-  { name: 'Ancient Prison', bg: 'Fighting_Nex.png', music: 'The_Ancient_Prison.ogg', hordes: ['spiritual_warrior', 'spiritual_ranger', 'spiritual_mage'], elites: ['fumus', 'glacies'], boss: 'nex', look: ['#3a2a4a', '#2e223c', '#4a3a5a'] },
-  { name: 'The Inferno', bg: 'Inferno_arena_overview.png', music: 'Inferno.ogg', hordes: ['jal_nib', 'jal_mejrah', 'jal_ak'], elites: ['jal_imkot', 'jal_xil', 'jal_zek'], boss: 'zuk', look: ['#4a1408', '#3a1006', '#6a200a'] },
+  { name: 'Lumbridge', map: [0, 0, 3222, 3218, 1], bg: 'Lumbridge.png', music: 'Harmony.ogg', hordes: ['chicken', 'cow', 'giant_rat', 'goblin'], elites: ['man'], boss: 'cow_boss', look: ['#4a7a30', '#3f6a2a', '#5b8c3a'] },
+  { name: 'Draynor Manor', map: [0, 0, 3109, 3353, 1], bg: 'Draynor_Manor.png', music: 'Spooky.ogg', hordes: ['zombie', 'skeleton', 'ghost', 'giant_bat'], elites: ['dark_wizard'], boss: 'count_draynor', look: ['#3a3a2e', '#2e2e25', '#46463a'] },
+  { name: 'Varrock', map: [0, 0, 3212, 3425, 1], bg: 'Varrock.png', music: 'Adventure.ogg', hordes: ['guard', 'barbarian', 'man'], elites: ['dark_wizard', 'black_knight'], boss: 'delrith', look: ['#6a6458', '#5a5448', '#7a7468'] },
+  { name: 'Varrock Sewers', map: [12, 0, 3237, 9890, 1.5], bg: 'Varrock_Sewers.png', music: 'Oh_Rats!.ogg', hordes: ['giant_rat', 'zombie', 'skeleton'], elites: ['moss_giant'], boss: 'scurrius', look: ['#3e4a36', '#333d2c', '#4a5940'] },
+  { name: 'Falador', map: [0, 0, 2965, 3378, 1], bg: 'Falador.png', music: 'Fanfare.ogg', hordes: ['dwarf', 'guard', 'giant_rat'], elites: ['white_knight', 'black_knight', 'hill_giant'], boss: 'giant_mole', look: ['#4f8536', '#43732d', '#5f9a40'] },
+  { name: 'Crandor', map: [0, 0, 2845, 3260, 1], bg: 'Crandor.png', music: 'The_Shadow.ogg', hordes: ['skeleton', 'moss_giant'], elites: ['lesser_demon'], boss: 'elvarg', look: ['#5a4a3a', '#4b3c2f', '#6b3a22'] },
+  { name: 'Kalphite Lair', map: [0, 0, 3230, 3110, 1], bg: 'Fighting_Kalphite_Queen.png', music: 'Insect_Queen.ogg', hordes: ['kalphite_worker', 'kalphite_soldier'], elites: ['kalphite_guardian'], boss: 'kalphite_queen', look: ['#7a6440', '#6a5434', '#8a744e'] },
+  { name: 'Wilderness', map: [0, 0, 3110, 3790, 1], bg: 'Wilderness.png', music: 'Attack_5.ogg', hordes: ['ankou', 'green_dragon', 'skeleton'], elites: ['greater_demon', 'black_demon'], boss: 'kbd', look: ['#5a4a32', '#4b3d29', '#6b5a3f'] },
+  { name: 'God Wars Dungeon', map: [7, 2, 2876, 5378, 1.3], bg: 'God_Wars_Dungeon_Entrance.png', music: 'Bandos_Battalion.ogg', hordes: ['goblin', 'hobgoblin', 'ork', 'ogre'], elites: ['sergeant_strongstack'], boss: 'graardor', look: ['#5a4232', '#4a3628', '#6a5040'] },
+  { name: 'Zul-Andra', map: [0, 0, 2250, 3090, 1], bg: 'Zul-Andra.png', music: 'Coil.ogg', hordes: ['snakeling', 'lizardman'], elites: ['lizardman_brute'], boss: 'zulrah', look: ['#2e5a4a', '#244a3c', '#3a6a58'] },
+  { name: 'Fight Caves', map: [23, 0, 2440, 5150, 1], bg: 'TzHaar_Fight_Cave.png', music: 'TzHaar!.ogg', hordes: ['tz_kih', 'tz_kek', 'tok_xil'], elites: ['yt_mejkot', 'ket_zek'], boss: 'jad', look: ['#3a1a10', '#2b130b', '#6b2a0e'] },
+  { name: 'Ungael', map: [0, 0, 2273, 4078, 1.6], bg: 'Ungael.png', music: 'On_Thin_Ice.ogg', hordes: ['zombie', 'skeleton'], elites: ['brutal_black_dragon'], boss: 'vorkath', look: ['#5a6a7a', '#4a5a6a', '#6a7a8a'] },
+  { name: 'Tombs of Amascut', map: [0, 0, 3262, 2785, 1.3], bg: "Tombs_of_Amascut_-_fighting_Tumeken's_Warden.png", music: "Amascut's_Promise.ogg", hordes: ['scarab_swarm', 'baboon_brawler', 'baboon_thrower'], elites: ['baboon_mage'], boss: 'wardens', look: ['#8a6a3a', '#7a5a2e', '#9a7a48'] },
+  { name: 'Chambers of Xeric', map: [0, 0, 1250, 3560, 1], bg: 'Fighting_Great_Olm.png', music: 'Fire_in_the_Deep.ogg', hordes: ['deathly_ranger', 'deathly_mage'], elites: ['lizardman_shaman', 'skeletal_mystic'], boss: 'olm', look: ['#2e3a4a', '#25303c', '#3a4858'] },
+  { name: 'Theatre of Blood', map: [0, 0, 3660, 3220, 1], bg: 'Fighting_Verzik_Vitur.png', music: 'The_Fat_Lady_Sings.ogg', hordes: ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'], elites: [], boss: 'verzik', look: ['#4a1a1a', '#3a1414', '#5a2424'] },
+  { name: 'Ancient Prison', map: [7, 2, 2912, 5335, 1.3], bg: 'Fighting_Nex.png', music: 'The_Ancient_Prison.ogg', hordes: ['spiritual_warrior', 'spiritual_ranger', 'spiritual_mage'], elites: ['fumus', 'glacies'], boss: 'nex', look: ['#3a2a4a', '#2e223c', '#4a3a5a'] },
+  { name: 'The Inferno', map: [23, 0, 2500, 5100, 1], bg: 'Inferno_arena_overview.png', music: 'Inferno.ogg', hordes: ['jal_nib', 'jal_mejrah', 'jal_ak'], elites: ['jal_imkot', 'jal_xil', 'jal_zek'], boss: 'zuk', look: ['#4a1408', '#3a1006', '#6a200a'] },
 ];
 const WAVES_PER_AREA = 2;
+// Top-down map tiles from the wiki's world map (zoom 3: 256px per 32x32 game tiles, no icons).
+const MAP_TILES = 'https://maps.runescape.wiki/osrs/tiles/';
+const MAP_VERSION = '2019-10-31_1';
 
 // Music for menus
 const MUSIC_TITLE = 'Scape_Main.ogg';
@@ -531,3 +535,11 @@ const UPGRADES = [
   { id: 'shark', name: 'Packed lunch', file: 'Shark.png', per: 1, max: 3, base: 40, info: (v) => `start with ${v} extra shark${v === 1 ? '' : 's'}` },
   { id: 'reroll', name: 'Free rerolls', file: STICKS_FILE, per: 1, max: 3, base: 50, info: (v) => `${v} free shop reroll${v === 1 ? '' : 's'} each visit` },
 ];
+
+// Potion drops: short buffs picked up from the ground (on top of the permanent trading-stick upgrades).
+const POTIONS = {
+  super_attack: { name: 'Super attack', file: 'Super_attack(4).png', stat: 'aspd', amount: 0.4, secs: 15, info: '40% faster attacks' },
+  super_strength: { name: 'Super strength', file: 'Super_strength(4).png', stat: 'dmg', amount: 0.3, secs: 15, info: '30% more damage' },
+  stamina: { name: 'Stamina potion', file: 'Stamina_potion(4).png', stat: 'speed', amount: 0.3, secs: 15, info: '30% faster running' },
+};
+const POTION_CHANCE = { normal: 0.012, elite: 0.06 };
