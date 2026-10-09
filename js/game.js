@@ -170,7 +170,7 @@ function newRun(hero) {
   run = {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
-    freeRerolls: 0, buffs: {}, lives: (hero.mods || {}).lives || 0,
+    freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
     gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
@@ -206,10 +206,10 @@ function stats() {
   const sum = (k) => gear.reduce((a, it) => a + (it[k] || 0), 0);
   const weapon = ITEMS[run.gear.weapon].w;
   const lane = KIND_STYLE[weapon.kind];
-  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane));
-  let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd');
-  const range = (m.range || 1) * (1 + sum('range'));
-  let splash = (m.splash || 1);
+  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane)) * (1 + 0.15 * bv('might'));
+  let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd') * (1 + 0.15 * bv('haste'));
+  const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach'));
+  let splash = (m.splash || 1) * (1 + 0.2 * bv('pierce'));
   // Skill levels run to 99, so each level is a small step.
   if (lane === 'melee') { dmgMult *= 1 + 0.03 * (s.strength - 1); aspd *= 1 + 0.01 * (s.attack - 1); }
   if (lane === 'ranged') { dmgMult *= 1 + 0.03 * (s.ranged - 1); aspd *= 1 + 0.01 * (s.ranged - 1); }
@@ -218,16 +218,16 @@ function stats() {
   const takenGear = gear.reduce((a, it) => a * (it.taken || 1), 1);
   return {
     lane, weapon, dmgMult, aspd, range, splash,
-    pierce: sum('pierce'),
-    regen: sum('regen') + (m.regen || 0),
+    pierce: sum('pierce') + bv('pierce'),
+    regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
     maxHp: 50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: 1.6 * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
     reduce: Math.min(0.75, defPts / 100),
-    taken: (m.taken || 1) * takenGear * (1 - upVal('def')),
-    speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
-    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')),
-    crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit'),
+    taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')),
+    speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
+    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')),
+    crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit'),
   };
 }
 
@@ -368,10 +368,40 @@ function endStage() {
   }
   sfx(660, 0.12, 'triangle', 0.06); setTimeout(() => sfx(880, 0.18, 'triangle', 0.06), 120);
   if (run.stage >= TOTAL_STAGES - 1) { victory(); return; }
-  mode = 'shop';
   playMusic(MUSIC_SHOP);
   rollOffers(true);
+  if (isBoss) { renderBoons(); return; }
+  mode = 'shop';
   renderShop();
+}
+
+// After each boss: pick 1 of 3 boons for this run.
+function renderBoons() {
+  mode = 'boon';
+  const pool = BOONS.filter((b) => bv(b.id) < b.max);
+  const picks = [];
+  while (picks.length < 3 && pool.length) picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  if (!picks.length) { mode = 'shop'; renderShop(); return; }
+  const s = el('div', 'sheet');
+  s.appendChild(el('h2', '', `${area.name} cleared! Choose a boon`));
+  s.appendChild(el('p', '', 'Boons last for the rest of this run.'));
+  const g = el('div', 'grid offers');
+  for (const b of picks) {
+    const c = el('button', 'card offer'); c.type = 'button';
+    const art = el('div', 'art'); art.appendChild(imgTag(b.file, b.name)); c.appendChild(art);
+    c.appendChild(el('div', 'nm', b.name + (bv(b.id) ? ` ${'I'.repeat(bv(b.id) + 1)}` : '')));
+    c.appendChild(el('div', 'ds', b.info));
+    c.addEventListener('click', () => {
+      run.boons[b.id] = bv(b.id) + 1;
+      if (b.id === 'life') run.lives++;
+      chat(`Boon gained: ${b.name}.`, 'g');
+      sfx(784, 0.15, 'triangle', 0.06);
+      mode = 'shop'; renderShop();
+    });
+    g.appendChild(c);
+  }
+  s.appendChild(g);
+  showScreen(s);
 }
 
 // ======================================================================
@@ -387,6 +417,7 @@ function maybeDropPotion(e) {
     pickups.push({ kind: 'potion', pot: bag[Math.floor(Math.random() * bag.length)], x: e.x + 20, y: e.y, t: 0 });
   }
 }
+function bv(id) { return (run && run.boons[id]) || 0; }
 function buffMult(stat) { const b = run.buffs[stat]; return b && b.t > 0 ? 1 + b.amount : 1; }
 function maybeDropClue(e) {
   if (e.d.boss || e.d.clue || e.summoned) return;
@@ -443,7 +474,8 @@ function rollDamage(base, target, st) {
   if (st.weapon.tbow) dmg *= 1 + Math.min(1.2, target.d.lvl / 400);
   if (target.d.boss && run.hero.mods && run.hero.mods.bossDmg) dmg *= run.hero.mods.bossDmg;
   const crit = Math.random() < st.crit;
-  if (crit) dmg *= 2;
+  if (crit) dmg *= 2 + 0.5 * bv('crit');
+  if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 
@@ -460,7 +492,9 @@ function damageEnemy(e, dmg, crit, opts = {}) {
     const a = Math.atan2(e.y - run.p.y, e.x - run.p.x);
     e.kx += Math.cos(a) * opts.knock * 4; e.ky += Math.sin(a) * opts.knock * 4;
   }
-  if (opts.leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * opts.leech);
+  const leech = (opts.leech || 0) + 0.03 * bv('vamp');
+  if (leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech);
+  if (bv('execute') && !e.d.boss && !e.clueBoss && e.hp > 0 && e.hp < e.maxHp * 0.12) e.hp = 0;
   if (e.hp <= 0) {
     if (e.d.boss && bossPhaseOnDeath(e)) return;
     killEnemy(e);
@@ -497,7 +531,8 @@ function playerAttack(dt) {
   const p = run.p, st = stats(), w = st.weapon;
   p.atkT -= dt;
   if (p.atkT > 0 || p.frozen > 0) return;
-  const reach = w.kind === 'swing' ? w.reach : w.range * st.range;
+  const reachMult = 1 + 0.15 * bv('reach');
+  const reach = w.kind === 'swing' ? w.reach * reachMult : w.range * st.range;
   const target = nearestEnemy(p.x, p.y, reach + (w.kind === 'swing' ? 10 : 0));
   if (!target) return;
   p.atkT = w.cd / st.aspd;
@@ -509,10 +544,10 @@ function playerAttack(dt) {
     sfx(w.arc > 6 ? 120 : 300, 0.06, 'square', 0.03);
     for (const e of [...enemies]) {
       const d = Math.hypot(e.x - p.x, e.y - p.y) - e.r;
-      if (d > w.reach || e.ai.burrow > 0 || e.untargetable) continue;
+      if (d > w.reach * reachMult || e.ai.burrow > 0 || e.untargetable) continue;
       const da = Math.abs(((Math.atan2(e.y - p.y, e.x - p.x) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
       if (da > w.arc / 2 && d > 4) continue;
-      for (let h = 0; h < (w.hits || 1); h++) {
+      for (let h = 0; h < (w.hits || 1) + bv('multi'); h++) {
         if (e.dead) break;
         const r = rollDamage(w.dmg * (h > 0 ? 0.6 : 1), e, st);
         damageEnemy(e, r.dmg, r.crit, { knock: w.knock });
@@ -521,15 +556,20 @@ function playerAttack(dt) {
   } else if (w.kind === 'shot') {
     sfx(700, 0.04, 'triangle', 0.025);
     const ammo = run.gear.ammo ? ITEMS[run.gear.ammo] : null;
-    for (let i = 0; i < w.count; i++) {
-      const a = ang + (i - (w.count - 1) / 2) * (w.spread || 0);
+    const count = w.count + bv('multi'), spread = w.spread || 0.13;
+    for (let i = 0; i < count; i++) {
+      const a = ang + (i - (count - 1) / 2) * spread;
       shots.push({ kind: 'arrow', x: p.x, y: p.y - 30, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, life: (w.range * st.range) / w.speed + 0.1,
-        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: w.bounce || 0, icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null });
+        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null });
     }
   } else {
     sfx(480, 0.09, 'sine', 0.04);
-    shots.push({ kind: 'spell', x: p.x, y: p.y - 40, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, life: (w.range * st.range) / w.speed + 0.15,
-      pierce: 1, hit: new Set(), dmg: w.dmg, splash: w.splash * st.splash, color: w.color, freeze: w.freeze, leech: w.leech, icon: w.icon });
+    const count = 1 + bv('multi');
+    for (let i = 0; i < count; i++) {
+      const a = ang + (i - (count - 1) / 2) * 0.18;
+      shots.push({ kind: 'spell', x: p.x, y: p.y - 40, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, life: (w.range * st.range) / w.speed + 0.15,
+        pierce: 1, hit: new Set(), dmg: w.dmg, splash: w.splash * st.splash, color: w.color, freeze: w.freeze, leech: w.leech, icon: w.icon, bounce: bv('chain') });
+    }
   }
 }
 
@@ -550,6 +590,9 @@ function updateShots(dt) {
               damageEnemy(o, r.dmg, r.crit, { freeze: s.freeze, leech: s.leech });
             }
           }
+          // Ricochet: the spell leaps on to another enemy
+          const next = s.bounce > 0 && enemies.find((o) => !o.dead && !s.hit.has(o) && Math.hypot(o.x - e.x, o.y - e.y) < 260);
+          if (next) { s.bounce--; const a = Math.atan2(next.y - s.y, next.x - s.x), sp = Math.hypot(s.vx, s.vy); s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp; s.life = 0.7; break; }
           s.life = 0;
         } else {
           const r = rollDamage(s.dmg, e, st);
@@ -582,10 +625,11 @@ function hurtPlayer(raw, style, opts = {}) {
   if (opts.freeze) p.frozen = Math.max(p.frozen, opts.freeze);
   if (opts.poison && !(run.hero.mods || {}).poisonImmune) p.poison = Math.max(p.poison, opts.poison);
   if (opts.drain) p.pp = Math.max(0, p.pp - opts.drain);
+  if (bv('thorns') && opts.from && !opts.from.dead && dmg > 0) damageEnemy(opts.from, Math.round(dmg * 0.5 * bv('thorns')), false);
   if (opts.heal && opts.from) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg * opts.heal);
   if (p.hp <= 0 && run.lives > 0) {
     run.lives--; p.hp = Math.round(st.maxHp / 2);
-    chat(`${run.hero.name} cheats death! One of nine lives used.`, 'r'); burst(p.x, p.y, '#ffd060', 30);
+    chat(`${run.hero.name} cheats death!`, 'r'); burst(p.x, p.y, '#ffd060', 30);
   }
   if (p.hp <= 0) die();
 }
@@ -988,7 +1032,7 @@ function updatePlayer(dt) {
   for (const c of coins) {
     c.t += dt;
     const d = Math.hypot(p.x - c.x, p.y - c.y);
-    if (d < 120) { c.x += (p.x - c.x) / d * 440 * dt; c.y += (p.y - c.y) / d * 440 * dt; }
+    if (d < 120 * (1 + bv('greed'))) { c.x += (p.x - c.x) / d * 440 * dt; c.y += (p.y - c.y) / d * 440 * dt; }
     if (d < p.r + 8) { addGold(c.v, true); c.got = true; }
   }
   coins = coins.filter((c) => !c.got);
@@ -1759,8 +1803,9 @@ function renderShop() {
   const trainHead = el('div', 'row'); trainHead.style.justifyContent = 'space-between';
   trainHead.appendChild(el('div', 'sec-title', 'Train skills'));
   const steps = el('div', 'steps');
+  steps.appendChild(el('span', 'steps-lbl', 'Levels per click:'));
   for (const n of [1, 5, 10]) {
-    const sb = btn(`+${n}`, 'btn step' + (trainStep === n ? ' on' : ''), () => { trainStep = n; renderShop(); });
+    const sb = btn(`+${n} lvl${n > 1 ? 's' : ''}`, 'btn step' + (trainStep === n ? ' on' : ''), () => { trainStep = n; renderShop(); });
     steps.appendChild(sb);
   }
   trainHead.appendChild(steps);
@@ -1772,9 +1817,9 @@ function renderShop() {
     const b = el('button', 'skill'); b.type = 'button';
     b.title = k.info; b.disabled = maxed || run.gold < cost;
     b.appendChild(imgTag(k.file, k.name));
-    const mid = el('div'); mid.appendChild(el('div', 'lv', String(run.skills[k.id]))); mid.appendChild(el('div', 'nm', `${k.name}<br>${k.info}`));
+    const mid = el('div'); mid.appendChild(el('div', 'lv', `Level ${run.skills[k.id]}`)); mid.appendChild(el('div', 'nm', `${k.name}<br>${k.info}`));
     b.appendChild(mid);
-    b.appendChild(el('div', 'cost', maxed ? '99' : `${cost.toLocaleString()} gp`));
+    b.appendChild(el('div', 'cost', maxed ? 'Maxed' : `${cost.toLocaleString()} gp<br><small>to level ${Math.min(99, run.skills[k.id] + trainStep)}</small>`));
     b.addEventListener('click', () => trainSkill(k));
     sk.appendChild(b);
   }
@@ -1789,6 +1834,8 @@ function renderShop() {
     <span>Critical hits</span><b>${Math.round(st.crit * 100)}%</b>
     <span>Gold bonus</span><b>×${st.goldMult.toFixed(2)}</b>
     <span>Sharks · Prayer pots</span><b>${run.inv.shark} · ${run.inv.ppot}</b>`;
+  const boons = BOONS.filter((b) => bv(b.id)).map((b) => b.name + (bv(b.id) > 1 ? ` ${'I'.repeat(bv(b.id))}` : ''));
+  if (boons.length) stl.innerHTML += `<span>Boons</span><b>${boons.join(', ')}</b>`;
   eqRow.appendChild(stl);
   left.appendChild(eqRow);
   grid.appendChild(left);

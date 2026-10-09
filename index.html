@@ -151,12 +151,13 @@ img.wiki { image-rendering: auto; }
   background: var(--stone-dark); border: 1px solid var(--ink); padding: 5px 7px; cursor: pointer; color: var(--yellow); font: inherit; text-align: left;
 }
 .skill img { width: 24px; height: 24px; object-fit: contain; }
-.steps { display: flex; gap: 4px; }
-.btn.step { padding: 4px 10px; font-size: 13px; min-height: 0; }
+.steps { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.steps-lbl { font-size: 12px; color: var(--muted, #b8a98a); margin-right: 2px; }
+.btn.step { padding: 4px 10px; font-size: 14px; font-weight: bold; min-height: 0; font-family: var(--font-body); }
 .btn.step.on { outline: 2px solid var(--yellow); }
 .upgrades { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .sticks-btn img { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; }
-.skill .lv { font-family: var(--font-display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.skill .lv { font-family: var(--font-body); font-weight: bold; font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .skill .nm { font-size: 12px; color: var(--muted); line-height: 1.2; }
 .skill .cost { font-size: 12px; color: var(--yellow); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .skill:hover:not(:disabled) { outline: 1px solid var(--yellow); }

@@ -418,6 +418,22 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Potion | Stamina potion | https://oldschool.runescape.wiki/w/File:Stamina_potion(4).png |
 | Icon | Clue scroll | https://oldschool.runescape.wiki/w/File:Clue_scroll_(hard).png |
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
+| Boon | Multishot | https://oldschool.runescape.wiki/w/File:Eagle_Eye.png |
+| Boon | Piercing | https://oldschool.runescape.wiki/w/File:Hawk_Eye.png |
+| Boon | Ricochet | https://oldschool.runescape.wiki/w/File:Sharp_Eye.png |
+| Boon | Soul leech | https://oldschool.runescape.wiki/w/File:Smite.png |
+| Boon | Retribution | https://oldschool.runescape.wiki/w/File:Retribution.png |
+| Boon | Deadeye | https://oldschool.runescape.wiki/w/File:Deadeye.png |
+| Boon | Incredible Reflexes | https://oldschool.runescape.wiki/w/File:Incredible_Reflexes.png |
+| Boon | Piety | https://oldschool.runescape.wiki/w/File:Piety.png |
+| Boon | Steel Skin | https://oldschool.runescape.wiki/w/File:Steel_Skin.png |
+| Boon | Rapid Heal | https://oldschool.runescape.wiki/w/File:Rapid_Heal.png |
+| Boon | Greed | https://oldschool.runescape.wiki/w/File:Coins_10000.png |
+| Boon | Redemption | https://oldschool.runescape.wiki/w/File:Redemption.png |
+| Boon | Giant slayer | https://oldschool.runescape.wiki/w/File:Slayer_icon.png |
+| Boon | Mystic Might | https://oldschool.runescape.wiki/w/File:Mystic_Might.png |
+| Boon | Ultimate Strength | https://oldschool.runescape.wiki/w/File:Ultimate_Strength.png |
+| Boon | Fleet foot | https://oldschool.runescape.wiki/w/File:Agility_icon.png |
 
 ## RunePong
 

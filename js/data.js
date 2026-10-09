@@ -536,3 +536,23 @@ const POTIONS = {
   stamina: { name: 'Stamina potion', file: 'Stamina_potion(4).png', stat: 'speed', amount: 0.3, secs: 15, info: '30% faster running' },
 };
 const POTION_CHANCE = { normal: 0.012, elite: 0.06 };
+
+// Boons: run-only bonuses. After every boss you pick 1 of 3. max = how many times it can stack.
+const BOONS = [
+  { id: 'multi', name: 'Multishot', file: 'Eagle_Eye.png', max: 3, info: '+1 arrow or spell per attack, or +1 hit per melee swing' },
+  { id: 'pierce', name: 'Piercing', file: 'Hawk_Eye.png', max: 3, info: 'Arrows pierce 1 more enemy and spells splash 20% wider' },
+  { id: 'chain', name: 'Ricochet', file: 'Sharp_Eye.png', max: 3, info: 'Arrows and spells jump to 1 more nearby enemy' },
+  { id: 'vamp', name: 'Soul leech', file: 'Smite.png', max: 3, info: 'Heal 3% of the damage you deal' },
+  { id: 'thorns', name: 'Retribution', file: 'Retribution.png', max: 3, info: 'Enemies that hit you take 50% of the damage back' },
+  { id: 'crit', name: 'Deadeye', file: 'Deadeye.png', max: 3, info: '+8% critical chance and crits hit 50% harder' },
+  { id: 'haste', name: 'Incredible Reflexes', file: 'Incredible_Reflexes.png', max: 4, info: '15% faster attacks' },
+  { id: 'might', name: 'Piety', file: 'Piety.png', max: 4, info: '15% more damage' },
+  { id: 'skin', name: 'Steel Skin', file: 'Steel_Skin.png', max: 4, info: 'Take 10% less damage' },
+  { id: 'heal', name: 'Rapid Heal', file: 'Rapid_Heal.png', max: 3, info: 'Regenerate 1.5 hitpoints a second' },
+  { id: 'greed', name: 'Greed', file: 'Coins_10000.png', max: 3, info: '25% more gold and coins fly to you from further away' },
+  { id: 'life', name: 'Redemption', file: 'Redemption.png', max: 1, info: 'Survive one killing blow with half your hitpoints' },
+  { id: 'giant', name: 'Giant slayer', file: 'Slayer_icon.png', max: 3, info: '25% more damage to bosses' },
+  { id: 'reach', name: 'Mystic Might', file: 'Mystic_Might.png', max: 3, info: '15% more range and melee reach' },
+  { id: 'execute', name: 'Ultimate Strength', file: 'Ultimate_Strength.png', max: 1, info: 'Normal enemies below 12% hitpoints die instantly' },
+  { id: 'fleet', name: 'Fleet foot', file: 'Agility_icon.png', max: 3, info: '12% faster running' },
+];
