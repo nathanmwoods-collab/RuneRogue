@@ -255,7 +255,8 @@ function startStage() {
   spawnT = 0.6;
   if (isBoss) {
     const def = MONSTERS[area.boss];
-    const b = spawnMonster(area.boss, WORLD_W / 2, def.spd === 0 ? 210 : 230);
+    // feet low enough that the whole sprite is on screen
+    const b = spawnMonster(area.boss, WORLD_W / 2, Math.max(230, 140 + def.size));
     bossAlive = b;
     chat(`${area.name}: ${def.name} (level-${def.lvl}) appears!`, 'r');
     bossIntro(b);
@@ -875,7 +876,7 @@ function updateEnemies(dt) {
       }
     }
   }
-  for (const e of enemies) { e.x = clamp(e.x, 10, WORLD_W - 10); e.y = clamp(e.y, 90, WORLD_H - 10); }
+  for (const e of enemies) { e.x = clamp(e.x, 10, WORLD_W - 10); e.y = clamp(e.y, Math.min(WORLD_H - 40, 100 + e.d.size * 0.9), WORLD_H - 10); }
   enemies = enemies.filter((e) => !e.dead);
 }
 
@@ -1199,7 +1200,7 @@ function bossAI(e, dt) {
     }
   } else if (k === 'zuk') {
     // TzKal-Zuk: hide behind the moving shield when he fires, or take a huge hit
-    if (!e.ai.shield) e.ai.shield = { x: WORLD_W / 2, dir: 1 };
+    if (!e.ai.shield) e.ai.shield = { x: WORLD_W / 2, dir: 1, y: Math.min(WORLD_H - 160, e.y + 80) };
     const sh = e.ai.shield;
     sh.x += sh.dir * 120 * dt;
     if (sh.x < 220 || sh.x > WORLD_W - 220) sh.dir *= -1;
@@ -1211,9 +1212,9 @@ function bossAI(e, dt) {
     if (e.ai.blast > 0) {
       e.ai.blast -= dt;
       if (e.ai.blast <= 0) {
-        const safe = Math.abs(p.x - sh.x) < 85 && p.y > 300;
+        const safe = Math.abs(p.x - sh.x) < 85 && p.y > sh.y + 13;
         fx.push({ kind: 'beam', x: e.x, y: e.y - 60, tx: p.x, ty: p.y - 30, t: 0.3, max: 0.3, color: safe ? '#888' : '#ff3a1a' });
-        if (safe) burst(sh.x, 300, '#ffb040', 20); else hurtPlayer(75, 'magic', { pure: true });
+        if (safe) burst(sh.x, sh.y + 13, '#ffb040', 20); else hurtPlayer(75, 'magic', { pure: true });
       }
     }
     if (!e.ai.jad && hpf < 0.6) { e.ai.jad = true; const j = spawnMonster('jad', 200, 300); j.summoned = true; j.hp = j.maxHp = 2500; chat('TzKal-Zuk summons Jal-TokJad!', 'r'); }
@@ -1583,8 +1584,8 @@ function draw() {
   if (bossAlive && bossAlive.d.boss === 'zuk' && bossAlive.ai.shield) {
     const sh = bossAlive.ai.shield;
     ctx.fillStyle = '#5a3a1a'; ctx.strokeStyle = '#ffb040'; ctx.lineWidth = 3;
-    ctx.fillRect(sh.x - 85, 280, 170, 26); ctx.strokeRect(sh.x - 85, 280, 170, 26);
-    text('Ancestral Glyph', sh.x, 293, 13, '#ffb040');
+    ctx.fillRect(sh.x - 85, sh.y, 170, 26); ctx.strokeRect(sh.x - 85, sh.y, 170, 26);
+    text('Ancestral Glyph', sh.x, sh.y + 13, 13, '#ffb040');
   }
 
   for (const s of shots) {
@@ -1803,7 +1804,7 @@ function drawHud() {
   $('ppBar').lastElementChild.textContent = `Prayer ${Math.ceil(p.pp)} / ${st.maxPp}`;
   $('waveName').textContent = area.name;
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
-  $('waveSub').textContent = `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? `Boss: ${MONSTERS[area.boss].name}` : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`);
+  $('waveSub').textContent = `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`);
   $('goldTxt').textContent = run.gold.toLocaleString();
   drawGearBar();
   $('sharkN').textContent = '×' + run.inv.shark;
