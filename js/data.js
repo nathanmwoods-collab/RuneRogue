@@ -1118,3 +1118,26 @@ const BARROWS_SETS = {
   ahrim: { name: "Ahrim's", effect: 'Blighted Aura', pieces: ['ahrims_hood', 'ahrims_robetop', 'ahrims_robeskirt', 'ahrims_staff'], info: '25% of hits lower the enemy\'s Strength: it hits you 20% softer for 5 sec' },
 };
 for (const k in BARROWS_SETS) for (const id of BARROWS_SETS[k].pieces) ITEMS[id].barrows = k;
+
+// ---------- Spellbooks: your staff keeps autocasting; you also carry one special spell on a cooldown (R) ----------
+// area: the area whose boss you must beat once to unlock the book (-1 = from the start).
+const SPELLBOOKS = {
+  standard: { name: 'Standard spellbook', area: -1 },
+  arceuus: { name: 'Arceuus spellbook', area: 1 },
+  lunar: { name: 'Lunar spellbook', area: 11 },
+  ancient: { name: 'Ancient Magicks', area: 12 },
+};
+const SPELLS = [
+  { id: 'charge', book: 'standard', name: 'Charge', file: 'Charge.png', cd: 30, info: '+40% damage for 10 sec' },
+  { id: 'entangle', book: 'standard', name: 'Entangle', file: 'Entangle.png', cd: 22, info: 'Holds every normal enemy near you in place for 3 sec' },
+  { id: 'thrall', book: 'arceuus', name: 'Resurrect Greater Ghost', file: 'Resurrect_Greater_Ghost.png', cd: 40, info: 'A ghostly thrall fights beside you for 20 sec' },
+  { id: 'mark', book: 'arceuus', name: 'Mark of Darkness', file: 'Mark_of_Darkness.png', cd: 35, info: 'Enemies take +25% damage from you for 15 sec' },
+  { id: 'ward', book: 'arceuus', name: 'Ward of Arceuus', file: 'Ward_of_Arceuus.png', cd: 35, info: 'Take 25% less damage for 12 sec' },
+  { id: 'dcharge', book: 'arceuus', name: 'Death Charge', file: 'Death_Charge.png', cd: 40, info: 'For 20 sec, every kill restores 15% special attack energy' },
+  { id: 'veng', book: 'lunar', name: 'Vengeance', file: 'Vengeance.png', cd: 30, info: 'The next hit you take is thrown back at 75% of its damage' },
+  { id: 'heal_group', book: 'lunar', name: 'Heal Group', file: 'Heal_Group.png', cd: 45, info: 'Heals 30% of your max hitpoints' },
+  { id: 'ice_barrage', book: 'ancient', name: 'Ice Barrage', file: 'Ice_Barrage.png', cd: 16, info: 'Big hit on a group that freezes normal enemies for 4 sec', color: '#9fe8ff' },
+  { id: 'blood_barrage', book: 'ancient', name: 'Blood Barrage', file: 'Blood_Barrage.png', cd: 16, info: 'Big hit on a group that heals you for part of the damage', color: '#c0203a' },
+  { id: 'smoke_barrage', book: 'ancient', name: 'Smoke Barrage', file: 'Smoke_Barrage.png', cd: 16, info: 'Big hit on a group that poisons them', color: '#9a9a8a' },
+  { id: 'shadow_barrage', book: 'ancient', name: 'Shadow Barrage', file: 'Shadow_Barrage.png', cd: 16, info: 'Big hit on a group that makes them hit you 20% softer for 6 sec', color: '#5a4a7a' },
+];

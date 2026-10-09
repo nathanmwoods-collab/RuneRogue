@@ -756,6 +756,15 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | Torag's hammers | https://oldschool.runescape.wiki/w/File:Torag's_hammers.png |
 | Item | Karil's crossbow | https://oldschool.runescape.wiki/w/File:Karil's_crossbow.png |
 | Item | Ahrim's staff | https://oldschool.runescape.wiki/w/File:Ahrim's_staff.png |
+| Spell | Charge | https://oldschool.runescape.wiki/w/File:Charge.png |
+| Spell | Entangle | https://oldschool.runescape.wiki/w/File:Entangle.png |
+| Spell | Mark of Darkness | https://oldschool.runescape.wiki/w/File:Mark_of_Darkness.png |
+| Spell | Ward of Arceuus | https://oldschool.runescape.wiki/w/File:Ward_of_Arceuus.png |
+| Spell | Death Charge | https://oldschool.runescape.wiki/w/File:Death_Charge.png |
+| Spell | Heal Group | https://oldschool.runescape.wiki/w/File:Heal_Group.png |
+| Spell | Blood Barrage | https://oldschool.runescape.wiki/w/File:Blood_Barrage.png |
+| Spell | Smoke Barrage | https://oldschool.runescape.wiki/w/File:Smoke_Barrage.png |
+| Spell | Shadow Barrage | https://oldschool.runescape.wiki/w/File:Shadow_Barrage.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |
