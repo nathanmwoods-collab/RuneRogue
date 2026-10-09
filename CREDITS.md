@@ -509,6 +509,18 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Boon | Mystic Might | https://oldschool.runescape.wiki/w/File:Mystic_Might.png |
 | Boon | Ultimate Strength | https://oldschool.runescape.wiki/w/File:Ultimate_Strength.png |
 | Boon | Fleet foot | https://oldschool.runescape.wiki/w/File:Agility_icon.png |
+| Boon | Lightbearer | https://oldschool.runescape.wiki/w/File:Lightbearer.png |
+| Boon | Preserve | https://oldschool.runescape.wiki/w/File:Preserve.png |
+| Boon | Bonecrusher | https://oldschool.runescape.wiki/w/File:Bonecrusher.png |
+| Boon | Ice Barrage | https://oldschool.runescape.wiki/w/File:Ice_Barrage.png |
+| Boon | Venom | https://oldschool.runescape.wiki/w/File:Serpentine_helm.png |
+| Boon | Vengeance | https://oldschool.runescape.wiki/w/File:Vengeance.png |
+| Boon | Dharok's set | https://oldschool.runescape.wiki/w/File:Dharok's_greataxe.png |
+| Boon | Phoenix necklace | https://oldschool.runescape.wiki/w/File:Phoenix_necklace.png |
+| Boon | Ring of wealth | https://oldschool.runescape.wiki/w/File:Ring_of_wealth.png |
+| Boon | Slayer helmet | https://oldschool.runescape.wiki/w/File:Slayer_helmet.png |
+| Boon | Greater ghost thrall | https://oldschool.runescape.wiki/w/File:Resurrect_Greater_Ghost.png |
+| Boon | Greater ghost thrall (sprite) | https://oldschool.runescape.wiki/w/File:Greater_ghostly_thrall.png |
 
 ## RunePong
 

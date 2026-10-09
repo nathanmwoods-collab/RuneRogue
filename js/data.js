@@ -742,4 +742,16 @@ const BOONS = [
   { id: 'reach', name: 'Mystic Might', file: 'Mystic_Might.png', max: 3, info: '15% more range and melee reach' },
   { id: 'execute', name: 'Ultimate Strength', file: 'Ultimate_Strength.png', max: 1, info: 'Normal enemies below 12% hitpoints die instantly' },
   { id: 'fleet', name: 'Fleet foot', file: 'Agility_icon.png', max: 3, info: '12% faster running' },
+  { id: 'light', name: 'Lightbearer', file: 'Lightbearer.png', max: 2, info: 'Special attack energy refills ×2 as fast' },
+  { id: 'preserve', name: 'Preserve', file: 'Preserve.png', max: 2, info: 'Prayer drains 25% slower' },
+  { id: 'bones', name: 'Bonecrusher', file: 'Bonecrusher.png', max: 3, info: 'Every kill restores +1 prayer point' },
+  { id: 'barrage', name: 'Ice Barrage', file: 'Ice_Barrage.png', max: 3, info: '10% of hits freeze normal enemies for 1.5 sec' },
+  { id: 'venom', name: 'Venom', file: 'Serpentine_helm.png', max: 2, info: 'Hits envenom enemies: 10% of their max HP over 5 sec (2% on bosses)' },
+  { id: 'veng', name: 'Vengeance', file: 'Vengeance.png', max: 2, info: 'Every 20 sec, the next hit you take is thrown back at 75%' },
+  { id: 'dharok', name: "Dharok's set", file: "Dharok's_greataxe.png", max: 2, info: 'Up to +50% damage as your hitpoints drop' },
+  { id: 'phoenix', name: 'Phoenix necklace', file: 'Phoenix_necklace.png', max: 1, info: 'Once per area, heal 30% HP when you fall below 20%' },
+  { id: 'wealth', name: 'Ring of wealth', file: 'Ring_of_wealth.png', max: 2, info: '+25% luck: clues, potions and pies drop more' },
+  { id: 'slayer', name: 'Slayer helmet', file: 'Slayer_helmet.png', max: 3, info: '+20% damage to elite enemies' },
+  { id: 'thrall', name: 'Greater ghost thrall', file: 'Resurrect_Greater_Ghost.png', max: 3, info: 'A ghost follows you and hits the nearest enemy every second' },
 ];
+const THRALL_FILE = 'Greater_ghostly_thrall.png';

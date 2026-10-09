@@ -269,7 +269,7 @@ function stats() {
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
     maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.6 : 1)),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
-    ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
+    ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
     reduce: Math.min(0.75, defPts / 100),
     taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
@@ -293,6 +293,7 @@ function startStage() {
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false;
   run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null;
+  if (subIndex() === 0) run.phoenixUsed = false;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
   run.prayer = null;
@@ -575,7 +576,7 @@ function maybeDropPotion(e) {
     pickups.push({ kind: 'pie', x: e.x - 20, y: e.y, t: 0 });
   }
 }
-function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0) + (run.raid || 0) / 400 + (run.skull ? SKULL.luck : 0); }
+function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0) + (run.raid || 0) / 400 + (run.skull ? SKULL.luck : 0) + 0.25 * bv('wealth'); }
 // Invocations chosen for this run (INVOCATIONS in data.js)
 function inv(id) { return !!(run && run.invo && run.invo[id]); }
 function raidLevel(set) { return INVOCATIONS.reduce((a, v) => a + (set[v.id] ? v.lvl : 0), 0); }
@@ -768,6 +769,8 @@ function rollDamage(base, target, st) {
   const crit = Math.random() < st.crit;
   if (crit) dmg *= 2 + 0.5 * bv('crit');
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
+  if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
+  if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 
@@ -780,8 +783,10 @@ function damageEnemy(e, dmg, crit, opts = {}) {
   e.hp -= dmg;
   e.flash = 0.12;
   e.aggro = true;
-  splats.push({ x: e.x + (Math.random() - 0.5) * 16, y: e.y - e.d.size * 0.5, v: dmg, crit, t: 0.8, kind: dmg === 0 ? 'miss' : 'hit' });
+  splats.push({ x: e.x + (Math.random() - 0.5) * 16, y: e.y - e.d.size * 0.5, v: dmg, crit, t: 0.8, kind: dmg === 0 ? 'miss' : opts.venom ? 'venom' : 'hit' });
   if (opts.freeze && dmg > 0 && !e.d.boss) e.frozen = Math.max(e.frozen, opts.freeze);
+  if (bv('barrage') && dmg > 0 && !e.d.boss && !opts.venom && Math.random() < 0.1 * bv('barrage')) e.frozen = Math.max(e.frozen, 1.5);
+  if (bv('venom') && dmg > 0 && !opts.venom) { e.venomT = 5; e.venomDps = e.maxHp * (e.d.boss ? 0.02 : 0.1) * bv('venom') / 5; }
   if (opts.knock && !e.d.boss) {
     const a = Math.atan2(e.y - run.p.y, e.x - run.p.x);
     e.kx += Math.cos(a) * opts.knock * 4; e.ky += Math.sin(a) * opts.knock * 4;
@@ -799,6 +804,7 @@ function killEnemy(e) {
   if (e.dead) return;
   e.dead = true;
   run.kills++;
+  if (bv('bones')) run.p.pp = Math.min(stats().maxPp, run.p.pp + bv('bones'));
   run.killsBy[e.id] = (run.killsBy[e.id] || 0) + 1;
   achEvent('kill', e);
   if (e.d.boss && !e.summoned) achEvent('boss', e);
@@ -1061,6 +1067,14 @@ function hurtPlayer(raw, style, opts = {}) {
   if (inv('deadly') && dmg > 0) p.pp = Math.max(0, p.pp - dmg * 0.2);
   if (inv('arterial') && opts.from && !opts.from.dead && dmg > 0) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg);
   if (bv('thorns') && opts.from && !opts.from.dead && dmg > 0) damageEnemy(opts.from, Math.round(dmg * 0.5 * bv('thorns')), false);
+  if (bv('veng') && dmg > 0 && !(run.vengT > 0)) {
+    const t = opts.from && !opts.from.dead ? opts.from : nearestEnemy(p.x, p.y, 700);
+    if (t) { run.vengT = 20; p.over = { text: 'Taste vengeance!', t: 1.6 }; damageEnemy(t, Math.round(dmg * 0.75 * bv('veng')), false); }
+  }
+  if (bv('phoenix') && !run.phoenixUsed && p.hp > 0 && p.hp < st.maxHp * 0.2) {
+    run.phoenixUsed = true; p.hp = Math.min(st.maxHp, p.hp + Math.round(st.maxHp * 0.3));
+    chat('Your phoenix necklace heals you, but is destroyed in the process.', 'g'); burst(p.x, p.y, '#ff8a2a', 20);
+  }
   if (opts.heal && opts.from) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg * opts.heal);
   if (p.hp <= 0 && run.lives > 0 && cheatDeathAllowed()) {
     run.lives--; run.livesUsed++;
@@ -1087,6 +1101,10 @@ function updateEnemies(dt) {
     if (e.capRate) e.capBank = Math.min(e.capRate * 2, e.capBank + e.capRate * dt);
     if (e.over) { e.over.t -= dt; if (e.over.t <= 0) e.over = null; }
     e.x += e.kx * dt; e.y += e.ky * dt; e.kx *= 0.85; e.ky *= 0.85;
+    if (e.venomT > 0) {
+      e.venomT -= dt; e.venomTick = (e.venomTick || 1) - dt;
+      if (e.venomTick <= 0) { e.venomTick = 1; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.venomDps)), false, { venom: true }); if (e.dead) continue; }
+    }
     if (e.frozen > 0) { e.frozen -= dt; continue; }
     if (e.d.boss) bossAI(e, dt);
     if (e.dead || e.ai.burrow > 0) continue;
@@ -1614,7 +1632,16 @@ function updatePlayer(dt) {
   }
   coins = coins.filter((c) => !c.got);
   for (const k in run.buffs) run.buffs[k].t -= dt;
-  run.spec = Math.min(100, run.spec + SPEC_REGEN * dt);
+  run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * dt);
+  if (run.vengT > 0) run.vengT -= dt;
+  if (bv('thrall')) {
+    run.thrallT = (run.thrallT || 0) - dt;
+    if (run.thrallT <= 0) {
+      const t = nearestEnemy(p.x, p.y, 420);
+      run.thrallT = t ? 1 : 0.2;
+      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * bv('thrall') * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
+    }
+  }
   for (const pk of pickups) {
     pk.t += dt;
     if ((pk.kind === 'potion' || pk.kind === 'pie') && pk.t > 20) { pk.got = true; continue; } // potions and pies fade after a while
@@ -2009,6 +2036,12 @@ function drawPlayer() {
     if (ready(sk)) ctx.drawImage(sk, p.x - 11, sy, 22, 22 * sk.naturalHeight / sk.naturalWidth);
     else text('☠', p.x, sy + 18, 20, '#fff');
   }
+  if (bv('thrall')) {
+    const tb = Math.sin(performance.now() / 300) * 5;
+    ctx.save(); ctx.globalAlpha = 0.85;
+    drawSprite(wikiImage(THRALL_FILE), p.x + (p.flip ? 48 : -48), p.y - 6 + tb, 58, { color: '#9ab8d8', label: 'G' });
+    ctx.restore();
+  }
   const bob = p.moving ? Math.abs(Math.sin(performance.now() / 90)) * 3 : 0;
   ctx.save();
   if (p.hurtT > 0) ctx.globalAlpha = 0.6;
@@ -2109,7 +2142,7 @@ function drawSplat(s) {
   const a = Math.min(1, s.t * 3);
   const y = s.y - (0.8 - s.t) * 20;
   ctx.globalAlpha = a;
-  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : '#b00000';
+  ctx.fillStyle = s.kind === 'miss' ? '#2a5adf' : s.kind === 'poison' ? '#3c9a2a' : s.kind === 'venom' ? '#1f7a6a' : '#b00000';
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   ctx.beginPath();
   const R = s.crit ? 19 : 15;
