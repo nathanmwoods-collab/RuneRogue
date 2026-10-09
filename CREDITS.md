@@ -615,6 +615,86 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Item | 3rd Age druidic robe bottoms | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_robe_bottoms.png |
 | Item | 3rd Age druidic staff | https://oldschool.runescape.wiki/w/File:3rd_Age_druidic_staff.png |
 | Item | Ring of 3rd Age | https://oldschool.runescape.wiki/w/File:Ring_of_3rd_Age.png |
+| Item | Osmumten's fang | https://oldschool.runescape.wiki/w/File:Osmumten's_fang.png |
+| Item | Inquisitor's mace | https://oldschool.runescape.wiki/w/File:Inquisitor's_mace.png |
+| Item | Iban's staff | https://oldschool.runescape.wiki/w/File:Iban's_staff.png |
+| Item | Tumeken's shadow | https://oldschool.runescape.wiki/w/File:Tumeken's_shadow.png |
+| Item | Craw's bow | https://oldschool.runescape.wiki/w/File:Craw's_bow.png |
+| Item | Thammaron's sceptre | https://oldschool.runescape.wiki/w/File:Thammaron's_sceptre.png |
+| Item | Bronze dagger | https://oldschool.runescape.wiki/w/File:Bronze_dagger.png |
+| Item | Bronze scimitar | https://oldschool.runescape.wiki/w/File:Bronze_scimitar.png |
+| Item | Bronze longsword | https://oldschool.runescape.wiki/w/File:Bronze_longsword.png |
+| Item | Bronze mace | https://oldschool.runescape.wiki/w/File:Bronze_mace.png |
+| Item | Bronze battleaxe | https://oldschool.runescape.wiki/w/File:Bronze_battleaxe.png |
+| Item | Bronze 2h sword | https://oldschool.runescape.wiki/w/File:Bronze_2h_sword.png |
+| Item | Iron dagger | https://oldschool.runescape.wiki/w/File:Iron_dagger.png |
+| Item | Iron sword | https://oldschool.runescape.wiki/w/File:Iron_sword.png |
+| Item | Iron scimitar | https://oldschool.runescape.wiki/w/File:Iron_scimitar.png |
+| Item | Iron longsword | https://oldschool.runescape.wiki/w/File:Iron_longsword.png |
+| Item | Iron mace | https://oldschool.runescape.wiki/w/File:Iron_mace.png |
+| Item | Iron battleaxe | https://oldschool.runescape.wiki/w/File:Iron_battleaxe.png |
+| Item | Iron 2h sword | https://oldschool.runescape.wiki/w/File:Iron_2h_sword.png |
+| Item | Steel dagger | https://oldschool.runescape.wiki/w/File:Steel_dagger.png |
+| Item | Steel sword | https://oldschool.runescape.wiki/w/File:Steel_sword.png |
+| Item | Steel scimitar | https://oldschool.runescape.wiki/w/File:Steel_scimitar.png |
+| Item | Steel longsword | https://oldschool.runescape.wiki/w/File:Steel_longsword.png |
+| Item | Steel mace | https://oldschool.runescape.wiki/w/File:Steel_mace.png |
+| Item | Steel battleaxe | https://oldschool.runescape.wiki/w/File:Steel_battleaxe.png |
+| Item | Steel 2h sword | https://oldschool.runescape.wiki/w/File:Steel_2h_sword.png |
+| Item | Black dagger | https://oldschool.runescape.wiki/w/File:Black_dagger.png |
+| Item | Black sword | https://oldschool.runescape.wiki/w/File:Black_sword.png |
+| Item | Black scimitar | https://oldschool.runescape.wiki/w/File:Black_scimitar.png |
+| Item | Black longsword | https://oldschool.runescape.wiki/w/File:Black_longsword.png |
+| Item | Black mace | https://oldschool.runescape.wiki/w/File:Black_mace.png |
+| Item | Black battleaxe | https://oldschool.runescape.wiki/w/File:Black_battleaxe.png |
+| Item | Black 2h sword | https://oldschool.runescape.wiki/w/File:Black_2h_sword.png |
+| Item | Mithril dagger | https://oldschool.runescape.wiki/w/File:Mithril_dagger.png |
+| Item | Mithril sword | https://oldschool.runescape.wiki/w/File:Mithril_sword.png |
+| Item | Mithril scimitar | https://oldschool.runescape.wiki/w/File:Mithril_scimitar.png |
+| Item | Mithril longsword | https://oldschool.runescape.wiki/w/File:Mithril_longsword.png |
+| Item | Mithril mace | https://oldschool.runescape.wiki/w/File:Mithril_mace.png |
+| Item | Mithril battleaxe | https://oldschool.runescape.wiki/w/File:Mithril_battleaxe.png |
+| Item | Mithril 2h sword | https://oldschool.runescape.wiki/w/File:Mithril_2h_sword.png |
+| Item | Adamant dagger | https://oldschool.runescape.wiki/w/File:Adamant_dagger.png |
+| Item | Adamant sword | https://oldschool.runescape.wiki/w/File:Adamant_sword.png |
+| Item | Adamant longsword | https://oldschool.runescape.wiki/w/File:Adamant_longsword.png |
+| Item | Adamant mace | https://oldschool.runescape.wiki/w/File:Adamant_mace.png |
+| Item | Adamant battleaxe | https://oldschool.runescape.wiki/w/File:Adamant_battleaxe.png |
+| Item | Adamant 2h sword | https://oldschool.runescape.wiki/w/File:Adamant_2h_sword.png |
+| Item | Rune dagger | https://oldschool.runescape.wiki/w/File:Rune_dagger.png |
+| Item | Rune sword | https://oldschool.runescape.wiki/w/File:Rune_sword.png |
+| Item | Rune longsword | https://oldschool.runescape.wiki/w/File:Rune_longsword.png |
+| Item | Rune mace | https://oldschool.runescape.wiki/w/File:Rune_mace.png |
+| Item | Rune battleaxe | https://oldschool.runescape.wiki/w/File:Rune_battleaxe.png |
+| Item | Rune 2h sword | https://oldschool.runescape.wiki/w/File:Rune_2h_sword.png |
+| Item | Dragon sword | https://oldschool.runescape.wiki/w/File:Dragon_sword.png |
+| Item | Dragon mace | https://oldschool.runescape.wiki/w/File:Dragon_mace.png |
+| Item | Dragon battleaxe | https://oldschool.runescape.wiki/w/File:Dragon_battleaxe.png |
+| Item | Dragon 2h sword | https://oldschool.runescape.wiki/w/File:Dragon_2h_sword.png |
+| Item | Longbow | https://oldschool.runescape.wiki/w/File:Longbow.png |
+| Item | Oak shortbow | https://oldschool.runescape.wiki/w/File:Oak_shortbow.png |
+| Item | Oak longbow | https://oldschool.runescape.wiki/w/File:Oak_longbow.png |
+| Item | Willow shortbow | https://oldschool.runescape.wiki/w/File:Willow_shortbow.png |
+| Item | Willow longbow | https://oldschool.runescape.wiki/w/File:Willow_longbow.png |
+| Item | Maple longbow | https://oldschool.runescape.wiki/w/File:Maple_longbow.png |
+| Item | Yew shortbow | https://oldschool.runescape.wiki/w/File:Yew_shortbow.png |
+| Item | Yew longbow | https://oldschool.runescape.wiki/w/File:Yew_longbow.png |
+| Item | Staff | https://oldschool.runescape.wiki/w/File:Staff.png |
+| Item | Air battlestaff | https://oldschool.runescape.wiki/w/File:Air_battlestaff.png |
+| Item | Wind Blast | https://oldschool.runescape.wiki/w/File:Wind_Blast.png |
+| Item | Mystic air staff | https://oldschool.runescape.wiki/w/File:Mystic_air_staff.png |
+| Item | Wind Wave | https://oldschool.runescape.wiki/w/File:Wind_Wave.png |
+| Item | Water battlestaff | https://oldschool.runescape.wiki/w/File:Water_battlestaff.png |
+| Item | Water Blast | https://oldschool.runescape.wiki/w/File:Water_Blast.png |
+| Item | Mystic water staff | https://oldschool.runescape.wiki/w/File:Mystic_water_staff.png |
+| Item | Water Wave | https://oldschool.runescape.wiki/w/File:Water_Wave.png |
+| Item | Earth battlestaff | https://oldschool.runescape.wiki/w/File:Earth_battlestaff.png |
+| Item | Earth Blast | https://oldschool.runescape.wiki/w/File:Earth_Blast.png |
+| Item | Mystic earth staff | https://oldschool.runescape.wiki/w/File:Mystic_earth_staff.png |
+| Item | Earth Wave | https://oldschool.runescape.wiki/w/File:Earth_Wave.png |
+| Item | Fire battlestaff | https://oldschool.runescape.wiki/w/File:Fire_battlestaff.png |
+| Item | Fire Blast | https://oldschool.runescape.wiki/w/File:Fire_Blast.png |
+| Item | Mystic fire staff | https://oldschool.runescape.wiki/w/File:Mystic_fire_staff.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | Thrown food | Baguette | https://oldschool.runescape.wiki/w/File:Baguette.png |

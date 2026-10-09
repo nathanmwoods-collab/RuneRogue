@@ -262,6 +262,53 @@ item('master_wand', 'Master wand', 'magic', 'weapon', 5, 'common', { w: { kind: 
 item('thammarons_sceptre', "Thammaron's sceptre", 'magic', 'weapon', 7, 'uncommon', { w: { kind: 'spell', spell: 'Ice Blitz', icon: 'Ice_Blitz.png', dmg: 34, cd: 0.75, range: 420, speed: 680, splash: 50, color: '#9fe8ff', freeze: 1.2 } });
 item('toxic_staff_of_the_dead', 'Toxic Staff of the Dead', 'magic', 'weapon', 8, 'uncommon', { w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 40, cd: 0.75, range: 430, speed: 680, splash: 70, color: '#57d64a' } });
 item('volatile_nightmare_staff', 'Volatile Nightmare staff', 'magic', 'weapon', 12, 'rare', { w: { kind: 'spell', spell: 'Volatile', dmg: 140, cd: 1.3, range: 480, speed: 760, splash: 120, color: '#ff4a8a' } });
+// --- Weapon ladders (wiki): the full metal ladder for each melee type, wood bows, and elemental staves.
+// wt = weapon type, which sets how it plays (WEAPON_TYPES). Existing ladder items keep their stats and gain a type.
+const WEAPON_TYPES = {
+  dagger: { name: 'Dagger', info: 'very fast stabs; each hit lunges you forward', cd: 0.42, reach: 62, arc: 1.2, f: 0.95 },
+  sword: { name: 'Sword', info: 'a long straight thrust that runs through a line of enemies', cd: 0.6, reach: 105, arc: 0.45, f: 1.0 },
+  scimitar: { name: 'Scimitar', info: 'quick wide slashes', cd: 0.55, reach: 85, arc: 1.9, f: 1.0 },
+  longsword: { name: 'Longsword', info: 'a slow half-circle cleave in front of you', cd: 0.75, reach: 95, arc: 3.1, f: 1.05 },
+  mace: { name: 'Mace', info: 'crushing blows that stun and weaken', cd: 0.7, reach: 80, arc: 1.4, f: 1.0 },
+  battleaxe: { name: 'Battleaxe', info: 'heavy chops that make enemies bleed', cd: 0.95, reach: 88, arc: 2.2, f: 1.1 },
+  twoh: { name: '2h sword', info: 'a slow full spin that knocks enemies back', cd: 1.15, reach: 100, arc: 6.3, f: 1.15, knock: 60 },
+  short: { name: 'Shortbow', info: 'rapid fire; every 4th shot looses two arrows' },
+  long: { name: 'Longbow', info: 'slow, long range; arrows hit harder the further they fly' },
+};
+const METALS = [['bronze', 'Bronze', 0], ['iron', 'Iron', 0], ['steel', 'Steel', 1], ['black', 'Black', 1], ['mithril', 'Mithril', 2], ['adamant', 'Adamant', 3], ['rune', 'Rune', 4], ['dragon', 'Dragon', 5]];
+const METAL_NAMES = { dagger: 'dagger', sword: 'sword', scimitar: 'scimitar', longsword: 'longsword', mace: 'mace', battleaxe: 'battleaxe', twoh: '2h sword' };
+METALS.forEach(([mid, mname, tier], m) => {
+  const dps = 8 * Math.pow(1.22, m);
+  for (const [wt, suffix] of Object.entries(METAL_NAMES)) {
+    const id = `${mid}_${suffix.replace(/ /g, '_')}`;
+    if (ITEMS[id]) { ITEMS[id].w.wt = wt; continue; }
+    const T = WEAPON_TYPES[wt];
+    const w = { kind: 'swing', wt, dmg: Math.max(3, Math.round(dps * T.f * T.cd)), cd: T.cd, reach: T.reach, arc: T.arc };
+    if (T.knock) w.knock = T.knock;
+    item(id, `${mname} ${suffix}`, 'melee', 'weapon', tier, 'common', { w });
+  }
+});
+// Bows: normal, oak, willow, maple, yew and magic, short and long
+const WOODS = [['', 'Shortbow', 'Longbow', 0], ['oak', 'Oak shortbow', 'Oak longbow', 0], ['willow', 'Willow shortbow', 'Willow longbow', 1], ['maple', 'Maple shortbow', 'Maple longbow', 1], ['yew', 'Yew shortbow', 'Yew longbow', 2], ['magic', 'Magic shortbow', 'Magic longbow', 3]];
+WOODS.forEach(([wid, sname, lname, tier], i) => {
+  const dps = 9 * Math.pow(1.22, i);
+  const sid = (wid ? wid + '_' : '') + 'shortbow', lid = (wid ? wid + '_' : '') + 'longbow';
+  if (ITEMS[sid]) ITEMS[sid].w.wt = 'short';
+  else item(sid, sname, 'ranged', 'weapon', tier, 'common', { w: { kind: 'shot', wt: 'short', dmg: Math.max(3, Math.round(dps * 0.42)), cd: 0.42, range: 380 + i * 8, speed: 820, pierce: 1, count: 1 } });
+  if (ITEMS[lid]) ITEMS[lid].w.wt = 'long';
+  else item(lid, lname, 'ranged', 'weapon', tier, 'common', { w: { kind: 'shot', wt: 'long', dmg: Math.max(4, Math.round(dps * 0.85 * 0.85)), cd: 0.85, range: 500 + i * 12, speed: 950, pierce: 2, count: 1 } });
+});
+// Staves: plain staff, battlestaves (Blast spells) and mystic staves (Wave spells). Air is quick, water slows,
+// earth knocks back, fire hits hardest.
+const ELEMENTS = [['air', 'Wind', '#d8f4ff', { cd: 0.85 }], ['water', 'Water', '#4aa0ff', { freeze: 0.35 }], ['earth', 'Earth', '#8a6a3a', { knock: 35 }], ['fire', 'Fire', '#ff7a1a', { dmg: 1.15 }]];
+item('staff', 'Staff', 'magic', 'weapon', 0, 'common', { w: { kind: 'spell', spell: 'Wind Strike', icon: 'Wind_Strike.png', dmg: 6, cd: 0.85, range: 350, speed: 520, splash: 30, color: '#d8f4ff' } });
+for (const [eid, spell, color, fx] of ELEMENTS) {
+  for (const [kind, tier, sp, dmg, splash] of [['battlestaff', 2, 'Blast', 20, 54], ['mystic', 4, 'Wave', 32, 64]]) {
+    const id = kind === 'battlestaff' ? `${eid}_battlestaff` : `mystic_${eid}_staff`;
+    const name = kind === 'battlestaff' ? `${eid[0].toUpperCase() + eid.slice(1)} battlestaff` : `Mystic ${eid} staff`;
+    item(id, name, 'magic', 'weapon', tier, 'common', { w: { kind: 'spell', spell: `${spell} ${sp}`, icon: `${spell}_${sp}.png`, dmg: Math.round(dmg * (fx.dmg || 1)), cd: eid === 'air' ? 0.68 : 0.8, range: 400, speed: 620, splash, color, freeze: fx.freeze, knock: fx.knock } });
+  }
+}
 // Head
 item('iron_full_helm', 'Iron full helm', 'melee', 'head', 0, 'common', { def: 3 });
 item('adamant_full_helm', 'Adamant full helm', 'melee', 'head', 1, 'common', { def: 4 });

@@ -1478,16 +1478,23 @@ function playerAttack(dt) {
         if (e.dead) break;
         const r = rollDamage(w.dmg * (h > 0 ? 0.6 : 1), e, st);
         damageEnemy(e, r.dmg, r.crit, { knock: w.knock });
+        // weapon types: maces stun and weaken, battleaxes cause bleeding
+        if (w.wt === 'mace' && !e.dead && r.dmg > 0) { if (!e.d.boss) e.frozen = Math.max(e.frozen, 0.35); e.weak = Math.max(e.weak || 0, 0.15); e.weakT = 3; }
+        if (w.wt === 'battleaxe' && !e.dead && r.dmg > 0) { e.bleedT = 3; e.bleedDps = Math.max(e.bleedDps && e.bleedT > 0 ? e.bleedDps : 0, r.dmg * 0.2); }
       }
     }
+    // daggers lunge you in toward your target
+    if (w.wt === 'dagger') { const d = Math.hypot(target.x - p.x, target.y - p.y) - target.r - p.r; if (d > 4) { const step = Math.min(26, d); p.x += Math.cos(ang) * step; p.y += Math.sin(ang) * step; } }
   } else if (w.kind === 'shot') {
     sfx(700, 0.04, 'triangle', 0.025);
     const ammo = run.gear.ammo ? ITEMS[run.gear.ammo] : null;
-    const count = w.count + bv('multi'), spread = w.spread || 0.13;
+    // shortbows loose two arrows on every 4th shot
+    const snap = w.wt === 'short' && (run.shortN = (run.shortN || 0) + 1) % 4 === 0;
+    const count = w.count + bv('multi') + (snap ? 1 : 0), spread = w.spread || 0.13;
     for (let i = 0; i < count; i++) {
       const a = ang + (i - (count - 1) / 2) * spread;
       shots.push({ kind: 'arrow', x: p.x, y: p.y - 30, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, life: (w.range * st.range) / w.speed + 0.1,
-        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), knock: w.knock, food: w.foods ? w.foods[Math.floor(Math.random() * w.foods.length)] : null, spin: Math.random() * 6, icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null, proc: ammo && ammo.proc });
+        pierce: w.pierce + st.pierce, hit: new Set(), dmg: w.dmg, bolt: w.bolt, dart: w.dart, bounce: (w.bounce || 0) + bv('chain'), knock: w.knock, food: w.foods ? w.foods[Math.floor(Math.random() * w.foods.length)] : null, spin: Math.random() * 6, icon: ammo && ammo.slot === 'ammo' && ammo.lane === 'ranged' ? ammo.file : null, proc: ammo && ammo.proc, long: w.wt === 'long', ox: p.x, oy: p.y });
     }
   } else {
     sfx(480, 0.09, 'sine', 0.04);
@@ -1495,7 +1502,7 @@ function playerAttack(dt) {
     for (let i = 0; i < count; i++) {
       const a = ang + (i - (count - 1) / 2) * 0.18;
       shots.push({ kind: 'spell', x: p.x, y: p.y - 40, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, life: (w.range * st.range) / w.speed + 0.15,
-        pierce: 1, hit: new Set(), dmg: w.dmg, splash: w.splash * st.splash, color: w.color, freeze: w.freeze, leech: w.leech, icon: w.icon, bounce: bv('chain') });
+        pierce: 1, hit: new Set(), dmg: w.dmg, splash: w.splash * st.splash, color: w.color, freeze: w.freeze, leech: w.leech, icon: w.icon, bounce: bv('chain'), knock: w.knock });
     }
   }
 }
@@ -1577,7 +1584,7 @@ function updateShots(dt) {
             if (o.dead || o.ai.burrow > 0 || o.untargetable) continue;
             if (Math.hypot(o.x - s.x, (o.y - o.d.size * 0.35) - s.y) < s.splash + o.r * 0.5) {
               const r = rollDamage(o === e ? s.dmg : s.dmg * 0.6, o, st);
-              damageEnemy(o, r.dmg, r.crit, { freeze: s.freeze, leech: s.leech });
+              damageEnemy(o, r.dmg, r.crit, { freeze: s.freeze, leech: s.leech, knock: s.knock });
               if (s.spec && o === e) specHit(s, o, r.dmg);
             }
           }
@@ -1586,8 +1593,10 @@ function updateShots(dt) {
           if (next) { s.bounce--; const a = Math.atan2(next.y - s.y, next.x - s.x), sp = Math.hypot(s.vx, s.vy); s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp; s.life = 0.7; break; }
           s.life = 0;
         } else {
-          let r = rollDamage(s.dmg, e, st);
-          if (s.spec && !r.dmg) r = rollDamage(s.dmg, e, st);
+          // longbows hit harder the further the arrow has flown (up to +60%)
+          const sd = s.long ? s.dmg * (1 + Math.min(0.6, Math.hypot(s.x - s.ox, s.y - s.oy) / 700)) : s.dmg;
+          let r = rollDamage(sd, e, st);
+          if (s.spec && !r.dmg) r = rollDamage(sd, e, st);
           damageEnemy(e, r.dmg, r.crit || !!s.spec, { knock: s.knock });
           if (s.spec) specHit(s, e, r.dmg);
           if (s.proc && !e.dead) boltProc(s.proc, e, r.dmg, st);
@@ -1667,6 +1676,10 @@ function updateEnemies(dt) {
     if (e.capRate) e.capBank = Math.min(e.capRate * 2, e.capBank + e.capRate * dt);
     if (e.over) { e.over.t -= dt; if (e.over.t <= 0) e.over = null; }
     e.x += e.kx * dt; e.y += e.ky * dt; e.kx *= 0.85; e.ky *= 0.85;
+    if (e.bleedT > 0) {
+      e.bleedT -= dt; e.bleedTick = (e.bleedTick || 0.5) - dt;
+      if (e.bleedTick <= 0) { e.bleedTick = 0.5; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.bleedDps * 0.5)), false, { venom: true }); if (e.dead) continue; }
+    }
     if (e.venomT > 0) {
       e.venomT -= dt; e.venomTick = (e.venomTick || 1) - dt;
       if (e.venomTick <= 0) { e.venomTick = 1; if (!e.immune) damageEnemy(e, Math.max(1, Math.round(e.venomDps)), false, { venom: true }); if (e.dead) continue; }
@@ -3009,6 +3022,7 @@ function itemStatsText(it) {
     const w = it.w;
     bits.push(`${LANE_NAME[KIND_STYLE[w.kind]]} weapon`);
     bits.push(`${w.dmg} dmg every ${w.cd}s`);
+    if (w.wt && WEAPON_TYPES[w.wt]) bits.push(WEAPON_TYPES[w.wt].info);
     if (w.spell) bits.push(`casts ${w.spell}`);
     if (w.kind === 'swing') bits.push(w.arc > 6 ? 'hits all around you' : `reach ${Math.round(w.reach * MELEE_REACH)}`);
     if (w.hits) bits.push(`${w.hits} hits per swing`);
