@@ -1855,7 +1855,7 @@ function bossAI(e, dt) {
       } else if (r === 1) { e.ai.stream = rage ? 9 : 6; e.ai.st = 0; }
       else {
         const n = rage ? 5 : 3;
-        for (let i = 0; i < n; i++) slam(p.x + (i ? (Math.random() - 0.5) * 220 : 0), p.y + (i ? (Math.random() - 0.5) * 180 : 0), 75, 0.9, e.dmg * 1.3, 'magic', '#ff4a1a', i ? '' : 'Scorch!');
+        for (let i = 0; i < n; i++) slam(p.x + (i ? (Math.random() - 0.5) * 220 : 0), p.y + (i ? (Math.random() - 0.5) * 180 : 0), 75, 0.9, 0, 'magic', '#ff4a1a', i ? '' : 'Scorch!', { frac: rage ? 0.3 : 0.25 });
       }
       sfx(70, 0.4, 'sawtooth', 0.06);
     }
@@ -1877,7 +1877,7 @@ function bossAI(e, dt) {
       e.ai.t = e.ai.form2 ? 1.7 : 2.1;
       const r = e.ai.phase++ % 4;
       if (r === 0 && e.ai.phase === 1) chat('The Kalphite Queen\'s attacks ignore protection prayers!', 'r');
-      if (r === 3) { summon(e, e.ai.form2 ? 'kalphite_soldier' : 'kalphite_worker', 3); slam(p.x, p.y, 90, 1.0, e.dmg * 1.4, 'melee', '#c8a060', 'Acid!', np); }
+      if (r === 3) { summon(e, e.ai.form2 ? 'kalphite_soldier' : 'kalphite_worker', 3); slam(p.x, p.y, 90, 1.0, 0, 'melee', '#c8a060', 'Acid!', { noPray: true, frac: 0.35 }); }
       else if (e.ai.form2) fan(e, r === 1 ? 9 : 7, 0.14, 440, 'magic', '#c8a0ff', e.dmg, np);
       else fan(e, r === 1 ? 7 : 5, 0.13, 480, 'ranged', '#c8a060', e.dmg, { drain: 3, noPray: true });
       sfx(90, 0.25, 'square', 0.05);
@@ -1907,7 +1907,7 @@ function bossAI(e, dt) {
         burst(e.x, e.y, '#c8a060', 40);
         for (let i = 0; i < 6; i++) burst(e.x + (Math.random() - 0.5) * 500, e.y + (Math.random() - 0.5) * 400, '#8a6a3c', 10);
         sfx(55, 0.5, 'sawtooth', 0.08);
-        hurtPlayer(e.dmg * 1.1, 'ranged');
+        hurtPlayer(0, 'ranged', { frac: 0.3 });
         if (e.ai.phase++ === 0) chat('Graardor slams the ground! It hits the whole room. Protect from Missiles.', 'r');
       } else {
         hurtPlayer(e.dmg * 2.0, 'melee', { from: e });
@@ -1922,7 +1922,7 @@ function bossAI(e, dt) {
     if (e.ai.t <= 0) {
       e.ai.shots = (e.ai.shots || 0) + 1;
       e.ai.t = form.style === 'melee' ? 2.6 : 1.4;
-      if (form.style === 'melee') slam(p.x, p.y, 90, 1.1, 0, 'melee', form.color, 'Magma!', { frac: 0.45, freeze: 1 });
+      if (form.style === 'melee') slam(p.x, p.y, 90, 1.1, 0, 'melee', form.color, 'Magma!', { frac: 0.6, freeze: 1 });
       else aimShot(e, 520, form.style, form.color, e.dmg, { r: 14 });
       if (e.ai.shots % 3 === 0) hazards.push({ x: clamp(p.x + (Math.random() - 0.5) * 200, 40, WORLD_W - 40), y: clamp(p.y + (Math.random() - 0.5) * 160, 120, WORLD_H - 40), r: 60, t: 8, color: '#5fd34a', dps: 6, poison: 4 });
       if (e.ai.shots >= 6) {
@@ -1945,7 +1945,7 @@ function bossAI(e, dt) {
         const style = e.ai.windup.style;
         e.ai.windup = null; e.ai.t = 1.6;
         // like the real Jad: the right prayer blocks it all, the wrong one nearly kills you
-        aimShot(e, 700, style, style === 'magic' ? '#ff5a1a' : '#e8c060', 0, { r: 16, homing: true, frac: 0.75 });
+        aimShot(e, 700, style, style === 'magic' ? '#ff5a1a' : '#e8c060', 0, { r: 16, homing: true, frac: 0.95 });
       }
     }
     if (!e.ai.healers && hpf < 0.5) {
@@ -1970,7 +1970,7 @@ function bossAI(e, dt) {
         e.ai.spawn.summoned = true;
         chat('Vorkath freezes you and sends a zombified spawn! Kill it before it reaches you.', 'r');
       } else if (r === 4) {
-        slam(p.x, p.y, 70, 1.5, 0, 'magic', '#ff3a1a', 'Firebomb! Move!', { noPray: true, frac: 0.7 });
+        slam(p.x, p.y, 70, 1.5, 0, 'magic', '#ff3a1a', 'Firebomb! Move!', { noPray: true, frac: 0.9 });
       } else {
         aimShot(e, 500, Math.random() < 0.5 ? 'magic' : 'ranged', '#ff6a1a', e.dmg, { r: 16 });
       }
@@ -1980,7 +1980,7 @@ function bossAI(e, dt) {
       e.ai.t = 2.2;
       const r = e.ai.phase++ % 5;
       if (r === 0) { for (let i = 0; i < 5; i++) slam(60 + Math.random() * (WORLD_W - 120), 140 + Math.random() * (WORLD_H - 180), 90, 1.2, e.dmg, 'magic', '#ffd24a', 'Lightning!'); }
-      else if (r === 4) slam(p.x, p.y, 200, 1.3, 0, 'magic', '#ffd24a', 'Warden slam!', { shape: 'cross', w: 100, noPray: true, frac: 0.45 });
+      else if (r === 4) slam(p.x, p.y, 200, 1.3, 0, 'magic', '#ffd24a', 'Warden slam!', { shape: 'cross', w: 100, noPray: true, frac: 0.6 });
       else if (r === 2) { summon(e, 'scarab_swarm', 3); chat('The Warden calls a scarab swarm!', 'r'); }
       else aimShot(e, 520, r === 1 ? 'magic' : 'ranged', r === 1 ? '#4aa0ff' : '#c89a50', e.dmg, { r: 14 });
     }
@@ -2061,7 +2061,7 @@ function bossAI(e, dt) {
       else if (ph === 'shadow') { for (let i = 0; i < 4; i++) slam(p.x + (Math.random() - 0.5) * 240, p.y + (Math.random() - 0.5) * 200, 60, 1.0, e.dmg * 1.2, 'ranged', '#222', 'Shadow!'); }
       else if (ph === 'blood') {
         e.lifesteal = 1; aimShot(e, 500, 'magic', '#c01a1a', e.dmg, { r: 14 });
-        if (e.ai.siphon % 3 === 2) { slam(e.x, e.y, 300, 2.4, 0, 'magic', '#c01a1a', 'Blood Sacrifice! Run from Nex!', { noPray: true, frac: 0.7 }); }
+        if (e.ai.siphon % 3 === 2) { slam(e.x, e.y, 300, 2.4, 0, 'magic', '#c01a1a', 'Blood Sacrifice! Run from Nex!', { noPray: true, frac: 0.85 }); }
         if (e.ai.siphon = (e.ai.siphon || 0) + 1, e.ai.siphon % 3 === 1) {
           // Blood Siphon: pools of blood around you feed Nex for every hit they do
           for (let i = 0; i < 5; i++) hazards.push({ x: clamp(p.x + (Math.random() - 0.5) * 360, 40, WORLD_W - 40), y: clamp(p.y + (Math.random() - 0.5) * 280, 130, WORLD_H - 40), r: 50, t: 6, color: '#a00a1a', dps: 24, heal: 4, from: e });
@@ -2087,7 +2087,7 @@ function bossAI(e, dt) {
       if (e.ai.blast <= 0) {
         const safe = Math.abs(p.x - sh.x) < 85 && p.y > sh.y + 13;
         fx.push({ kind: 'beam', x: e.x, y: e.y - 60, tx: p.x, ty: p.y - 30, t: 0.3, max: 0.3, color: safe ? '#888' : '#ff3a1a' });
-        if (safe) burst(sh.x, sh.y + 13, '#ffb040', 20); else hurtPlayer(0, 'magic', { pure: true, frac: 0.85 });
+        if (safe) burst(sh.x, sh.y + 13, '#ffb040', 20); else hurtPlayer(0, 'magic', { pure: true, frac: 0.95 });
       }
     }
     if (!e.ai.jad && hpf < 0.6) { e.ai.jad = true; const j = spawnMonster('jad', 200, 300); j.summoned = true; j.hp = j.maxHp = 2500; chat('TzKal-Zuk summons Jal-TokJad!', 'r'); }
@@ -3432,7 +3432,7 @@ function hasDragonShield() { const s = run.gear.shield; return s === 'dragonfire
 function creatureHurtMods(raw, style, opts) {
   const elvargFire = bossAlive && !bossAlive.dead && bossAlive.id === 'elvarg' && style === 'magic' && !opts.pure;
   if ((opts.dragonfire || elvargFire) && hasDragonShield()) raw *= 0.35;
-  if (opts.sphere) opts.fracCur = 0.5; // Olm's sphere: half your hitpoints unless the matching prayer blocks it
+  if (opts.sphere) opts.fracCur = 0.66; // Olm's sphere: half your hitpoints unless the matching prayer blocks it
   if (opts.prayOff && run.prayer) { run.prayer = null; updatePrayerButtons(); chat('Your protection prayer has been switched off!', 'r'); }
   if (opts.slow) { if (!CR.slowTold) { CR.slowTold = true; chat('Jal-MejRah drains your run energy! You move slower for a moment.', 'r'); } run.p.slowT = Math.max(run.p.slowT || 0, opts.slow); }
   if (opts.weaken) { if (!(run.weakT > 0)) chat('You feel weakened: 15% less damage for a few seconds.', 'r'); run.weakT = Math.max(run.weakT || 0, opts.weaken); }
@@ -3712,7 +3712,7 @@ function bossMech(e, dt) {
     if (e.ai.stomps > 0 && (e.ai.st -= dt) <= 0) {
       e.ai.stomps--; e.ai.st = 0.8;
       const a = Math.atan2(p.y - e.y, p.x - e.x);
-      slam(e.x, e.y - 10, 300, 0.7, e.dmg * 2.4, 'melee', '#ffffff', '', { shape: 'cone', a, spread: 1.0, inner: 105 });
+      slam(e.x, e.y - 10, 300, 0.7, 0, 'melee', '#ffffff', '', { shape: 'cone', a, spread: 1.0, inner: 105, frac: 0.3 });
     }
     if (e.ai.t <= 0 && !e.charge && !(e.ai.stomps > 0)) {
       e.ai.t = 3.2;
@@ -3720,7 +3720,7 @@ function bossMech(e, dt) {
       if (dist < 340 && Math.random() < 0.55) { say(e, '*snort*'); e.ai.stomps = 1 + Math.floor(Math.random() * 3); e.ai.st = 0.2; }
       else {
         say(e, '*growls*');
-        telegraphs.push({ line: true, x: e.x, y: e.y, a, len: 430, w: 80, t: 0.75, max: 0.75, color: '#ffffff', dmg: e.dmg * 2.4, style: 'melee', label: '' });
+        telegraphs.push({ line: true, x: e.x, y: e.y, a, len: 430, w: 80, t: 0.75, max: 0.75, color: '#ffffff', dmg: 0, frac: 0.35, style: 'melee', label: '' });
         setTimeout(() => { if (!e.dead && mode === 'play') e.charge = { vx: Math.cos(a) * 760, vy: Math.sin(a) * 760, t: 0.55, spd: 0 }; }, 750);
       }
     }
@@ -3768,7 +3768,7 @@ function bossMech(e, dt) {
     if (e.ai.t <= 0) {
       e.ai.t = 2.4;
       const r = e.ai.phase++ % 5;
-      if (r === 0) { for (let i = 0; i < 4; i++) slam(p.x + (i ? (Math.random() - 0.5) * 260 : 0), p.y + (i ? (Math.random() - 0.5) * 200 : 0), 70, 1.2, e.dmg * 1.8, 'melee', '#a08060', i ? '' : 'Falling bricks!', { noPray: true }); }
+      if (r === 0) { for (let i = 0; i < 4; i++) slam(p.x + (i ? (Math.random() - 0.5) * 260 : 0), p.y + (i ? (Math.random() - 0.5) * 200 : 0), 70, 1.2, 0, 'melee', '#a08060', i ? '' : 'Falling bricks!', { noPray: true, frac: 0.2 }); }
       else if (r === 1) fan(e, 3, 0.2, 340, 'magic', '#6aa0ff', e.dmg * 0.9, { r: 10 });
       else if (r === 2) fan(e, 3, 0.2, 340, 'ranged', '#8a6a3c', e.dmg * 0.8, { r: 10, shape: 'blob' });
       else if (r === 3 && near) { hurtPlayer(e.dmg * 1.6, 'melee', { from: e }); burst(p.x, p.y - 20, '#c8a080', 10); }
@@ -3812,7 +3812,7 @@ function bossMech(e, dt) {
     if (e.ai.t <= 0) {
       e.ai.shots = (e.ai.shots || 0) + 1;
       e.ai.t = form.style === 'melee' ? 2.8 : 1.4;
-      if (form.style === 'melee') slam(p.x, p.y, 90, 1.6, 0, 'melee', form.color, 'Whip!', { frac: 0.45, freeze: 2 });
+      if (form.style === 'melee') slam(p.x, p.y, 90, 1.6, 0, 'melee', form.color, 'Whip!', { frac: 0.6, freeze: 2 });
       else aimShot(e, 520, form.name === 'tanzanite' && Math.random() < 0.25 ? 'ranged' : form.style, form.color, e.dmg, { r: 14 });
       if (e.ai.shots % 3 === 0) {
         const cx = clamp(p.x + (Math.random() - 0.5) * 200, 40, WORLD_W - 40), cy = clamp(p.y + (Math.random() - 0.5) * 160, 120, WORLD_H - 40);
@@ -3868,7 +3868,7 @@ function bossMech(e, dt) {
       else if (r < 0.65) aimShot(e, 460, 'magic', '#ff6a1a', e.dmg * 1.6, { r: 16, dragonfire: true });
       else if (r < 0.78) aimShot(e, 460, 'magic', '#5fd34a', e.dmg * 1.2, { r: 16, dragonfire: true, poison: 8 });
       else if (r < 0.9) { aimShot(e, 460, 'magic', '#ff7ad0', e.dmg * 1.3, { r: 16, dragonfire: true, prayOff: true }); if (!e.ai.pinkTold) { e.ai.pinkTold = true; chat('Pink dragonfire switches off your prayer!', 'r'); } }
-      else slam(p.x, p.y, 70, 1.5, 0, 'magic', '#ff3a1a', 'Firebomb! Move!', { noPray: true, frac: 0.7 });
+      else slam(p.x, p.y, 70, 1.5, 0, 'magic', '#ff3a1a', 'Firebomb! Move!', { noPray: true, frac: 0.9 });
     }
     return true;
   }
@@ -3885,10 +3885,10 @@ function bossMech(e, dt) {
       const r = e.ai.phase++ % 5;
       if (r === 0 || e.ai.lastStand) { for (let i = 0; i < (e.ai.lastStand ? 9 : 5); i++) slam(60 + Math.random() * (WORLD_W - 120), 140 + Math.random() * (WORLD_H - 180), 90, 1.2, e.dmg, 'magic', '#ffd24a', 'Lightning!'); }
       else if (r === 2) { summon(e, 'scarab_swarm', 3); chat('The Warden calls a scarab swarm!', 'r'); }
-      else if (r === 4 && e.ai.phase % 2) slam(p.x, p.y, 200, 1.3, 0, 'magic', '#ffd24a', 'Warden slam!', { shape: 'cross', w: 100, noPray: true, frac: 0.45 });
+      else if (r === 4 && e.ai.phase % 2) slam(p.x, p.y, 200, 1.3, 0, 'magic', '#ffd24a', 'Warden slam!', { shape: 'cross', w: 100, noPray: true, frac: 0.6 });
       else if (r === 4) {
         const y = clamp(p.y, 150, WORLD_H - 50);
-        telegraphs.push({ line: true, x: 0, y, a: 0, len: WORLD_W, w: 90, t: 1.3, max: 1.3, color: '#c89a50', dmg: e.dmg * 1.8, style: 'melee', label: 'The floor rises!', noPray: true });
+        telegraphs.push({ line: true, x: 0, y, a: 0, len: WORLD_W, w: 90, t: 1.3, max: 1.3, color: '#c89a50', dmg: 0, frac: 0.4, style: 'melee', label: 'The floor rises!', noPray: true });
       }
       else aimShot(e, 520, r === 1 ? 'magic' : 'ranged', r === 1 ? '#4aa0ff' : '#c89a50', e.dmg, { r: 14 });
     }
@@ -3916,15 +3916,15 @@ function bossMech(e, dt) {
       const st = e.ai.olmStyle || 'magic';
       if (++e.ai.phase % 3) { aimShot(e, 560, st, st === 'ranged' ? '#7ad04a' : '#6a9aff', e.dmg, { r: 14 }); return true; }
       const sp = ['burst', 'lightning', 'sphere', 'fire', 'swap', 'acid', 'bombs'][(e.ai.sp = (e.ai.sp || 0) + 1) % 7];
-      if (sp === 'burst') slam(p.x, p.y, 55, 1.1, e.dmg * 1.8, 'melee', '#9a7aff', 'Crystal burst!', { noPray: true });
+      if (sp === 'burst') slam(p.x, p.y, 55, 1.1, 0, 'melee', '#9a7aff', 'Crystal burst!', { noPray: true, frac: 0.3 });
       else if (sp === 'lightning') {
         for (let i = -1; i <= 1; i++) telegraphs.push({ line: true, x: clamp(p.x + i * 150 + (Math.random() - 0.5) * 60, 30, WORLD_W - 30), y: 100, a: Math.PI / 2, len: WORLD_H, w: 50, t: 1.2, max: 1.2, color: '#6ad0ff', dmg: e.dmg, style: 'magic', label: i ? '' : 'Lightning!', fx: { freeze: 1.2, prayOff: true } });
       } else if (sp === 'sphere') {
         const s = ['melee', 'ranged', 'magic'][Math.floor(Math.random() * 3)];
         aimShot(e, 260, s, { melee: '#ff3a3a', ranged: '#5fd34a', magic: '#b04bff' }[s], 1, { r: 18, sphere: true });
-        chat(`Olm launches a ${{ melee: 'red', ranged: 'green', magic: 'purple' }[s]} sphere. Pray ${s === 'melee' ? 'Melee (1)' : s === 'ranged' ? 'Missiles (2)' : 'Magic (3)'} or lose half your hitpoints!`, 'r');
+        chat(`Olm launches a ${{ melee: 'red', ranged: 'green', magic: 'purple' }[s]} sphere. Pray ${s === 'melee' ? 'Melee (1)' : s === 'ranged' ? 'Missiles (2)' : 'Magic (3)'} or lose two thirds of your hitpoints!`, 'r');
       } else if (sp === 'fire') {
-        telegraphs.push({ line: true, x: clamp(p.x, 120, WORLD_W - 120), y: 100, a: Math.PI / 2, len: WORLD_H, w: 230, t: 2.6, max: 2.6, color: '#ff6a1a', dmg: 0, frac: 0.55, style: 'magic', label: 'Fire wall! Get out!', noPray: true });
+        telegraphs.push({ line: true, x: clamp(p.x, 120, WORLD_W - 120), y: 100, a: Math.PI / 2, len: WORLD_H, w: 230, t: 2.6, max: 2.6, color: '#ff6a1a', dmg: 0, frac: 0.7, style: 'magic', label: 'Fire wall! Get out!', noPray: true });
       } else if (sp === 'swap') {
         const nx = 60 + Math.random() * (WORLD_W - 120), ny = 140 + Math.random() * (WORLD_H - 180);
         fx.push({ kind: 'boom', x: nx, y: ny, r: 40, color: '#b04bff', t: 1.1, max: 1.1 });
@@ -3939,7 +3939,7 @@ function bossMech(e, dt) {
         for (let i = 0; i < 4; i++) setTimeout(() => { if (!e.dead && mode === 'play') hazards.push({ x: p.x, y: p.y, r: 45, t: 6, color: '#5fd34a', dps: 10, poison: 4 }); }, i * 500);
         chat('Acid drips from Olm onto you. Keep moving!', 'r');
       } else {
-        for (let i = 0; i < 2; i++) slam(clamp(p.x + (Math.random() - 0.5) * 300, 60, WORLD_W - 60), clamp(p.y + (Math.random() - 0.5) * 220, 140, WORLD_H - 40), 130, 2.2, e.dmg * 1.8, 'magic', '#c8c8ff', 'Crystal bomb!', { noPray: true });
+        for (let i = 0; i < 2; i++) slam(clamp(p.x + (Math.random() - 0.5) * 300, 60, WORLD_W - 60), clamp(p.y + (Math.random() - 0.5) * 220, 140, WORLD_H - 40), 130, 2.2, 0, 'magic', '#c8c8ff', 'Crystal bomb!', { noPray: true, frac: 0.6 });
       }
     }
     return true;
@@ -4066,7 +4066,7 @@ function nexMech(e, dt, near) {
   } else if (ph === 'shadow') {
     if (!spec) fan(e, 3, 0.15, 480, 'ranged', '#333', e.dmg * 0.9, { shape: 'spike' });
     else if (second) { shout(e, 'nex_dark'); CR.nexDark = 10; CR.darkT = 10; chat('Darkness falls. Standing near Nex hurts!', 'r'); }
-    else { shout(e, 'nex_smash'); slam(p.x, p.y, 70, 1.1, e.dmg * 2, 'ranged', '#222', 'Move!', { noPray: true }); }
+    else { shout(e, 'nex_smash'); slam(p.x, p.y, 70, 1.1, 0, 'ranged', '#222', 'Move!', { noPray: true, frac: 0.35 }); }
   } else if (ph === 'blood') {
     if (!spec) aimShot(e, 500, 'magic', '#c01a1a', e.dmg, { r: 14, heal: 1, from: e });
     else if (second) {
@@ -4077,8 +4077,8 @@ function nexMech(e, dt, near) {
     } else { shout(e, 'nex_sac'); CR.mark = { t: 4, e }; }
   } else if (ph === 'ice') {
     if (!spec) fan(e, 6, 0.2, 380, 'magic', '#9fe8ff', e.dmg * 0.8, { freeze: 0.8 });
-    else if (second) { shout(e, 'nex_contain'); slam(e.x, e.y, 210, 1.0, 0, 'ranged', '#9fe8ff', 'Contain this!', { frac: 0.5, fx: { prayOff: true } }); }
-    else { shout(e, 'nex_prison'); p.frozen = Math.max(p.frozen, 1.0); slam(p.x, p.y, 75, 2.8, e.dmg * 2.6, 'magic', '#bff4ff', 'Ice prison!', { noPray: true }); }
+    else if (second) { shout(e, 'nex_contain'); slam(e.x, e.y, 210, 1.0, 0, 'ranged', '#9fe8ff', 'Contain this!', { frac: 0.65, fx: { prayOff: true } }); }
+    else { shout(e, 'nex_prison'); p.frozen = Math.max(p.frozen, 1.0); slam(p.x, p.y, 75, 2.8, 0, 'magic', '#bff4ff', 'Ice prison!', { noPray: true, frac: 0.6 }); }
   } else {
     fan(e, 7, 0.18, 420, 'magic', '#b04bff', e.dmg, { heal: 0.25, from: e });
     if (spec) slam(p.x, p.y, 80, 1.0, e.dmg * 1.6, 'magic', '#b04bff', 'Soul split!', { heal: 1, from: e });
