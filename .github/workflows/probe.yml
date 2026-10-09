@@ -1,11 +1,14 @@
 name: probe
 on: { push: { branches: [tile-probe] } }
+permissions: { contents: write }
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: |
           V=2026-08-12_a
+          mkdir -p probe; i=0
           for u in \
             "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/2/0_50_50.png" \
             "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/3/0_100_100.png" \
@@ -13,8 +16,7 @@ jobs:
             "https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/2/0_50_-51.png" \
             "https://maps.runescape.wiki/osrs/tiles/0_2019-10-31_1/2/0_50_50.png" \
             "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/7/3/0_89_167.png" \
-            "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/3/0_101_308.png" \
-            "https://maps.runescape.wiki/osrs/versions/$V/tiles/rendered/0/3/0_75_157.png" \
-            ; do echo "$(curl -s -o /tmp/t.png -w '%{http_code} %{content_type} %{size_download}' "$u") $u"; done
-          curl -s "https://maps.runescape.wiki/osrs/versions/" | head -c 600; echo
-          curl -s "https://maps.runescape.wiki/osrs/versions/$V/" | head -c 600; echo
+            ; do i=$((i+1)); echo "$i $(curl -s -o probe/$i.png -w '%{http_code} %{content_type} %{size_download}' "$u") $u" >> probe/result.txt; done
+          curl -s "https://maps.runescape.wiki/osrs/versions/" | head -c 2000 > probe/versions.txt
+          git config user.name probe; git config user.email probe@example.com
+          git add probe && git commit -m "probe results" && git push

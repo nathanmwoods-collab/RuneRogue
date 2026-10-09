@@ -138,7 +138,7 @@ function heroUnlocked(h) {
   return meta.heroes.includes(h.id);
 }
 function unlockText(h) {
-  if (h.unlock.area !== undefined) { const a = AREAS[h.unlock.area]; return `Defeat ${MONSTERS[a.boss].name} in ${a.name} to unlock`; }
+  if (h.unlock.area !== undefined) return `Clear ${AREAS[h.unlock.area].name} to unlock`;
   return `Costs ${h.unlock.sticks} trading sticks`;
 }
 function upLevel(id) { return meta.up[id] || 0; }
@@ -169,7 +169,7 @@ function newRun(hero) {
   run = {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
-    freeRerolls: 0,
+    freeRerolls: 0, lives: (hero.mods || {}).lives || 0,
     gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
@@ -177,7 +177,7 @@ function newRun(hero) {
   run.p.hp = stats().maxHp; run.p.pp = stats().maxPp;
   chatClear();
   chat(`Welcome to RuneRogue, ${hero.name}.`);
-  chat(`${AREAS.length} areas stand between you and TzKal-Zuk.`, 'b');
+  chat(`${AREAS.length} areas stand between you and the end. Good luck.`, 'b');
   startStage();
 }
 
@@ -207,7 +207,7 @@ function stats() {
   return {
     lane, weapon, dmgMult, aspd, range, splash,
     pierce: sum('pierce'),
-    regen: sum('regen'),
+    regen: sum('regen') + (m.regen || 0),
     maxHp: 50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0),
     maxPp: 20 + 5 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: 1.6 * (m.ppDrain || 1) / (1 + 0.12 * (s.prayer - 1)),
@@ -540,6 +540,10 @@ function hurtPlayer(raw, style, opts = {}) {
   if (opts.poison && !(run.hero.mods || {}).poisonImmune) p.poison = Math.max(p.poison, opts.poison);
   if (opts.drain) p.pp = Math.max(0, p.pp - opts.drain);
   if (opts.heal && opts.from) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg * opts.heal);
+  if (p.hp <= 0 && run.lives > 0) {
+    run.lives--; p.hp = Math.round(st.maxHp / 2);
+    chat(`${run.hero.name} cheats death! One of nine lives used.`, 'r'); burst(p.x, p.y, '#ffd060', 30);
+  }
   if (p.hp <= 0) die();
 }
 
@@ -1387,15 +1391,6 @@ function showScreen(node) {
 function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
 function btn(label, cls, onClick) { const b = el('button', cls, label); b.type = 'button'; b.addEventListener('click', onClick); return b; }
 
-function routeLine(current) {
-  const r = el('div', 'route');
-  AREAS.forEach((a, i) => {
-    const s = el('span', i === current ? 'here' : '', `<b>${i + 1}.</b> ${a.name}: ${MONSTERS[a.boss].name}`);
-    r.appendChild(s);
-  });
-  return r;
-}
-
 let pickedHero = HEROES[0];
 function heroBoostText(h) {
   return Object.entries(h.skills || {}).map(([id, lv]) => `${SKILLS.find((k) => k.id === id).name} ${lv}`).join(', ');
@@ -1405,7 +1400,7 @@ function renderTitle() {
   const best = loadBest();
   const s = el('div', 'sheet');
   s.appendChild(el('h1', '', 'RuneRogue'));
-  s.appendChild(el('p', '', `Pick a hero from Gielinor and fight from Lumbridge to the Inferno. Each of the ${AREAS.length} areas has ${WAVES_PER_AREA} waves and then its own boss. Any hero can use any weapon or armour; each starts with a weapon and a boost in their natural skill. Gold buys skill levels and gear for every equipment slot.`));
+  s.appendChild(el('p', '', `Pick a hero from Gielinor and fight your way out from Lumbridge. Each of the ${AREAS.length} areas has ${WAVES_PER_AREA} waves and then its own boss. Any hero can use any weapon or armour; each starts with a weapon and a boost in their natural skill. Gold buys skill levels and gear for every equipment slot.`));
   const g = el('div', 'grid heroes');
   for (const h of HEROES) {
     const open = heroUnlocked(h);
@@ -1441,8 +1436,6 @@ function renderTitle() {
   r.appendChild(ub);
   r.appendChild(b);
   s.appendChild(r);
-  s.appendChild(el('div', 'sec-title', 'The route')).style.marginTop = '14px';
-  s.appendChild(routeLine(-1));
   s.appendChild(el('p', '', '<small>Images and music load live from the <a style="color:var(--orange)" href="https://oldschool.runescape.wiki/" target="_blank" rel="noopener">Old School RuneScape Wiki</a> (CC BY-NC-SA 3.0). Game art and music © Jagex Ltd. Fan-made and non-commercial.</small>'));
   showScreen(s);
   b.focus();
@@ -1598,7 +1591,7 @@ function renderShop() {
   const doneArea = AREAS[areaIndex()];
   ht.appendChild(el('h2', '', isBoss ? `${doneArea.name} cleared!` : `${doneArea.name}: wave ${subIndex() + 1} cleared`));
   const ni = run.stage + 1, na = AREAS[Math.floor(ni / (WAVES_PER_AREA + 1))], nb = ni % (WAVES_PER_AREA + 1) === WAVES_PER_AREA;
-  ht.appendChild(el('p', '', `Next: ${na.name}, ${nb ? `<b style="color:var(--red)">Boss: ${MONSTERS[na.boss].name}</b>` : `wave ${(ni % (WAVES_PER_AREA + 1)) + 1}`}`));
+  ht.appendChild(el('p', '', `Next: ${na.name}, ${nb ? '<b style="color:var(--red)">Boss fight</b>' : `wave ${(ni % (WAVES_PER_AREA + 1)) + 1}`}`));
   head.appendChild(ht);
   const purse = el('div', 'purse txt'); purse.appendChild(imgTag('Coins_10000.png', 'Coins')); purse.appendChild(el('span', '', `${run.gold.toLocaleString()} coins`));
   head.appendChild(purse);
@@ -1651,12 +1644,11 @@ function renderShop() {
     rollOffers(false); renderShop();
   });
   rb.disabled = run.gold < rerollCost;
-  const nb2 = btn(nb ? `Fight ${MONSTERS[na.boss].name}` : 'Next wave', 'btn big', startStage);
+  const nb2 = btn(nb ? 'Fight the boss' : 'Next wave', 'btn big', startStage);
   rr.appendChild(rb); rr.appendChild(nb2);
   right.appendChild(rr);
   grid.appendChild(right);
   s.appendChild(grid);
-  s.appendChild(routeLine(areaIndex()));
   showScreen(s);
   nb2.focus({ preventScroll: true });
 }
