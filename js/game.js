@@ -131,7 +131,7 @@ function sfx(freq, dur = 0.08, type = 'square', vol = 0.04) {
 // ======================================================================
 // Trading sticks: permanent upgrades kept between runs (this browser only)
 // ======================================================================
-let meta = { sticks: 0, up: {}, heroes: [], cleared: -1 };
+let meta = { sticks: 0, up: {}, heroes: [], cleared: -1, invo: {} };
 try { meta = Object.assign(meta, JSON.parse(localStorage.getItem('runerogue.meta') || '{}')); } catch (e) { /* optional */ }
 // ---------- Achievements ----------
 function achEvent(on, x) {
@@ -190,7 +190,8 @@ function upCost(u) { return Math.round(u.base * Math.pow(1.55, upLevel(u.id))); 
 // Sticks for a run: progress, bosses and clues all count.
 function sticksEarned() {
   const bosses = Math.floor((run.stage + (mode === 'over' && run.won ? 1 : 0)) / (WAVES_PER_AREA + 1));
-  return Math.max(1, Math.round(run.stage * 3 + bosses * 12 + run.clues * 8 + run.kills / 25));
+  const base = (run.stage * 3 + bosses * 12 + run.clues * 8 + run.kills / 25) * (1 + (run.raid || 0) / 100);
+  return Math.max(1, Math.round(base * (run.skullDied ? 0.5 : 1)));
 }
 
 // ======================================================================
@@ -212,7 +213,8 @@ function newRun(hero) {
   gearBarKey = '';
   run = {
     hero, skills, gear,
-    inv: { shark: 2 + upVal('shark'), ppot: 1 },
+    invo: { ...(meta.invo || {}) }, raid: raidLevel(meta.invo || {}), livesUsed: 0, skull: false, skullAsked: false,
+    inv: { shark: Math.round((2 + upVal('shark')) * supplyMult(meta.invo || {})), ppot: Math.round(supplyMult(meta.invo || {})) },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
     spec: 100, contracts: {}, yamaSeen: 0, killsBy: {}, bossHurt: false, prayedEver: false, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
@@ -223,6 +225,7 @@ function newRun(hero) {
   chatClear();
   chat(`Welcome to RuneRogue, ${hero.name}.`);
   chat(`${AREAS.length} areas stand between you and the end. Good luck.`, 'b');
+  if (run.raid) chat(`Raid level ${run.raid} (${raidMode(run.raid)} mode): ${INVOCATIONS.filter((v) => run.invo[v.id]).map((v) => v.name).join(', ')}.`, 'r');
   startStage();
 }
 
@@ -270,7 +273,7 @@ function stats() {
     reduce: Math.min(0.75, defPts / 100),
     taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
-    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1),
+    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1) * (run.skull ? SKULL.gold : 1),
     crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit') + (ycon('glyphic') ? 0.25 : 0),
   };
 }
@@ -289,11 +292,16 @@ function startStage() {
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false;
+  run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
   run.prayer = null;
   const a = areaIndex(), sub = subIndex();
   toSpawn = isBoss ? 4 + a * 2 : 12 + a * 4 + sub * 6;
+  if (!isBoss && inv('overlords')) toSpawn = Math.round(toSpawn * 1.4);
+  // Insanity: a boss from elsewhere in Gielinor bursts into this wave partway through
+  if (!isBoss && inv('insanity') && run.stage >= 1 && Math.random() < 0.45) run.insaneAt = Math.floor(toSpawn * (0.2 + Math.random() * 0.5));
+  if (run.skull && area.name !== 'Wilderness') { run.skull = false; chat('You leave the Wilderness. Your skull fades.', 'g'); }
   spawnT = 0.6;
   if (isBoss) {
     const def = MONSTERS[area.boss];
@@ -313,6 +321,8 @@ function startStage() {
   updatePrayerButtons();
   const portrait = $('hudPortrait');
   if (portrait && run.stage === 0) { portrait._retry = false; wireImg(portrait, run.hero.file, run.hero.name); }
+  if (run.skull && isBoss) spawnPker();
+  if (area.name === 'Wilderness' && !run.skullAsked) { run.skullAsked = true; renderSkull(); }
 }
 
 function heroSays() {
@@ -401,7 +411,8 @@ function spawnTick(dt) {
   spawnT -= dt;
   const a = areaIndex();
   // trickle in: only a limited number alive at once
-  const maxAlive = isBoss ? 4 + a : 7 + Math.floor(a * 0.8) + subIndex() * 2;
+  if (run.insaneAt !== null && toSpawn <= run.insaneAt) { run.insaneAt = null; spawnInsane(); }
+  const maxAlive = Math.round((isBoss ? 4 + a : 7 + Math.floor(a * 0.8) + subIndex() * 2) * (!isBoss && inv('overlords') ? 1.4 : 1));
   if (spawnT > 0 || enemies.length >= maxAlive) return;
   spawnT = isBoss ? 4 : Math.max(0.7, 1.7 - a * 0.05);
   const group = Math.min(toSpawn, 1 + Math.floor(Math.random() * 2));
@@ -409,6 +420,8 @@ function spawnTick(dt) {
     let id = area.hordes[Math.floor(Math.random() * area.hordes.length)];
     if (area.elites.length && Math.random() < Math.min(0.4, 0.1 + subIndex() * 0.08 + a * 0.015)) id = area.elites[Math.floor(Math.random() * area.elites.length)];
     const pos = spreadSpawn();
+    if (run.skull && !isBoss && Math.random() < 0.12 && enemies.filter((e) => e.d.pker && !e.dead).length < 2) { spawnPker(pos); continue; }
+    if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
     const m = spawnMonster(id, pos.x, pos.y);
     burst(pos.x, pos.y, '#d8c8a0', 8);
     if (m && Math.random() < 0.45) m.lead = 0.5 + Math.random() * 0.7; // cuts you off instead of chasing your tail
@@ -546,11 +559,114 @@ function maybeDropPotion(e) {
     pickups.push({ kind: 'potion', pot: bag[Math.floor(Math.random() * bag.length)], x: e.x + 20, y: e.y, t: 0 });
   }
   const hurt = run.p.hp < stats().maxHp * 0.5 ? 2 : 1;
-  if (Math.random() < (e.d.elite || e.clueBoss ? PIE_CHANCE.elite : PIE_CHANCE.normal) * hurt) {
+  if (Math.random() < (e.d.elite || e.clueBoss ? PIE_CHANCE.elite : PIE_CHANCE.normal) * hurt * supplyMult(run.invo)) {
     pickups.push({ kind: 'pie', x: e.x - 20, y: e.y, t: 0 });
   }
 }
-function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0); }
+function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0) + (run.raid || 0) / 400 + (run.skull ? SKULL.luck : 0); }
+// Invocations chosen for this run (INVOCATIONS in data.js)
+function inv(id) { return !!(run && run.invo && run.invo[id]); }
+function raidLevel(set) { return INVOCATIONS.reduce((a, v) => a + (set[v.id] ? v.lvl : 0), 0); }
+function supplyMult(set) { const h = INVOCATIONS.find((v) => v.supply && set[v.id]); return h ? h.supply : 1; }
+function invoTempo() { return (inv('oc1') ? 1.15 : 1) * (inv('oc2') ? 1.15 : 1); }
+function timeLimit() { const t = INVOCATIONS.find((v) => v.secs && inv(v.id)); return t ? t.secs * (isBoss ? 2 : 1) : 0; }
+function specCost(S) { return inv('draining') ? 100 : S.cost; }
+// Medic!: scarab swarms as tough as this area's own horde
+function medicScarab(pos) {
+  const base = MONSTERS[area.hordes[0]];
+  const m = spawnMonster('scarab_swarm', pos.x, pos.y);
+  m.hp = m.maxHp = Math.round(base.hp * stageScale() * 1.2);
+  m.dmg = base.dmg * (1 + 0.03 * run.stage) * 1.2;
+  burst(pos.x, pos.y, '#c8a060', 8);
+}
+// Insanity: an off-route boss joins a normal wave. It drops a pile of coins instead of a casket.
+function spawnInsane() {
+  const alive = enemies.map((e) => e.id);
+  const pool = CLUE_BOSSES.filter((id) => !alive.includes(id));
+  const id = pool[Math.floor(Math.random() * pool.length)];
+  const pos = spreadSpawn();
+  pos.y = clamp(pos.y, 130 + MONSTERS[id].size, WORLD_H - 40);
+  pos.x = clamp(pos.x, 40 + MONSTERS[id].size * 0.4, WORLD_W - 40 - MONSTERS[id].size * 0.4);
+  const m = spawnMonster(id, pos.x, pos.y);
+  m.insane = true;
+  chat(`Insanity! ${m.d.name} tears into the fight!`, 'r');
+  burst(pos.x, pos.y, '#ff3a1a', 40);
+  sfx(80, 0.6, 'sawtooth', 0.08);
+}
+// PKers hunt skulled players in the Wilderness
+function spawnPker(pos) {
+  const pool = PKERS.filter((id) => !(id === 'pk_durial' && run.hero.id === 'durial'));
+  const id = pool[Math.floor(Math.random() * pool.length)];
+  pos = pos || spreadSpawn();
+  const m = spawnMonster(id, pos.x, pos.y);
+  m.pkT = 1.2; m.pkN = 0;
+  chat(`${m.d.name} is hunting you!`, 'r');
+  burst(pos.x, pos.y, '#c01a1a', 14);
+}
+const PK_STYLES = ['melee', 'ranged', 'magic'];
+function pkerAct(e, dt, dist, dx, dy) {
+  e.pkT -= dt;
+  if (e.pkT > 0) return;
+  e.pkT = 1.5 + Math.random() * 0.7;
+  e.pkN++;
+  const p = run.p;
+  // every fourth move up close is a special attack dump
+  if (e.pkN % 4 === 0 && dist < 180) {
+    slam(p.x, p.y, 75, 0.6, e.dmg * 2.4, 'melee', '#ff3a1a', 'Spec');
+    return;
+  }
+  e.pkStyle = PK_STYLES.filter((x) => x !== e.pkStyle)[Math.floor(Math.random() * 2)];
+  if (e.pkStyle === 'melee' || dist > 460) return;
+  const sp = e.pkStyle === 'ranged' ? 460 : 340;
+  const barrage = e.pkStyle === 'magic' && Math.random() < 0.35;
+  eshots.push({ x: e.x, y: e.y - e.d.size * 0.5, vx: dx / dist * sp, vy: (dy + e.d.size * 0.5) / dist * sp, r: 9, dmg: e.dmg, style: e.pkStyle,
+    color: e.pkStyle === 'ranged' ? '#c8a060' : barrage ? '#9fe8ff' : '#7a3aff', life: 3, freeze: barrage ? 1.2 : 0 });
+}
+// Skulled and cheating death: the most valuable thing you wear is lost, like dropping it in the Wilderness.
+function loseBestItem() {
+  let best = null;
+  for (const sl of SLOTS) {
+    const id = run.gear[sl];
+    if (!id || (sl === 'weapon' && id === run.hero.weapon)) continue;
+    if (!best || (ITEMS[id].price || 0) > (ITEMS[best.id].price || 0)) best = { sl, id };
+  }
+  if (!best) return;
+  run.gear[best.sl] = best.sl === 'weapon' ? run.hero.weapon : null;
+  gearBarKey = '';
+  chat(`You were skulled: you lose your ${ITEMS[best.id].name}!`, 'r');
+}
+function cheatDeathAllowed() {
+  if (inv('hardcore')) return false;
+  if (inv('softcore')) return run.livesUsed < 1;
+  return true;
+}
+// Invocation hazards and timers, every frame of a fight
+function invoTick(dt) {
+  const p = run.p;
+  run.stageT += dt;
+  const T = timeLimit();
+  if (T && !run.enraged && run.stageT > T) { run.enraged = true; chat('Time is up! Every enemy enrages: they hit 50% harder and move faster.', 'r'); sfx(70, 0.6, 'sawtooth', 0.08); }
+  if (inv('aerial') && !isBoss) {
+    run.aerialT -= dt;
+    if (run.aerialT <= 0) { run.aerialT = 4.5 + Math.random() * 2.5; slam(p.x, p.y, 70, 1.1, 4 * stageScale(), 'ranged', '#8a6a3a', '', { noPray: true }); }
+  }
+  if (inv('boulder')) {
+    run.boulderT -= dt;
+    if (run.boulderT <= 0) {
+      run.boulderT = 8 + Math.random() * 3;
+      const fromLeft = Math.random() < 0.5;
+      telegraphs.push({ line: true, x: fromLeft ? 0 : WORLD_W, y: p.y, a: fromLeft ? 0 : Math.PI, len: WORLD_W, w: 64, t: 1.3, max: 1.3, color: '#a08a6a', dmg: 5 * stageScale(), style: 'melee', label: '' });
+    }
+  }
+  if (inv('penetration') && isBoss && bossAlive && !bossAlive.dead) {
+    run.obeliskT -= dt;
+    if (run.obeliskT <= 0) {
+      run.obeliskT = 12;
+      if (run.prayer) { run.prayer = null; updatePrayerButtons(); chat('The obelisk switches off your protection prayer!', 'r'); sfx(200, 0.2, 'square', 0.05); }
+    }
+  }
+}
+
 function ycon(id) { return !!(run && run.contracts && run.contracts[id]); }
 function bv(id) { return (run && run.boons[id]) || 0; }
 function buffMult(stat) { const b = run.buffs[stat]; return b && b.t > 0 ? 1 + b.amount : 1; }
@@ -664,6 +780,11 @@ function killEnemy(e) {
     burst(e.x, e.y, '#ffd060', 60);
     // remaining summons collapse with their master
     for (const m of enemies) if (m.summoned && !m.dead) { m.dead = true; burst(m.x, m.y, '#888', 8); }
+  } else if (e.insane) {
+    for (let i = 0; i < 8; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 120, y: e.y + (Math.random() - 0.5) * 120, v: Math.ceil(value * 1.5), t: 0 });
+    chat(`You have defeated ${e.d.name}!`, 'r');
+    burst(e.x, e.y, '#ffd060', 30);
+    maybeDropPotion(e);
   } else if (e.clueBoss) {
     pickups.push({ kind: 'casket', x: e.x, y: e.y, t: 0 });
     chat(`The ${e.d.name} drops a reward casket!`, 'r');
@@ -675,6 +796,7 @@ function killEnemy(e) {
     maybeDropPotion(e);
   }
   if (e.d.explode) burst(e.x, e.y, '#5fd34a', 20);
+  if (inv('upset') && !e.d.boss && !e.summoned && Math.random() < 0.2) hazards.push({ x: e.x, y: e.y, r: 45, t: 6, color: '#7ad04a', dps: 4 + areaIndex() * 1.5 });
 }
 
 // ---------- Special attacks ----------
@@ -682,7 +804,7 @@ function specialAttack() {
   if (mode !== 'play' || !run) return;
   const p = run.p, st = stats(), w = st.weapon, S = SPECS[run.gear.weapon];
   if (!S) { chat(`Your ${ITEMS[run.gear.weapon].name} has no special attack.`, 'b'); return; }
-  if (run.spec < S.cost) { chat(`You need ${S.cost}% special attack energy for ${S.name}.`, 'b'); return; }
+  if (run.spec < specCost(S)) { chat(`You need ${specCost(S)}% special attack energy for ${S.name}.`, 'b'); return; }
   if (p.frozen > 0) return;
   // a sure hit: specs re-roll a miss once
   const roll = (base, e) => { let r = rollDamage(base, e, st); if (!r.dmg) r = rollDamage(base, e, st); return r; };
@@ -726,7 +848,7 @@ function specialAttack() {
         pierce: 1, hit: new Set(), dmg: w.dmg * S.mult, splash: (w.splash || 40) * st.splash * 1.4, color: '#ff4ad8', icon: w.icon, bounce: 0, spec: S, big: true });
     }
   }
-  run.spec -= S.cost;
+  run.spec -= specCost(S);
   p.over = { text: `${S.name}!`, t: 1.6 };
   sfx(180, 0.25, 'sawtooth', 0.07); setTimeout(() => sfx(360, 0.2, 'square', 0.05), 80);
   burst(p.x, p.y - 30, '#ffd23a', 16);
@@ -893,7 +1015,8 @@ function hurtPlayer(raw, style, opts = {}) {
   let dmg = raw * st.taken * (opts.pure ? 1 : 1 - st.reduce);
   if (style === 'magic' && (run.hero.mods || {}).magicTaken) dmg *= run.hero.mods.magicTaken;
   if (run.buffs.lock && run.buffs.lock.t > 0) dmg *= 0.5;
-  if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= opts.full ? 0 : 0.3;
+  if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= opts.full ? 0 : inv('quiet') ? 0.5 : 0.3;
+  if (run.enraged && !opts.pure) dmg *= 1.5;
   dmg = Math.round(dmg * (0.6 + Math.random() * 0.4));
   p.hp -= dmg;
   p.hurtT = 0.15;
@@ -902,10 +1025,14 @@ function hurtPlayer(raw, style, opts = {}) {
   if (opts.freeze) p.frozen = Math.max(p.frozen, opts.freeze);
   if (opts.poison && !(run.hero.mods || {}).poisonImmune) p.poison = Math.max(p.poison, opts.poison);
   if (opts.drain) p.pp = Math.max(0, p.pp - opts.drain);
+  if (inv('deadly') && dmg > 0) p.pp = Math.max(0, p.pp - dmg * 0.2);
+  if (inv('arterial') && opts.from && !opts.from.dead && dmg > 0) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg);
   if (bv('thorns') && opts.from && !opts.from.dead && dmg > 0) damageEnemy(opts.from, Math.round(dmg * 0.5 * bv('thorns')), false);
   if (opts.heal && opts.from) opts.from.hp = Math.min(opts.from.maxHp, opts.from.hp + dmg * opts.heal);
-  if (p.hp <= 0 && run.lives > 0) {
-    run.lives--; p.hp = Math.round(st.maxHp / 2);
+  if (p.hp <= 0 && run.lives > 0 && cheatDeathAllowed()) {
+    run.lives--; run.livesUsed++;
+    if (run.skull) loseBestItem();
+    p.hp = Math.round(stats().maxHp / 2);
     chat(`${run.hero.name} cheats death!`, 'r'); burst(p.x, p.y, '#ffd060', 30);
     achEvent('revive');
   }
@@ -932,7 +1059,7 @@ function updateEnemies(dt) {
     if (e.dead || e.ai.burrow > 0) continue;
     if (e.d.clue) { // clue bosses: a telegraphed special on top of their normal attack
       e.ai.t -= dt;
-      if (e.ai.t <= 0) { e.ai.t = (3.2 + Math.random()) / BOSS_TEMPO; clueSpecial(e); }
+      if (e.ai.t <= 0) { e.ai.t = (3.2 + Math.random()) / (BOSS_TEMPO * invoTempo()); clueSpecial(e); }
     }
     if (e.d.spd === 0 && !e.d.caster) continue; // stationary bosses
 
@@ -952,11 +1079,14 @@ function updateEnemies(dt) {
       if (e.castT <= 0 && dist < e.d.caster.range + 80) {
         e.castT = e.d.caster.cd;
         const sp = e.d.caster.speed;
-        eshots.push({ x: e.x, y: e.y - e.d.size * 0.5, vx: dx / dist * sp, vy: (dy + e.d.size * 0.5) / dist * sp, r: 9, dmg: e.dmg, style: e.d.style, color: e.d.caster.color, life: 3 });
+        // Stay Vigilant: archers and casters swap style at random
+        const vs = inv('vigilant') && Math.random() < 0.5 ? (e.d.style === 'magic' ? 'ranged' : 'magic') : e.d.style;
+        eshots.push({ x: e.x, y: e.y - e.d.size * 0.5, vx: dx / dist * sp, vy: (dy + e.d.size * 0.5) / dist * sp, r: 9, dmg: e.dmg, style: vs, color: vs === e.d.style ? e.d.caster.color : vs === 'magic' ? '#4aa0ff' : '#c8a060', life: 3 });
       }
     }
-    if (!e.d.boss && !e.d.clue) minionMove(e, dt, realDist);
-    const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1);
+    if (e.d.pker) pkerAct(e, dt, realDist, dx, dy);
+    else if (!e.d.boss && !e.d.clue) minionMove(e, dt, realDist);
+    const spd = (e.charge ? e.charge.spd : e.d.spd) * (e.slow || 1) * (inv('haste') ? 1.2 : 1) * (run.enraged ? 1.25 : 1);
     if (e.charge) {
       e.x += e.charge.vx * dt; e.y += e.charge.vy * dt; e.charge.t -= dt;
       if (e.charge.t <= 0) e.charge = null;
@@ -1076,7 +1206,7 @@ function bossAI(e, dt) {
   const hpf = e.hp / e.maxHp;
   // bosses act faster than their base pattern, and faster still below half health
   if (hpf < 0.5 && !e.ai.enraged) { e.ai.enraged = true; chat(`${e.d.name} is enraged!`, 'r'); burst(e.x, e.y, '#ff3a1a', 30); }
-  e.ai.t -= dt * BOSS_TEMPO * (e.ai.enraged ? 1.3 : 1);
+  e.ai.t -= dt * BOSS_TEMPO * invoTempo() * (e.ai.enraged ? 1.3 : 1);
   if (k === 'cow') {
     // Cow Boss: charges across the field and calls the herd
     if (e.ai.t <= 0) {
@@ -1431,6 +1561,7 @@ function updatePlayer(dt) {
     if (Math.hypot(p.x - pk.x, p.y - pk.y) < p.r + 22) {
       pk.got = true;
       if (pk.kind === 'clue') startClue();
+      else if (pk.kind === 'pie' && inv('diet')) { chat('You are On a Diet, so you leave the pie.', 'b'); }
       else if (pk.kind === 'pie') {
         const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal);
         p.hp = Math.min(max, p.hp + heal);
@@ -1470,6 +1601,8 @@ function updatePrayerButtons() {
 }
 function useItem(kind) {
   if (!run || mode !== 'play' || run.inv[kind] <= 0) return;
+  if (kind === 'shark' && inv('diet')) { chat('You are On a Diet: no eating this raid.', 'r'); return; }
+  if (kind === 'ppot' && inv('dehydration')) { chat('Dehydration: you can\'t drink potions this raid.', 'r'); return; }
   const st = stats();
   run.inv[kind]--;
   if (kind === 'shark') achEvent('eat');
@@ -1482,6 +1615,7 @@ function die() {
   if (mode !== 'play') return;
   mode = 'over';
   chat('Oh dear, you are dead!', 'r');
+  if (run.skull) { run.skullDied = true; chat('You died skulled. The PKers loot half of this run\'s trading sticks.', 'r'); }
   achEvent('death');
   sfx(110, 0.6, 'sawtooth', 0.08);
   saveBest();
@@ -1549,6 +1683,7 @@ function step(dt) {
   updateEnemyShots(dt);
   if (mode !== 'play') return;
   if (pendingClue > 0) { pendingClue--; startClue(); }
+  invoTick(dt);
   spawnTick(dt);
   checkStageDone(dt);
 }
@@ -1808,6 +1943,11 @@ function drawPlayer() {
     const icon = wikiImage({ melee: 'Protect_from_Melee.png', ranged: 'Protect_from_Missiles.png', magic: 'Protect_from_Magic.png' }[run.prayer]);
     if (ready(icon)) ctx.drawImage(icon, p.x - 13, p.y - h - 34, 26, 26);
   }
+  if (run.skull) {
+    const sk = wikiImage(SKULL.file), sy = p.y - h - 34 - (run.prayer ? 28 : 0);
+    if (ready(sk)) ctx.drawImage(sk, p.x - 11, sy, 22, 22 * sk.naturalHeight / sk.naturalWidth);
+    else text('☠', p.x, sy + 18, 20, '#fff');
+  }
   const bob = p.moving ? Math.abs(Math.sin(performance.now() / 90)) * 3 : 0;
   ctx.save();
   if (p.hurtT > 0) ctx.globalAlpha = 0.6;
@@ -1878,7 +2018,11 @@ function drawEnemy(e) {
     ctx.fillStyle = '#c00'; ctx.fillRect(e.x - w / 2, by, w, 5);
     ctx.fillStyle = '#0c0'; ctx.fillRect(e.x - w / 2, by, w * Math.max(0, e.hp / e.maxHp), 5);
   }
-  if ((e.d.elite || e.clueBoss) && !e.d.boss) text(`${e.d.name} (level-${e.d.lvl})`, e.x, Math.max(14, e.y - h - 18), 12, e.clueBoss ? '#ff981f' : '#ffff00');
+  if ((e.d.elite || e.clueBoss || e.insane) && !e.d.boss) text(`${e.d.name} (level-${e.d.lvl})`, e.x, Math.max(14, e.y - h - 18), 12, e.clueBoss || e.insane ? '#ff981f' : '#ffff00');
+  if (e.d.pker) {
+    const sk = wikiImage(SKULL.file);
+    if (ready(sk)) ctx.drawImage(sk, e.x - 10, Math.max(0, e.y - h - 44), 20, 20 * sk.naturalHeight / sk.naturalWidth);
+  }
   if (e.healer) text(e.aggro ? e.d.name : `${e.d.name} (healing)`, e.x, e.y - h - 18, 12, '#ff981f');
   if (e.immune) text('Immune', e.x, e.y - h - 30, 14, '#9fe8ff');
   if (e.d.boss === 'jad' && e.ai.windup) {
@@ -1958,7 +2102,9 @@ function drawHud() {
   $('ppBar').lastElementChild.textContent = `Prayer ${Math.ceil(p.pp)} / ${st.maxPp}`;
   $('waveName').textContent = area.name;
   const left = enemies.length + Math.max(0, isBoss ? 0 : toSpawn);
-  $('waveSub').textContent = `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`);
+  const T = timeLimit(), tl = Math.max(0, Math.ceil(T - run.stageT));
+  const timer = T ? (run.enraged ? ' · Enraged!' : ` · ${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')} left`) : '';
+  $('waveSub').textContent = `Area ${areaIndex() + 1} of ${AREAS.length} · ` + (isBoss ? 'Boss fight' : `Wave ${subIndex() + 1} of ${WAVES_PER_AREA} · ${left} left`) + timer + (run.skull ? ' · Skulled' : '');
   $('goldTxt').textContent = run.gold.toLocaleString();
   drawGearBar();
   $('sharkN').textContent = '×' + run.inv.shark;
@@ -1968,9 +2114,9 @@ function drawHud() {
     const e = Math.floor(run.spec);
     $('specN').textContent = S ? `${e}%` : '—';
     sb.style.setProperty('--fill', `${S ? e : 0}%`);
-    sb.classList.toggle('ready', !!S && run.spec >= S.cost);
+    sb.classList.toggle('ready', !!S && run.spec >= specCost(S));
     sb.classList.toggle('none', !S);
-    sb.title = S ? `${S.name}: ${S.cost}% energy (Space)` : 'This weapon has no special attack';
+    sb.title = S ? `${S.name}: ${specCost(S)}% energy (Space)` : 'This weapon has no special attack';
   }
   const bb = $('bossbar');
   if (bossAlive && !bossAlive.dead) {
@@ -2053,6 +2199,11 @@ function renderTitle() {
   ab.appendChild(imgTag(ACH_TIERS.elite.file, 'Achievements')); ab.appendChild(document.createTextNode(` Achievements (${nDone}/${ACHIEVEMENTS.length})`));
   ab.classList.add('sticks-btn');
   r.appendChild(ab);
+  const rl = raidLevel(meta.invo || {});
+  const ib = btn('', 'btn', renderInvocations);
+  ib.appendChild(imgTag(INVO_ICON.warden, 'Invocations')); ib.appendChild(document.createTextNode(` Invocations (raid level ${rl})`));
+  ib.classList.add('sticks-btn');
+  r.appendChild(ib);
   const mb = btn(musicOn ? 'Music: on' : 'Music: off', 'btn', () => { toggleMusic(); mb.textContent = musicOn ? 'Music: on' : 'Music: off'; });
   r.appendChild(mb);
   r.appendChild(b);
@@ -2092,7 +2243,7 @@ function rollOffers(fresh) {
     const gap = a - it.tier;
     let wt = Math.max(0.04, Math.exp(-((gap - 0.5) * (gap - 0.5)) / 6)) * rarityWeight(it);
     if (it.lane === style) wt *= 1.6; // gear for the weapon you hold turns up more often
-    if (it.slot === 'food') wt = 0.5;
+    if (it.slot === 'food') wt = 0.5 * supplyMult(run.invo);
     if (!run.gear[it.slot] && it.slot !== 'food') wt *= 1.4;
     return { it, wt };
   });
@@ -2470,6 +2621,86 @@ function renderUpgrades() {
   r.appendChild(back); s.appendChild(r);
   $('hud').hidden = true;
   screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
+}
+
+// Invocations: pick challenges before a run, like the Tombs of Amascut.
+function renderInvocations() {
+  if (run && mode !== 'over') return;
+  meta.invo = meta.invo || {};
+  const set = meta.invo, rl = raidLevel(set);
+  const s = el('div', 'sheet');
+  const head = el('div', 'row');
+  head.appendChild(el('h2', '', 'Invocations'));
+  head.appendChild(el('div', 'purse txt', `Raid level ${rl} · ${raidMode(rl)} mode`));
+  s.appendChild(head);
+  s.appendChild(el('p', '', `Pick challenges for your next runs, like the Tombs of Amascut. Each raid level adds 1% trading sticks and a little luck. Your choices stay on until you change them. Right now: +${rl}% sticks.`));
+  const g = el('div', 'grid offers invos');
+  for (const v of INVOCATIONS) {
+    const on = !!set[v.id], locked = v.needs && !set[v.needs];
+    const c = el('button', 'card offer invo' + (on ? ' sel' : '') + (locked ? ' locked' : '')); c.type = 'button';
+    const art = el('div', 'art'); art.appendChild(imgTag(INVO_ICON[v.icon], v.name)); c.appendChild(art);
+    c.appendChild(el('div', 'nm', v.name));
+    c.appendChild(el('div', 'lvl', `+${v.lvl} raid levels`));
+    c.appendChild(el('div', 'ds', v.info));
+    if (locked) c.appendChild(el('div', 'unlock', `Needs ${INVOCATIONS.find((x) => x.id === v.needs).name}`));
+    c.addEventListener('click', () => {
+      if (locked) return;
+      if (on) {
+        delete set[v.id];
+        // switching one off also switches off anything that needs it
+        let changed = true;
+        while (changed) { changed = false; for (const x of INVOCATIONS) if (set[x.id] && x.needs && !set[x.needs]) { delete set[x.id]; changed = true; } }
+      } else {
+        if (v.group) for (const x of INVOCATIONS) if (x.group === v.group) delete set[x.id];
+        set[v.id] = true;
+      }
+      saveMeta();
+      sfx(on ? 300 : 620, 0.06, 'triangle', 0.05);
+      renderInvocations();
+    });
+    g.appendChild(c);
+  }
+  s.appendChild(g);
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Clear all', 'btn', () => { meta.invo = {}; saveMeta(); renderInvocations(); }));
+  r.appendChild(btn('Back to heroes', 'btn big', () => { renderTitle(); playMusic(MUSIC_TITLE); }));
+  s.appendChild(r);
+  $('hud').hidden = true;
+  screen.innerHTML = ''; screen.hidden = false; screen.appendChild(s);
+}
+
+// The Wilderness skull: risk it for bigger rewards while PKers hunt you.
+function renderSkull() {
+  mode = 'skull';
+  const s = el('div', 'sheet yama'); s.style.maxWidth = '640px';
+  const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
+  const art = el('div', 'yama-art'); art.appendChild(imgTag(SKULL.file, 'Skull')); head.appendChild(art);
+  const t = el('div');
+  t.appendChild(el('h2', '', 'You enter the Wilderness'));
+  t.appendChild(el('p', '', 'Skull up for bigger rewards? The skull lasts until you leave the Wilderness.'));
+  head.appendChild(t); s.appendChild(head);
+  const g = el('div', 'grid offers'); g.style.marginTop = '12px';
+  const go = () => { mode = 'play'; showScreen(null); };
+  const sk = el('button', 'card offer contract'); sk.type = 'button';
+  sk.appendChild(el('div', 'nm', 'Skull up'));
+  sk.appendChild(el('div', 'ds gain', `▲ ×${SKULL.gold} gold and +${Math.round(SKULL.luck * 100)}% luck`));
+  sk.appendChild(el('div', 'ds price-bad', '▼ PKers hunt you. Cheat death and you lose your most valuable item. Die and they take half this run\'s trading sticks.'));
+  sk.appendChild(el('div', 'sign', 'Skull'));
+  sk.addEventListener('click', () => {
+    run.skull = true;
+    chat('You are skulled! PKers are coming for you.', 'r');
+    achEvent('skull');
+    sfx(90, 0.5, 'sawtooth', 0.08);
+    go();
+  });
+  g.appendChild(sk);
+  const no = el('button', 'card offer'); no.type = 'button';
+  no.appendChild(el('div', 'nm', 'Stay unskulled'));
+  no.appendChild(el('div', 'ds', 'Fight through the Wilderness as normal.'));
+  no.addEventListener('click', () => { chat('You stay unskulled.', 'b'); go(); });
+  g.appendChild(no);
+  s.appendChild(g);
+  showScreen(s);
 }
 
 function renderVictory() {
