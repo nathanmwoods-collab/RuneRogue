@@ -577,6 +577,21 @@ const SPECS = {
   volatile_nightmare_staff: { name: 'Immolate', cost: 55, mult: 3.2, info: 'a huge burst of nightmare magic' },
   toxic_staff_of_the_dead: { name: 'Lock', cost: 100, lock: 20, info: 'halves damage you take for 20 seconds' },
 };
+// Yama's contracts (names from the wiki's Yama contracts). A strong boon with a steep price, for the rest of the run.
+// At the end of a round there's a YAMA_CHANCE he appears; at most YAMA_MAX per run, and always by round YAMA_PITY.
+const YAMA = { name: 'Yama', file: 'Yama.png', quotes: [
+  'A binding contract. As luck would have it, I had one of my scribes draft one up for just such an occasion.',
+  'Perhaps you should have expressed that opinion before signing.',
+  'I take your soul. For all of eternity.',
+] };
+const YAMA_CHANCE = 0.12, YAMA_MAX = 2, YAMA_PITY = 13;
+const CONTRACTS = [
+  { id: 'severance', name: 'Contract of Divine Severance', gain: '+60% damage', cost: 'You can no longer use protection prayers' },
+  { id: 'bloodied', name: 'Contract of Bloodied Blows', gain: '+50% attack speed', cost: 'Your max hitpoints drop by 40%' },
+  { id: 'breath', name: 'Contract of Forfeit Breath', gain: '+75% gold and +50% luck', cost: 'Sharks, pies and round-end rests no longer heal you' },
+  { id: 'clouding', name: 'Contract of Sensory Clouding', gain: '+2 Multishot', cost: 'Enemies hit 35% harder' },
+  { id: 'glyphic', name: 'Contract of Glyphic Attenuation', gain: '+25% critical hit chance and a full special attack bar', cost: 'Enemies have 40% more hitpoints' },
+];
 const POTION_CHANCE = { normal: 0.012, elite: 0.06 };
 // Redberry pie: a separate ground drop that heals. Likelier when you're hurt.
 const PIE = { name: 'Redberry pie', file: 'Redberry_pie.png', heal: 0.25 };

@@ -173,7 +173,7 @@ function newRun(hero) {
     hero, skills, gear,
     inv: { shark: 2 + upVal('shark'), ppot: 1 },
     freeRerolls: 0, buffs: {}, boons: {}, lives: (hero.mods || {}).lives || 0,
-    spec: 100, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
+    spec: 100, contracts: {}, yamaSeen: 0, gold: upVal('startGold'), stage: -1, kills: 0, totalGold: 0, rerolls: 0, clues: 0, clueSeen: [],
     p: { x: WORLD_W / 2, y: WORLD_H / 2, r: 22, hp: 0, pp: 0, atkT: 0, face: 0, hurtT: 0, frozen: 0, poison: 0, anim: null, over: null },
     prayer: null,
   };
@@ -208,8 +208,8 @@ function stats() {
   const sum = (k) => gear.reduce((a, it) => a + (it[k] || 0), 0);
   const weapon = ITEMS[run.gear.weapon].w;
   const lane = KIND_STYLE[weapon.kind];
-  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane)) * (1 + 0.15 * bv('might'));
-  let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd') * (1 + 0.15 * bv('haste'));
+  let dmgMult = (m.dmg || 1) * (1 + upVal('dmg')) * buffMult('dmg_' + lane) * (1 + gear.reduce((a, it) => a + gearDmg(it, lane), 0)) * (1 - gearPenalty(gear, lane)) * (1 + 0.15 * bv('might')) * (ycon('severance') ? 1.6 : 1);
+  let aspd = (1 + sum('aspd') + upVal('aspd')) * buffMult('aspd') * (1 + 0.15 * bv('haste')) * (ycon('bloodied') ? 1.5 : 1);
   const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach'));
   let splash = (m.splash || 1) * (1 + 0.2 * bv('pierce'));
   // Skill levels run to 99, so each level is a small step.
@@ -222,14 +222,14 @@ function stats() {
     lane, weapon, dmgMult, aspd, range, splash,
     pierce: sum('pierce') + bv('pierce'),
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
-    maxHp: 50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0),
+    maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.6 : 1)),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: 1.6 * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)),
     reduce: Math.min(0.75, defPts / 100),
-    taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')),
+    taken: (m.taken || 1) * takenGear * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: 230 * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
-    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')),
-    crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit'),
+    goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1),
+    crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit') + (ycon('glyphic') ? 0.25 : 0),
   };
 }
 
@@ -307,6 +307,7 @@ function spawnMonster(id, x, y, opts = {}) {
     hitCd: 0, frozen: 0, castT: 1 + Math.random() * 2, kx: 0, ky: 0, flash: 0, over: null,
     ai: { t: 2.5 + Math.random(), phase: 0, burrow: 0 }, ...opts,
   };
+  if (ycon('glyphic')) e.hp = Math.round(e.hp * 1.4);
   e.maxHp = e.hp;
   enemies.push(e);
   if (d.say) say(e, d.say);
@@ -383,7 +384,8 @@ function endStage() {
   const st = stats();
   const bonus = Math.round((15 + run.stage * 6) * st.goldMult * (isBoss ? 2 : 1));
   addGold(bonus, false);
-  run.p.hp = Math.min(st.maxHp, run.p.hp + Math.round(st.maxHp * 0.5));
+  if (!ycon('breath')) run.p.hp = Math.min(st.maxHp, run.p.hp + Math.round(st.maxHp * 0.5));
+  run.p.hp = Math.min(st.maxHp, run.p.hp);
   chat(`${isBoss ? `${area.name} cleared!` : 'Wave cleared.'} Bonus: ${bonus} coins.`, 'g');
   if (isBoss && areaIndex() > meta.cleared) {
     meta.cleared = areaIndex(); saveMeta();
@@ -393,9 +395,57 @@ function endStage() {
   if (run.stage >= TOTAL_STAGES - 1) { victory(); return; }
   playMusic(MUSIC_SHOP);
   rollOffers(true);
-  if (isBoss) { renderBoons(); return; }
-  mode = 'shop';
-  renderShop();
+  const next = () => { if (isBoss) { renderBoons(); return; } mode = 'shop'; renderShop(); };
+  if (yamaShows()) { renderYama(next); return; }
+  next();
+}
+
+// Yama: a rare deal at the end of a round. At most YAMA_MAX per run, and always one by round YAMA_PITY.
+function yamaShows() {
+  if (run.yamaSeen >= YAMA_MAX) return false;
+  const open = CONTRACTS.filter((c) => !run.contracts[c.id]);
+  if (open.length < 2) return false;
+  if (run.yamaSeen === 0 && run.stage + 1 >= YAMA_PITY) return true;
+  return Math.random() < (run.yamaSeen ? YAMA_CHANCE / 4 : YAMA_CHANCE);
+}
+function renderYama(next) {
+  mode = 'yama';
+  run.yamaSeen++;
+  const pool = CONTRACTS.filter((c) => !run.contracts[c.id]);
+  const picks = [];
+  while (picks.length < 2 && pool.length) picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  const s = el('div', 'sheet yama'); s.style.maxWidth = '640px';
+  const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
+  const art = el('div', 'yama-art'); art.appendChild(imgTag(YAMA.file, YAMA.name)); head.appendChild(art);
+  const t = el('div');
+  t.appendChild(el('h2', '', 'Yama offers you a contract'));
+  t.appendChild(el('p', 'yama-quote', `“${YAMA.quotes[Math.floor(Math.random() * 2)]}”`));
+  t.appendChild(el('p', '', 'Sign one for the rest of this run, or walk away. Read the fine print.'));
+  head.appendChild(t); s.appendChild(head);
+  const g = el('div', 'grid offers'); g.style.marginTop = '12px';
+  for (const c of picks) {
+    const card = el('button', 'card offer contract'); card.type = 'button';
+    card.appendChild(el('div', 'nm', c.name));
+    card.appendChild(el('div', 'ds gain', `▲ ${c.gain}`));
+    card.appendChild(el('div', 'ds price-bad', `▼ ${c.cost}`));
+    card.appendChild(el('div', 'sign', 'Sign'));
+    card.addEventListener('click', () => {
+      run.contracts[c.id] = true;
+      if (c.id === 'clouding') run.boons.multi = bv('multi') + 2;
+      if (c.id === 'glyphic') run.spec = 100;
+      if (c.id === 'severance') run.prayer = null;
+      run.p.hp = Math.min(stats().maxHp, run.p.hp);
+      chat(`You sign the ${c.name}. Yama: “${YAMA.quotes[2]}”`, 'r');
+      sfx(90, 0.5, 'sawtooth', 0.08);
+      next();
+    });
+    g.appendChild(card);
+  }
+  s.appendChild(g);
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  r.appendChild(btn('Refuse the contract', 'btn', () => { chat('You refuse Yama. He watches you leave.', 'b'); next(); }));
+  s.appendChild(r);
+  showScreen(s);
 }
 
 // After each boss: pick 1 of 3 boons for this run.
@@ -432,7 +482,7 @@ function renderBoons() {
 // ======================================================================
 function maybeDropPotion(e) {
   if (e.d.boss || e.summoned) return;
-  const chance = (e.d.elite || e.clueBoss ? POTION_CHANCE.elite : POTION_CHANCE.normal) * (1 + upVal('luck') * 0.5);
+  const chance = (e.d.elite || e.clueBoss ? POTION_CHANCE.elite : POTION_CHANCE.normal) * (1 + luckVal() * 0.5);
   if (Math.random() < chance) {
     // the potion for the style you're using is twice as likely
     const style = weaponStyle();
@@ -444,11 +494,13 @@ function maybeDropPotion(e) {
     pickups.push({ kind: 'pie', x: e.x - 20, y: e.y, t: 0 });
   }
 }
+function luckVal() { return upVal('luck') + (ycon('breath') ? 0.5 : 0); }
+function ycon(id) { return !!(run && run.contracts && run.contracts[id]); }
 function bv(id) { return (run && run.boons[id]) || 0; }
 function buffMult(stat) { const b = run.buffs[stat]; return b && b.t > 0 ? 1 + b.amount : 1; }
 function maybeDropClue(e) {
   if (e.d.boss || e.d.clue || e.summoned) return;
-  const chance = (e.d.elite ? 0.02 : 0.005) * (1 + upVal('luck'));
+  const chance = (e.d.elite ? 0.02 : 0.005) * (1 + luckVal());
   if (Math.random() < chance) {
     pickups.push({ kind: 'clue', x: e.x, y: e.y, t: 0 });
     chat('A clue scroll drops!', 'r');
@@ -1218,7 +1270,7 @@ function updatePlayer(dt) {
       pk.got = true;
       if (pk.kind === 'clue') startClue();
       else if (pk.kind === 'pie') {
-        const max = stats().maxHp, heal = Math.round(max * PIE.heal);
+        const max = stats().maxHp, heal = ycon('breath') ? 0 : Math.round(max * PIE.heal);
         p.hp = Math.min(max, p.hp + heal);
         chat(`You eat the Redberry pie. It heals ${heal} hitpoints.`, 'g');
         burst(p.x, p.y - 20, '#ff4a6a', 12);
@@ -1242,6 +1294,7 @@ function addGold(v, sound) {
 function togglePrayer(style) {
   if (!run || mode !== 'play') return;
   if (run.prayer === style) run.prayer = null;
+  else if (ycon('severance')) { chat('Your Contract of Divine Severance forbids protection prayers.', 'r'); return; }
   else if (run.p.pp > 0) run.prayer = style;
   else chat('You need to recharge your prayer.', 'r');
   sfx(run.prayer ? 520 : 300, 0.06, 'sine', 0.05);
@@ -1254,7 +1307,7 @@ function useItem(kind) {
   if (!run || mode !== 'play' || run.inv[kind] <= 0) return;
   const st = stats();
   run.inv[kind]--;
-  if (kind === 'shark') { run.p.hp = Math.min(st.maxHp, run.p.hp + 20); chat('You eat the shark. It heals some health.'); }
+  if (kind === 'shark') { if (ycon('breath')) chat('You eat the shark, but your contract with Yama stops it healing you.', 'r'); else { run.p.hp = Math.min(st.maxHp, run.p.hp + 20); chat('You eat the shark. It heals some health.'); } }
   else { run.p.pp = Math.min(st.maxPp, run.p.pp + 20); chat('You drink some of your prayer potion.'); }
   sfx(400, 0.1, 'sine', 0.05);
 }
@@ -1805,7 +1858,7 @@ let offers = [];
 function rarityWeight(it) {
   const prog = run.stage / Math.max(1, TOTAL_STAGES - 1);
   let wt = RARITY_WEIGHT[it.rarity] * (1 + RARITY_GROWTH[it.rarity] * prog);
-  if (it.rarity !== 'common') wt *= 1 + upVal('luck') * (it.rarity === 'uncommon' ? 0.5 : 1);
+  if (it.rarity !== 'common') wt *= 1 + luckVal() * (it.rarity === 'uncommon' ? 0.5 : 1);
   return wt;
 }
 function itemScore(it) { return it ? it.price + it.tier * 10 : -1; }
@@ -2035,6 +2088,8 @@ function renderShop() {
     <span>Sharks · Prayer pots</span><b>${run.inv.shark} · ${run.inv.ppot}</b>`;
   const boons = BOONS.filter((b) => bv(b.id)).map((b) => b.name + (bv(b.id) > 1 ? ` ${'I'.repeat(bv(b.id))}` : ''));
   if (boons.length) stl.innerHTML += `<span>Boons</span><b>${boons.join(', ')}</b>`;
+  const signed = CONTRACTS.filter((c) => ycon(c.id));
+  if (signed.length) stl.innerHTML += `<span>Yama contracts</span><b style="color:#ff8a7a">${signed.map((c) => `${c.name.replace('Contract of ', '')} (${c.cost.toLowerCase()})`).join('; ')}</b>`;
   eqRow.appendChild(stl);
   left.appendChild(eqRow);
   grid.appendChild(left);
@@ -2208,6 +2263,8 @@ window.__rr = {
   killAll: () => { for (const e of enemies) e.hp = 1; },
   die: () => die(),
   rollOffers: () => { rollOffers(true); return offers; },
+  yama: () => renderYama(() => { mode = 'shop'; renderShop(); }),
+  yamaShows: () => yamaShows(),
   dropPie: () => pickups.push({ kind: 'pie', x: run.p.x + 60, y: run.p.y, t: 0 }),
 };
 })();
