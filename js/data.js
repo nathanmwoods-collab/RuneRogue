@@ -462,6 +462,35 @@ mon('nex', 'Nex', 'Nex.png', 1001, 8800, 95, 36, 190, 760, 'magic', { boss: 'nex
 mon('zuk', 'TzKal-Zuk', 'TzKal-Zuk.png', 1400, 16000, 0, 60, 280, 0, 'magic', { boss: 'zuk' });
 
 // Zulrah's three forms
+// Raid rooms: the bosses before each raid's final boss (sub: shorter fights), with their minions (wiki images).
+// CoX bosses have no fixed combat level (they scale with the party), so they show none.
+mon('baba', 'Ba-Ba', 'Ba-Ba.png', 359, 5000, 90, 36, 200, 260, 'melee', { boss: 'baba', sub: true });
+mon('kephri', 'Kephri', 'Kephri.png', 341, 5000, 0, 34, 210, 260, 'magic', { boss: 'kephri', sub: true });
+mon('akkha', 'Akkha', 'Akkha.png', 337, 5000, 80, 36, 210, 260, 'magic', { boss: 'akkha', sub: true });
+mon('zebak', 'Zebak', 'Zebak.png', 371, 5000, 0, 38, 220, 260, 'magic', { boss: 'zebak', sub: true });
+mon('tekton', 'Tekton', 'Tekton.png', null, 5000, 85, 40, 210, 280, 'melee', { boss: 'tekton', sub: true });
+mon('vanguard_melee', 'Vanguard (melee)', 'Vanguard_(melee).png', null, 3000, 70, 34, 150, 160, 'melee', { boss: 'vanguard', sub: true });
+mon('vanguard_ranged', 'Vanguard (ranged)', 'Vanguard_(ranged).png', null, 3000, 0, 30, 150, 160, 'ranged', { boss: 'vanguard', sub: true });
+mon('vanguard_magic', 'Vanguard (magic)', 'Vanguard_(magic).png', null, 3000, 0, 30, 150, 160, 'magic', { boss: 'vanguard', sub: true });
+mon('vasa', 'Vasa Nistirio', 'Vasa_Nistirio.png', null, 5000, 60, 36, 210, 280, 'ranged', { boss: 'vasa', sub: true });
+mon('vespula', 'Vespula', 'Vespula.png', null, 5000, 70, 34, 200, 280, 'ranged', { boss: 'vespula', sub: true });
+mon('muttadile_small', 'Muttadile (small)', 'Muttadile.png', null, 4000, 90, 34, 150, 200, 'melee', { boss: 'muttadile', sub: true });
+mon('muttadile_large', 'Muttadile (large)', 'Muttadile.png', null, 5000, 80, 40, 230, 300, 'melee', { boss: 'muttadile', sub: true });
+mon('maiden', 'The Maiden of Sugadinti', 'The_Maiden_of_Sugadinti.png', 940, 5000, 0, 38, 220, 300, 'magic', { boss: 'maiden', sub: true });
+mon('bloat', 'Pestilent Bloat', 'Pestilent_Bloat.png', 870, 5000, 0, 36, 200, 300, 'melee', { boss: 'bloat', sub: true });
+mon('vasilias', 'Nylocas Vasilias', 'Nylocas_Vasilias_(melee).png', 800, 5000, 90, 38, 200, 300, 'melee', { boss: 'vasilias', sub: true });
+mon('sotetseg', 'Sotetseg', 'Sotetseg.png', 995, 5000, 0, 40, 220, 320, 'magic', { boss: 'sotetseg', sub: true });
+mon('xarpus', 'Xarpus', 'Xarpus.png', 960, 5000, 0, 40, 220, 320, 'magic', { boss: 'xarpus', sub: true });
+mon('jaltok_jad', 'JalTok-Jad', 'JalTok-Jad.png', 900, 6400, 55, 40, 230, 400, 'melee', { boss: 'jad', sub: true });
+const VASILIAS_FORMS = { melee: 'Nylocas_Vasilias_(melee).png', ranged: 'Nylocas_Vasilias_(ranged).png', magic: 'Nylocas_Vasilias_(magic).png' };
+mon('soldier_scarab', 'Soldier scarab', 'Soldier_Scarab.png', 89, 420, 110, 26, 60, 20, 'melee');
+mon('spitting_scarab', 'Spitting scarab', 'Spitting_Scarab.png', 89, 380, 90, 20, 60, 20, 'ranged', { caster: ARROW('#5fd34a'), noPray: true, onHit: { poison: 6 } });
+mon('arcane_scarab', 'Arcane scarab', 'Arcane_Scarab.png', 89, 380, 90, 30, 60, 20, 'magic', { caster: MAGIC_BOLT('#ff4a4a') });
+mon('akkha_shadow', "Akkha's Shadow", "Akkha's_Shadow.png", 108, 600, 100, 24, 110, 30, 'magic', { caster: MAGIC_BOLT('#8a4aff') });
+mon('vasa_crystal', 'Glowing crystal', 'Glowing_crystal.png', null, 300, 0, 0, 80, 10, 'melee', { harmless: true });
+mon('lux_grub', 'Lux grub', 'Lux_grub.png', null, 150, 0, 0, 50, 6, 'melee', { harmless: true });
+mon('vespine_soldier', 'Vespine soldier', 'Vespine_soldier.png', null, 360, 120, 24, 70, 20, 'melee', { onHit: { poison: 8 } });
+mon('blood_spawn', 'Blood spawn', 'Blood_spawn.png', 55, 80, 70, 10, 50, 6, 'magic');
 const ZULRAH_FORMS = [
   { style: 'ranged', name: 'serpentine', file: 'Zulrah_(serpentine).png', color: '#5fd34a' },
   { style: 'melee', name: 'magma', file: 'Zulrah_(magma).png', color: '#ff5a1a' },
@@ -488,10 +517,10 @@ const AREAS = [
   { name: 'Fight Caves', map: [23, 0, 2440, 5150, 1], bg: 'TzHaar_Fight_Cave.png', music: 'TzHaar!.ogg', hordes: ['tz_kih', 'tz_kek', 'tok_xil'], elites: ['yt_mejkot', 'ket_zek'], boss: 'jad', look: ['#3a1a10', '#2b130b', '#6b2a0e'] },
   { name: 'Ungael', map: [0, 0, 2272, 4062, 1.6], bg: 'Ungael.png', music: 'On_Thin_Ice.ogg', hordes: ['zombie', 'skeleton'], elites: ['brutal_black_dragon'], boss: 'vorkath', look: ['#5a6a7a', '#4a5a6a', '#6a7a8a'] },
   { name: 'Ancient Prison', map: [7, 2, 2912, 5335, 1.3], bg: 'Fighting_Nex.png', music: 'The_Ancient_Prison.ogg', hordes: ['spiritual_warrior', 'spiritual_ranger', 'spiritual_mage'], elites: ['fumus', 'glacies'], boss: 'nex', look: ['#3a2a4a', '#2e223c', '#4a3a5a'] },
-  { name: 'Tombs of Amascut', map: [0, 0, 3262, 2785, 1.3], bg: "Tombs_of_Amascut_-_fighting_Tumeken's_Warden.png", music: "Amascut's_Promise.ogg", hordes: ['scarab_swarm', 'baboon_brawler', 'baboon_thrower'], elites: ['baboon_mage'], boss: 'wardens', look: ['#8a6a3a', '#7a5a2e', '#9a7a48'] },
-  { name: 'Chambers of Xeric', map: [0, 0, 1250, 3560, 1], bg: 'Fighting_Great_Olm.png', music: 'Fire_in_the_Deep.ogg', hordes: ['deathly_ranger', 'deathly_mage'], elites: ['lizardman_shaman', 'skeletal_mystic'], boss: 'olm', look: ['#2e3a4a', '#25303c', '#3a4858'] },
-  { name: 'Theatre of Blood', map: [0, 0, 3660, 3220, 1], bg: 'Fighting_Verzik_Vitur.png', music: 'The_Fat_Lady_Sings.ogg', hordes: ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'], elites: [], boss: 'verzik', look: ['#4a1a1a', '#3a1414', '#5a2424'] },
-  { name: 'The Inferno', map: [23, 0, 2500, 5100, 1], bg: 'Inferno_arena_overview.png', music: 'Inferno.ogg', hordes: ['jal_nib', 'jal_mejrah', 'jal_ak'], elites: ['jal_imkot', 'jal_xil', 'jal_zek'], boss: 'zuk', look: ['#4a1408', '#3a1006', '#6a200a'] },
+  { name: 'Tombs of Amascut', map: [0, 0, 3262, 2785, 1.3], bg: "Tombs_of_Amascut_-_fighting_Tumeken's_Warden.png", music: "Amascut's_Promise.ogg", hordes: ['scarab_swarm', 'baboon_brawler', 'baboon_thrower'], elites: ['baboon_mage'], boss: 'wardens', raid: [['baba', 'kephri'], ['akkha', 'zebak']], look: ['#8a6a3a', '#7a5a2e', '#9a7a48'] },
+  { name: 'Chambers of Xeric', map: [0, 0, 1250, 3560, 1], bg: 'Fighting_Great_Olm.png', music: 'Fire_in_the_Deep.ogg', hordes: ['deathly_ranger', 'deathly_mage'], elites: ['lizardman_shaman', 'skeletal_mystic'], boss: 'olm', raid: [['tekton', ['vanguard_melee', 'vanguard_ranged', 'vanguard_magic'], 'vasa'], ['vespula', 'muttadile_small', 'muttadile_large']], look: ['#2e3a4a', '#25303c', '#3a4858'] },
+  { name: 'Theatre of Blood', map: [0, 0, 3660, 3220, 1], bg: 'Fighting_Verzik_Vitur.png', music: 'The_Fat_Lady_Sings.ogg', hordes: ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'], elites: [], boss: 'verzik', raid: [['maiden', 'bloat'], ['vasilias', 'sotetseg', 'xarpus']], look: ['#4a1a1a', '#3a1414', '#5a2424'] },
+  { name: 'The Inferno', map: [23, 0, 2500, 5100, 1], bg: 'Inferno_arena_overview.png', music: 'Inferno.ogg', hordes: ['jal_nib', 'jal_mejrah', 'jal_ak'], elites: ['jal_imkot', 'jal_xil', 'jal_zek'], boss: 'zuk', raid: [null, [['jaltok_jad', 'jaltok_jad', 'jaltok_jad']]], finaleMobs: 0, look: ['#4a1408', '#3a1006', '#6a200a'] },
 ];
 const WAVES_PER_AREA = 2;
 // Top-down map tiles from the wiki's world map (zoom 3: 256px per 32x32 game tiles, no icons).

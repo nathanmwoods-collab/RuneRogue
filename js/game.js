@@ -312,6 +312,11 @@ function startStage() {
   if (!isBoss && area.name === 'Varrock') run.circleAt = Math.floor(toSpawn * (0.3 + Math.random() * 0.5));
   // Insanity: a boss from elsewhere in Gielinor bursts into this wave partway through
   if (!isBoss && inv('insanity') && run.stage >= 1 && Math.random() < 0.45) run.insaneAt = Math.floor(toSpawn * (0.2 + Math.random() * 0.5));
+  // Raids: the waves are the raid's earlier bosses (with their own minions) instead of a horde, and the finale has few mobs
+  run.raidQ = null;
+  const rw = !isBoss && area.raid && area.raid[sub];
+  if (rw) { run.raidQ = rw.map((g) => [].concat(g)); toSpawn = 0; run.evAt = null; run.circleAt = null; run.insaneAt = null; run.raidT = 1.5; }
+  if (isBoss && area.raid) toSpawn = area.finaleMobs ?? 4;
   if (run.skull && area.name !== 'Wilderness') { run.skull = false; chat('You leave the Wilderness. Your skull fades.', 'g'); }
   spawnT = 0.6;
   if (isBoss) {
@@ -323,7 +328,8 @@ function startStage() {
     bossIntro(b);
     sfx(90, 0.6, 'sawtooth', 0.07);
   } else {
-    chat(`${area.name}, wave ${sub + 1} of ${WAVES_PER_AREA}. Defeat every enemy, then walk through the exit door.`, 'g');
+    if (rw) chat(`${area.name}, room ${sub + 1} of ${WAVES_PER_AREA}: ${rw.map((g) => { g = [].concat(g); return (g.length > 1 ? g.length + ' × ' : '') + MONSTERS[g[0]].name; }).join(', then ')}. Beat them, then walk through the exit door.`, 'g');
+    else chat(`${area.name}, wave ${sub + 1} of ${WAVES_PER_AREA}. Defeat every enemy, then walk through the exit door.`, 'g');
   }
   if (sub === 0 && !isBoss) heroSays();
   creatureStageStart();
@@ -387,7 +393,7 @@ function spawnMonster(id, x, y, opts = {}) {
   if (d.boss || d.clue) {
     e.hp = Math.round(e.hp * BOSS_HP);
     // Bosses scale to your damage so a strong build can't melt them: a fight lasts at least ~35-60s (clue bosses ~20-35s).
-    const a = areaIndex(), ttk = d.boss ? 35 + 1.6 * a : 20 + a;
+    const a = areaIndex(), ttk = d.boss ? (d.sub ? 24 + a : 35 + 1.6 * a) : 20 + a; // raid room bosses are shorter fights
     e.hp = Math.max(e.hp, Math.round(effectiveDps(d) * ttk));
     // Safety net for builds the estimate misses: a boss can't lose more than its HP over ~70% of that time.
     e.capRate = e.hp / (ttk * 0.7); e.capBank = e.capRate * 2;
@@ -459,6 +465,28 @@ function spawnTick(dt) {
   toSpawn -= group;
 }
 
+// Raid rooms: each boss (or group, like the Inferno's triple Jad) comes in once the one before it is dead
+function raidTick(dt) {
+  if (!run.raidQ) return;
+  const alive = enemies.filter((e) => e.raidBoss && !e.dead);
+  if (alive.length) { if (!bossAlive || bossAlive.dead) bossAlive = alive[0]; return; }
+  if (!run.raidQ.length || (run.raidT -= dt) > 0) return;
+  run.raidT = 2.5;
+  const group = run.raidQ.shift();
+  const bs = group.map((id, i) => {
+    const d = MONSTERS[id];
+    const b = spawnMonster(id, WORLD_W / 2 + (i - (group.length - 1) / 2) * 380, Math.max(230, 140 + d.size));
+    b.raidBoss = true;
+    if (group.length > 1) { b.hp = b.maxHp = Math.round(b.maxHp * 0.55); b.ai.t += i * 1.3; }
+    return b;
+  });
+  bossAlive = bs[0];
+  const d = bs[0].d;
+  chat(`${group.length > 1 ? group.length + ' × ' : ''}${d.name}${d.lvl ? ` (level-${d.lvl})` : ''} ${group.length > 1 ? 'appear' : 'appears'}!`, 'r');
+  bossIntro(bs[0]);
+  sfx(90, 0.6, 'sawtooth', 0.07);
+}
+
 function checkStageDone(dt) {
   if (stageEnding > 0) { stageEnding -= dt; if (stageEnding <= 0) endStage(); return; }
   const bossDone = !isBoss || !bossAlive || bossAlive.dead;
@@ -466,7 +494,7 @@ function checkStageDone(dt) {
   const waitPk = pickups.find((pk) => pk.kind === 'casket' || pk.kind === 'clue' || pk.kind === 'artefact');
   const casketWaiting = !!waitPk;
   if (run.ev) return; // finish the random event first
-  if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0) {
+  if (bossDone && (toSpawn <= 0 || isBoss) && enemies.length === 0 && !(run.raidQ && run.raidQ.length)) {
     // a casket or artefact must be picked up; a clue scroll can be read or left behind
     if (casketWaiting && waitPk.kind !== 'clue') { if (!run.casketNag) { run.casketNag = true; chat(`Pick up the ${waitPk.kind === 'artefact' ? waitPk.art.name : 'reward casket'} to finish the round.`, 'r'); } return; }
     run.casketNag = false;
@@ -1266,8 +1294,17 @@ function rollDamage(base, target, st) {
 function damageEnemy(e, dmg, crit, opts = {}) {
   if (e.dead) return;
   if (e.immune) { dmg = 0; }
-  else if (e.resist && e.resist[weaponStyle()]) dmg = Math.round(dmg * e.resist[weaponStyle()]);
+  else if (e.mirror && weaponStyle() !== e.mirror && dmg > 0) {
+    // Nylocas Vasilias: the wrong style bounces back at you and heals it
+    e.hp = Math.min(e.maxHp, e.hp + dmg); hurtPlayer(dmg * 0.5, e.mirror, { pure: true });
+    if (!e.ai.mirrorTold) { e.ai.mirrorTold = true; chat('Wrong style! The damage bounces back and heals Nylocas Vasilias.', 'r'); }
+    dmg = 0;
+  } else if (e.resist && e.resist[weaponStyle()]) dmg = Math.round(dmg * e.resist[weaponStyle()]);
   dmg = creatureDamage(e, dmg);
+  // Xarpus: attacking him from the quadrant he stares at brings a poison retaliation
+  if (e.d.boss === 'xarpus' && e.ai.stare !== undefined && e.hp < e.maxHp * 0.25 && dmg > 0 && quadOf(run.p.x, run.p.y) === e.ai.stare && (e.ai.ret = e.ai.ret || 0) <= run.stageT) {
+    e.ai.ret = run.stageT + 0.6; hurtPlayer(0, 'magic', { pure: true, frac: 0.2, poison: 6 }); burst(run.p.x, run.p.y, '#5fd34a', 12);
+  }
   if (e.weakT > 0 && dmg > 0) dmg = Math.round(dmg * (1 + e.weak));
   if (e.capRate && dmg > 0) { dmg = Math.min(dmg, Math.max(1, Math.floor(e.capBank))); e.capBank -= dmg; }
   e.hp -= dmg;
@@ -1307,7 +1344,7 @@ function killEnemy(e) {
     sfx(220, 0.4, 'triangle', 0.08); setTimeout(() => sfx(440, 0.5, 'triangle', 0.08), 200);
     burst(e.x, e.y, '#ffd060', 60);
     // remaining summons collapse with their master
-    for (const m of enemies) if (m.summoned && !m.dead) { m.dead = true; burst(m.x, m.y, '#888', 8); }
+    for (const m of enemies) if (m.summoned && !m.dead && (!m.master || m.master === e)) { m.dead = true; burst(m.x, m.y, '#888', 8); }
   } else if (e.eventMob) {
     const ev = run.ev;
     if (ev && ev.type === 'forester') { const ok = e.tails === ev.want; endEvent(); if (ok) evLamp(2, 'The Freaky Forester takes the pheasant.'); else chat('Freaky Forester: That\'s the wrong pheasant!', 'r'); }
@@ -1630,7 +1667,8 @@ function updateEnemies(dt) {
     if (e.dead || e.ai.burrow > 0) continue;
     if (e.d.spd === 0 && !e.d.caster) continue; // stationary bosses
 
-    const tgt = e.healer && !e.aggro && bossAlive && !bossAlive.dead ? bossAlive : p;
+    const healT = e.healer && !e.aggro ? (e.healFor && !e.healFor.dead ? e.healFor : bossAlive && !bossAlive.dead ? bossAlive : null) : null;
+    const tgt = healT || p;
     let dx = tgt.x - e.x, dy = tgt.y - e.y, dist = Math.hypot(dx, dy) || 1;
     const realDist = dist;
     if (e.lead && tgt === p && dist > 90 && e.d.spd) {
@@ -1639,7 +1677,7 @@ function updateEnemies(dt) {
       dx = p.x + (p.vx || 0) * t - e.x; dy = p.y + (p.vy || 0) * t - e.y;
       dist = Math.hypot(dx, dy) || 1;
     }
-    let want = tgt === p ? 1 : dist > e.r + bossAlive.r ? 1 : 0;
+    let want = tgt === p ? 1 : dist > e.r + tgt.r ? 1 : 0;
     if (e.d.caster && !e.d.boss) {
       want = dist > e.d.caster.range ? 1 : dist < e.d.caster.range * 0.7 ? -0.6 : 0;
       e.castT -= dt;
@@ -1703,7 +1741,7 @@ function summon(e, id, n, opts = {}) {
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2;
     const m = spawnMonster(id, clamp(e.x + Math.cos(a) * 140, 40, WORLD_W - 40), clamp(e.y + Math.sin(a) * 140, 120, WORLD_H - 40), opts);
-    m.summoned = true;
+    m.summoned = true; m.master = e;
   }
 }
 function shout(e, key) {
@@ -1935,7 +1973,7 @@ function bossAI(e, dt) {
       }
     }
   } else if (k === 'jad') {
-    if (!e.ai.windup && e.ai.t <= 0) {
+    if (!e.ai.windup && e.ai.t <= 0 && !enemies.some((o) => o !== e && !o.dead && o.ai.windup && o.ai.windup.t > 0.2)) {
       e.ai.windup = { style: Math.random() < 0.5 ? 'magic' : 'ranged', t: Math.max(0.9, 1.5 - (1 - hpf) * 0.5) };
       sfx(e.ai.windup.style === 'magic' ? 200 : 600, 0.2, 'triangle', 0.06);
     }
@@ -1951,7 +1989,7 @@ function bossAI(e, dt) {
     if (!e.ai.healers && hpf < 0.5) {
       e.ai.healers = true;
       chat('Yt-HurKot healers appear! Hit them to pull them off Jad.', 'r');
-      for (let i = 0; i < 4; i++) { const sp = edgeSpawn(); const m = spawnMonster('yt_hurkot', sp.x, sp.y); m.healer = true; m.summoned = true; }
+      for (let i = 0; i < (e.raidBoss ? 3 : 4); i++) { const sp = edgeSpawn(); const m = spawnMonster('yt_hurkot', sp.x, sp.y); m.healer = true; m.summoned = true; m.master = e; m.healFor = e; }
     }
   } else if (k === 'vorkath') {
     if (e.ai.spawn && !e.ai.spawn.dead) { e.immune = true; return; }
@@ -2090,11 +2128,11 @@ function bossAI(e, dt) {
         if (safe) burst(sh.x, sh.y + 13, '#ffb040', 20); else hurtPlayer(0, 'magic', { pure: true, frac: 0.95 });
       }
     }
-    if (!e.ai.jad && hpf < 0.6) { e.ai.jad = true; const j = spawnMonster('jad', 200, 300); j.summoned = true; j.hp = j.maxHp = 2500; chat('TzKal-Zuk summons Jal-TokJad!', 'r'); }
+    if (!e.ai.jad && hpf < 0.6) { e.ai.jad = true; const j = spawnMonster('jaltok_jad', 200, 300); j.summoned = true; j.master = e; j.hp = j.maxHp = 2500; chat('TzKal-Zuk summons Jal-TokJad!', 'r'); }
     if (!e.ai.heal && hpf < 0.3) { e.ai.heal = true; for (let i = 0; i < 4; i++) { const m = spawnMonster('yt_hurkot', 200 + i * 300, 160); m.healer = true; m.summoned = true; } chat('Jal-MejJak healers arrive!', 'r'); }
   }
   // Jad-style healers heal whoever is the boss
-  for (const m of enemies) if (m.healer && !m.dead && !m.aggro && Math.hypot(m.x - e.x, m.y - e.y) < e.r + 50) e.hp = Math.min(e.maxHp, e.hp + 16 * dt);
+  for (const m of enemies) if (m.healer && !m.dead && !m.aggro && (!m.healFor || m.healFor === e) && Math.hypot(m.x - e.x, m.y - e.y) < e.r + 50) e.hp = Math.min(e.maxHp, e.hp + 16 * dt);
 }
 
 function updateEnemyShots(dt) {
@@ -2335,6 +2373,7 @@ function step(dt) {
   invoTick(dt);
   eventTick(dt);
   spawnTick(dt);
+  raidTick(dt);
   checkStageDone(dt);
 }
 
@@ -2498,6 +2537,7 @@ function draw() {
     text(art ? art.name : pot ? pot.name : pie ? PIE.name : pk.kind === 'clue' ? 'Clue scroll' : 'Reward casket', pk.x, pk.y - 34 + bob, 13, pot ? '#7fd0ff' : pie ? '#ff8a9a' : '#ff981f');
   }
 
+  for (const e of enemies) if (!e.dead && RAID_DRAW[e.d.boss]) RAID_DRAW[e.d.boss](e);
   drawDoor();
   drawEvent();
   const sprites = enemies.filter((e) => e.ai.burrow <= 0).map((e) => ({ y: e.y, e }));
@@ -2791,7 +2831,7 @@ function drawHud() {
   if (bossAlive && !bossAlive.dead) {
     bb.hidden = false;
     const extra = bossAlive.d.boss === 'zulrah' ? ` · ${ZULRAH_FORMS[bossAlive.ai.form || 0].name}` : bossAlive.d.boss === 'verzik' ? ` · phase ${bossAlive.ai.vphase || 1}` : bossAlive.d.boss === 'kq' && bossAlive.ai.form2 ? ' · airborne' : '';
-    $('bossName').textContent = `${bossAlive.d.name} (level-${bossAlive.d.lvl})${extra}`;
+    $('bossName').textContent = `${bossAlive.d.name}${bossAlive.d.lvl ? ` (level-${bossAlive.d.lvl})` : ''}${extra}`;
     $('bossHp').firstElementChild.style.width = `${clamp(bossAlive.hp / bossAlive.maxHp, 0, 1) * 100}%`;
   } else bb.hidden = true;
 }
@@ -3703,10 +3743,380 @@ function drawCreatureExtras() {
 // ======================================================================
 // Bosses. Returns true when the boss's attacks were handled here.
 // ======================================================================
+// ======================================================================
+// Raid rooms: the bosses before each raid's final boss (wiki attacks), with their minions.
+// Many attacks are about where you stand: safe tiles, hiding behind cover, quadrants, mazes.
+// ======================================================================
+const ARENA_TOP = 120;
+const roomSpot = () => ({ x: 60 + Math.random() * (WORLD_W - 120), y: ARENA_TOP + 30 + Math.random() * (WORLD_H - ARENA_TOP - 60) });
+const nearSpot = (p, s) => ({ x: clamp(p.x + (Math.random() - 0.5) * s, 40, WORLD_W - 40), y: clamp(p.y + (Math.random() - 0.5) * s, ARENA_TOP + 20, WORLD_H - 30) });
+// a quadrant of the room as a rectangle telegraph (a wide "line")
+function quadTele(q, delay, color, label, ex) {
+  const h = (WORLD_H - ARENA_TOP) / 2, x = q % 2 ? WORLD_W / 2 : 0, y = ARENA_TOP + h * (q < 2 ? 0.5 : 1.5);
+  telegraphs.push({ line: true, x, y, a: 0, len: WORLD_W / 2, w: h, t: delay, max: delay, color, dmg: 0, style: 'magic', label, noPray: true, ...ex });
+}
+const quadOf = (x, y) => (x > WORLD_W / 2 ? 1 : 0) + (y > ARENA_TOP + (WORLD_H - ARENA_TOP) / 2 ? 2 : 0);
+// does the circle (cx, cy, r) block the straight line from a to b?
+function blocks(ax, ay, bx, by, cx, cy, r) {
+  const vx = bx - ax, vy = by - ay, L = vx * vx + vy * vy || 1;
+  const t = clamp(((cx - ax) * vx + (cy - ay) * vy) / L, 0, 1);
+  return t > 0.05 && t < 0.98 && Math.hypot(ax + vx * t - cx, ay + vy * t - cy) < r;
+}
+function rectBlocks(ax, ay, bx, by, R) {
+  for (let i = 1; i < 20; i++) { const x = ax + (bx - ax) * i / 20, y = ay + (by - ay) * i / 20; if (x > R.x && x < R.x + R.w && y > R.y && y < R.y + R.h) return true; }
+  return false;
+}
+function hpGate(e, hpf, marks) { // fires once as health passes each mark
+  e.ai.gate = e.ai.gate || 0;
+  if (e.ai.gate < marks.length && hpf < marks[e.ai.gate]) return ++e.ai.gate;
+  return 0;
+}
+function styleShot(e, style, mult = 1) {
+  if (style === 'melee') return;
+  aimShot(e, 480, style, style === 'magic' ? '#4aa0ff' : '#c8a060', e.dmg * mult, { r: 13 });
+}
+
+const RAID_MECH = {
+  // --- Tombs of Amascut ---
+  baba(e, dt, p, hpf, dist, near) {
+    // Ba-Ba (wiki): slams the ground around her, drops rocks from the ceiling, rolls boulders across the room, and calls baboons
+    if (hpGate(e, hpf, [0.66, 0.33])) { summon(e, 'baboon_brawler', 2); summon(e, 'baboon_thrower', 1); chat('Ba-Ba calls her baboons!', 'r'); e.ai.phase = 2; e.ai.t = 0.5; }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.3;
+    const r = e.ai.phase++ % 4;
+    if (r === 0) slam(e.x, e.y, e.r + 110, 1.0, 0, 'melee', '#c8a060', 'Slam! Back off!', { noPray: true, frac: 0.35 });
+    else if (r === 1) { slam(p.x, p.y, 60, 1.2, 0, 'melee', '#8a6a3c', 'Falling rocks!', { noPray: true, frac: 0.2 }); for (let i = 0; i < 6; i++) { const s = roomSpot(); slam(s.x, s.y, 60, 1.2, 0, 'melee', '#8a6a3c', '', { noPray: true, frac: 0.2 }); } }
+    else if (r === 2) {
+      // boulders roll down every lane but one: find the gap
+      const lanes = 5, lh = (WORLD_H - ARENA_TOP) / lanes, gap = Math.floor(Math.random() * lanes);
+      for (let i = 0; i < lanes; i++) if (i !== gap) telegraphs.push({ line: true, x: 0, y: ARENA_TOP + lh * (i + 0.5), a: 0, len: WORLD_W, w: lh - 6, t: 2.0, max: 2.0, color: '#a07a4a', dmg: 0, frac: 0.45, style: 'melee', label: i === (gap + 1) % lanes ? 'Boulders! Get in the gap!' : '', noPray: true });
+    } else if (near) hurtPlayer(e.dmg * 1.6, 'melee', { from: e });
+  },
+  kephri(e, dt, p, hpf) {
+    // Kephri (wiki): shielded while her scarab swarms crawl in to heal her; dung bombs explode on the floor where you stand;
+    // soldier, spitting and arcane scarabs join her
+    const g = hpGate(e, hpf, [0.75, 0.5, 0.25]);
+    if (g) {
+      e.ai.shieldT = 9; e.immune = true;
+      for (let i = 0; i < 3 + g; i++) { const s = roomSpot(); const m = spawnMonster('scarab_swarm', s.x, s.y); m.feeds = e; m.summoned = true; m.master = e; }
+      if (g < 3) { summon(e, 'soldier_scarab', 1); summon(e, g === 1 ? 'spitting_scarab' : 'arcane_scarab', 1); }
+      chat('Kephri shields herself. Kill the scarab swarms before they reach her!', 'r');
+    }
+    if (e.ai.shieldT > 0) { e.ai.shieldT -= dt; if (e.ai.shieldT <= 0 || !enemies.some((m) => m.feeds === e && !m.dead)) { e.ai.shieldT = 0; e.immune = false; chat('Kephri\'s shield drops!', 'g'); } }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.2;
+    if (e.ai.phase++ % 3 === 2) fan(e, 5, 0.16, 360, 'magic', '#ffd24a', e.dmg);
+    else {
+      slam(p.x, p.y, 65, 1.3, 0, 'magic', '#ff8a2a', 'Dung bomb!', { noPray: true, frac: 0.3 });
+      for (let i = 0; i < 2 + Math.floor((1 - hpf) * 4); i++) { const s = nearSpot(p, 420); slam(s.x, s.y, 65, 1.3, 0, 'magic', '#ff8a2a', '', { noPray: true, frac: 0.3 }); }
+    }
+  },
+  akkha(e, dt, p, hpf, dist, near) {
+    // Akkha (wiki): switches between melee, ranged and magic; leaves a shadow at each 20% that must die first;
+    // "memory" quadrants explode in order; enraged, unstable orbs drift after you
+    const g = hpGate(e, hpf, [0.8, 0.6, 0.4, 0.2]);
+    if (g) { const s = roomSpot(); const m = spawnMonster('akkha_shadow', s.x, s.y); m.summoned = true; m.master = e; e.ai.shadow = m; chat('Akkha splits off a shadow. Kill it to reach him!', 'r'); }
+    e.immune = !!(e.ai.shadow && !e.ai.shadow.dead);
+    if (hpf < 0.2 && (e.ai.orbT = (e.ai.orbT || 0) - dt) <= 0) { e.ai.orbT = 3; hazards.push({ x: e.x, y: e.y, r: 34, t: 9, color: '#b04bff', dps: e.dmg * 1.2, chase: 70 }); }
+    if (e.ai.t > 0) return;
+    e.ai.t = 1.9;
+    if (e.ai.phase % 4 === 0) e.ai.style = ['melee', 'ranged', 'magic'][Math.floor(Math.random() * 3)];
+    const st = e.ai.style || 'magic';
+    if (++e.ai.phase % 6 === 0) {
+      // memory: quadrants light up one after another, then explode in the same order. Stand in the last one.
+      const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+      order.forEach((q, i) => quadTele(q, 1.6 + i * 0.8, '#b04bff', i === 0 ? 'Memory! Remember the order' : '', { frac: 0.5 }));
+      chat('Akkha\'s quadrants explode one after another. Move into the one that just went off!', 'r');
+    } else if (st === 'melee') { if (near) hurtPlayer(e.dmg * 1.5, 'melee', { from: e }); else slam(p.x, p.y, 70, 1.1, 0, 'melee', '#d8c8a0', 'Akkha leaps!', { frac: 0.3 }); }
+    else styleShot(e, st, 1.3);
+  },
+  zebak(e, dt, p, hpf) {
+    // Zebak (wiki): magic and ranged rocks, poison pools, blood clouds that heal him, waves of water,
+    // and the Great Roar, which hits hard unless you are behind a stone
+    if (!e.ai.stones) e.ai.stones = [0.22, 0.5, 0.78].map((f) => ({ x: WORLD_W * f, y: WORLD_H * 0.62 + (Math.random() - 0.5) * 80 }));
+    if (e.ai.roar > 0) {
+      e.ai.roar -= dt;
+      if (e.ai.roar <= 0) {
+        const stone = e.ai.stones.find((j) => blocks(e.x, e.y, p.x, p.y, j.x, j.y, 44));
+        fx.push({ kind: 'boom', x: e.x, y: e.y, r: 600, color: '#ff4a1a', t: 0.4, max: 0.4 });
+        if (stone) { burst(stone.x, stone.y, '#9a9a9a', 20); chat('The stone shields you from the roar.', 'g'); }
+        else hurtPlayer(0, 'melee', { pure: true, frac: 0.7 });
+      }
+      return;
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.1;
+    const r = e.ai.phase++ % 6;
+    if (r === 5) { e.ai.roar = 2.2; chat('Zebak is about to roar! Get behind a stone!', 'r'); }
+    else if (r === 2) { for (let i = 0; i < 3; i++) { const s = i ? nearSpot(p, 300) : p; hazards.push({ x: s.x, y: s.y, r: 50, t: 9, color: '#5fd34a', dps: e.dmg * 0.8, poison: 6 }); } chat('Zebak spits poison pools.', 'r'); }
+    else if (r === 3) { for (let i = 0; i < 2; i++) { const s = roomSpot(); hazards.push({ x: s.x, y: s.y, r: 36, t: 8, color: '#c01a1a', dps: e.dmg, heal: 2, from: e, chase: 55 }); } chat('Blood clouds drift toward you. They heal Zebak.', 'r'); }
+    else if (r === 4) { const x = clamp(p.x, 100, WORLD_W - 100); telegraphs.push({ line: true, x, y: ARENA_TOP, a: Math.PI / 2, len: WORLD_H, w: 160, t: 1.4, max: 1.4, color: '#4aa0ff', dmg: 0, frac: 0.35, style: 'magic', label: 'Wave!', noPray: true }); }
+    else styleShot(e, Math.random() < 0.5 ? 'magic' : 'ranged', 1.3);
+  },
+
+  // --- Chambers of Xeric ---
+  tekton(e, dt, p, hpf, dist, near) {
+    // Tekton (wiki): huge melee hits up close, then back to his anvil where burning debris rains down
+    const g = hpGate(e, hpf, [0.75, 0.5, 0.25]);
+    if (g) { e.ai.anvil = 5; e.immune = true; e.ai.home = { x: WORLD_W / 2, y: ARENA_TOP + 110 }; chat('Tekton returns to his anvil. Burning debris falls!', 'r'); }
+    if (e.ai.anvil > 0) {
+      e.ai.anvil -= dt; e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.01 * dt); e.x += (e.ai.home.x - e.x) * dt * 2; e.y += (e.ai.home.y - e.y) * dt * 2;
+      if ((e.ai.deb = (e.ai.deb || 0) - dt) <= 0) { e.ai.deb = 0.7; slam(p.x, p.y, 55, 1.0, 0, 'magic', '#ff6a1a', '', { noPray: true, frac: 0.22 }); const s = roomSpot(); slam(s.x, s.y, 55, 1.0, 0, 'magic', '#ff6a1a', '', { noPray: true, frac: 0.22 }); }
+      if (e.ai.anvil <= 0) { e.immune = false; e.ai.enr = true; chat('Tekton comes back angrier.', 'r'); }
+      e.slow = 0.01; return;
+    }
+    e.slow = 1;
+    e.resist = { ranged: 0.35, magic: 0.35 }; // wiki: immune to ranged, 80% less magic (softened so every hero can finish him)
+    if (!e.ai.told) { e.ai.told = true; chat('Tekton shrugs off ranged and magic. Melee works best, if you dare stand next to him.', 'r'); }
+    if (e.ai.t > 0) return;
+    e.ai.t = e.ai.enr ? 1.6 : 2.1;
+    if (dist < 260) slam(e.x, e.y, 170, 1.0, 0, 'melee', '#c8c8c8', 'Tekton swings!', { shape: 'cone', a: Math.atan2(p.y - e.y, p.x - e.x), spread: 1.4, frac: e.ai.enr ? 0.55 : 0.45 });
+  },
+  vanguard(e, dt, p, hpf, dist, near) {
+    // Vanguards (wiki): three fight together; if one falls too far behind the others in health they all heal back up.
+    // Melee hits up close, ranged drops rocks on you, magic blasts the area.
+    const vs = enemies.filter((m) => m.d.boss === 'vanguard' && !m.dead);
+    if (vs[0] === e && vs.length > 1 && (e.ai.syncCd = (e.ai.syncCd || 0) - dt) <= 0) {
+      const fr = vs.map((m) => m.hp / m.maxHp), hi = Math.max(...fr), lo = Math.min(...fr);
+      if (hi - lo > 0.4) { e.ai.syncCd = 6; for (const m of vs) { m.hp = m.maxHp * hi; burst(m.x, m.y, '#5fd34a', 14); } chat('The vanguards are out of step and heal back up! Bring them down together.', 'r'); }
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.4;
+    const kind = e.id.split('_')[1];
+    if (kind === 'ranged') { slam(p.x, p.y, 55, 1.2, 0, 'ranged', '#8a8a8a', 'Rocks!', { noPray: true, frac: 0.2 }); for (let i = 0; i < 2; i++) { const s = nearSpot(p, 200); slam(s.x, s.y, 55, 1.2, 0, 'ranged', '#8a8a8a', '', { noPray: true, frac: 0.2 }); } }
+    else if (kind === 'magic') { if (e.ai.phase++ % 3 === 2) for (let i = 0; i < 3; i++) { const s = i ? nearSpot(p, 260) : p; slam(s.x, s.y, 70, 1.1, e.dmg * 1.4, 'magic', '#4aa0ff', i ? '' : 'Magic blast!'); } else styleShot(e, 'magic', 1.1); }
+    else if (near) hurtPlayer(e.dmg * 1.4, 'melee', { from: e });
+  },
+  vasa(e, dt, p, hpf) {
+    // Vasa Nistirio (wiki): heals from a glowing crystal (break it to stop him), throws boulders,
+    // and teleports you next to him before an explosion
+    if (!e.ai.crystals) e.ai.crystals = [[160, ARENA_TOP + 60], [WORLD_W - 160, ARENA_TOP + 60], [160, WORLD_H - 70], [WORLD_W - 160, WORLD_H - 70]].map(([x, y]) => { const m = spawnMonster('vasa_crystal', x, y); m.x = x; m.y = y; m.summoned = true; m.master = e; m.immune = true; return m; });
+    const live = e.ai.crystals.filter((c) => !c.dead);
+    if (!e.ai.charge && live.length && (e.ai.ct = (e.ai.ct ?? 6) - dt) <= 0) {
+      e.ai.ct = 14; e.ai.charge = live[Math.floor(Math.random() * live.length)]; e.ai.charge.immune = false; e.ai.chargeT = 9;
+      chat('Vasa Nistirio draws power from a glowing crystal. Break it!', 'r');
+    }
+    if (e.ai.charge) {
+      const c = e.ai.charge;
+      e.ai.chargeT -= dt;
+      if (c.dead || e.ai.chargeT <= 0) {
+        if (c.dead) chat('The crystal shatters before Vasa can siphon it!', 'g');
+        else { c.immune = true; e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.25); burst(e.x, e.y, '#c0f0ff', 30); chat('Vasa Nistirio finishes the siphon and heals!', 'r'); }
+        e.ai.charge = null; e.slow = 1; e.immune = false;
+      } else { e.immune = true; e.x += (c.x - e.x) * dt * 1.5; e.y += (c.y + 60 - e.y) * dt * 1.5; e.slow = 0.01; if (Math.random() < dt * 3) fx.push({ kind: 'beam', x: c.x, y: c.y - 20, tx: e.x, ty: e.y - 40, t: 0.2, max: 0.2, color: '#c0f0ff' }); }
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.2;
+    if (++e.ai.phase % 5 === 0) {
+      burst(p.x, p.y, '#c0f0ff', 16); p.x = e.x + 40; p.y = clamp(e.y + 60, ARENA_TOP + 20, WORLD_H - 30); burst(p.x, p.y, '#c0f0ff', 16);
+      // the blast takes all but a sliver of your hitpoints, unless you run clear or pray Magic
+      slam(e.x, e.y, 170, 1.6, 0, 'magic', '#c0f0ff', 'Teleported! Run or pray Magic!');
+      telegraphs[telegraphs.length - 1].fx = { fracCur: 0.95 };
+    } else for (let i = 0; i < 3; i++) { const s = i ? nearSpot(p, 260) : p; slam(s.x, s.y, 60, 1.3, 0, 'ranged', '#9a9aa8', i ? '' : 'Boulder!', { noPray: true, frac: 0.2 }); }
+  },
+  vespula(e, dt, p, hpf) {
+    // Vespula (wiki): flies above the room, so melee can't reach her; she stings, and lux grubs hatch into
+    // vespine soldiers unless killed in time. She lands, enraged, when low.
+    e.resist = hpf > 0.2 ? { melee: 0.01 } : null;
+    if (!e.ai.told) { e.ai.told = true; chat('Vespula is flying. Melee can\'t reach her until she lands.', 'r'); }
+    if ((e.ai.grub = (e.ai.grub ?? 4) - dt) <= 0) { e.ai.grub = 7; const s = roomSpot(); const m = spawnMonster('lux_grub', s.x, s.y); m.summoned = true; m.master = e; m.hatch = 6; }
+    for (const m of enemies) if (m.hatch && !m.dead && (m.hatch -= dt) <= 0) { m.dead = true; const v = spawnMonster('vespine_soldier', m.x, m.y); v.summoned = true; v.master = e; chat('A lux grub hatches into a vespine soldier!', 'r'); }
+    if (e.ai.t > 0) return;
+    e.ai.t = hpf > 0.2 ? 2.0 : 1.4;
+    if (e.ai.phase++ % 3 === 2) slam(p.x, p.y, 70, 0.9, 0, 'melee', '#ffd23a', 'Sting!', { noPray: true, frac: 0.3, fx: { poison: 6 } });
+    else styleShot(e, 'ranged', 1.2);
+  },
+  muttadile(e, dt, p, hpf, dist, near) {
+    // Muttadiles (wiki): bite hard up close, ranged and magic from range; below half health the big one
+    // eats from the meat tree to heal unless you stand by it and chop it down
+    const tree = { x: WORLD_W - 150, y: ARENA_TOP + 90 };
+    e.ai.tree = tree;
+    if (e.id === 'muttadile_large' && !e.ai.chopped && hpf < 0.5 && !e.ai.ate) { e.ai.ate = true; e.ai.eat = 10; chat('The Muttadile goes to eat from the meat tree. Stand by the tree to chop it down!', 'r'); }
+    if (e.ai.eat > 0) {
+      e.ai.eat -= dt; e.slow = 0.01;
+      const d = Math.hypot(tree.x - e.x, tree.y + 40 - e.y);
+      if (d > 30) { e.x += (tree.x - e.x) / d * 240 * dt; e.y += (tree.y + 40 - e.y) / d * 240 * dt; }
+      else e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.04 * dt);
+      if (Math.hypot(p.x - tree.x, p.y - tree.y) < 80) { e.ai.chop = (e.ai.chop || 0) + dt; if (Math.random() < dt * 4) burst(tree.x, tree.y, '#8a6a3c', 4); }
+      if (e.ai.chop >= 2.5) { e.ai.chopped = true; e.ai.eat = 0; chat('You chop down the meat tree!', 'g'); }
+      if (e.ai.eat <= 0) e.slow = 1;
+      return;
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.0;
+    if (near) slam(e.x, e.y, e.r + 70, 0.8, 0, 'melee', '#5a8a3a', 'Bite!', { frac: 0.4 });
+    else styleShot(e, Math.random() < 0.5 ? 'ranged' : 'magic', 1.2);
+  },
+
+  // --- Theatre of Blood ---
+  maiden(e, dt, p, hpf) {
+    // The Maiden of Sugadinti (wiki): throws blood that splashes the floor, blood spawn crawl out of it,
+    // and Nylocas Matomenos crawl to her at 70%, 50% and 30% to heal her
+    if (hpGate(e, hpf, [0.7, 0.5, 0.3])) {
+      for (let i = 0; i < 2; i++) { const x = WORLD_W / 2 + (Math.random() - 0.5) * 400, y = i ? WORLD_H - 40 : ARENA_TOP + 20; const m = spawnMonster('nylocas_matomenos', x, y); m.x = x; m.y = y; m.feeds = e; m.summoned = true; m.master = e; }
+      chat('Nylocas Matomenos crawl toward the Maiden. Kill or freeze them before they reach her!', 'r');
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.0;
+    if (e.ai.phase++ % 3 === 2) styleShot(e, 'magic', 1.5);
+    else {
+      for (let i = 0; i < 3; i++) {
+        const s = i ? nearSpot(p, 360) : { x: p.x, y: p.y };
+        slam(s.x, s.y, 50, 1.2, 0, 'magic', '#c01a1a', i ? '' : 'Blood!', { noPray: true, frac: 0.15, heal: 1, from: e });
+        setTimeout(() => { if (!e.dead && mode === 'play') hazards.push({ x: s.x, y: s.y, r: 45, t: 7, color: '#8a0a0a', dps: e.dmg * 0.8, heal: 1, from: e }); }, 1200);
+      }
+      if (Math.random() < 0.4 && enemies.filter((m) => m.id === 'blood_spawn' && !m.dead).length < 3) summon(e, 'blood_spawn', 1);
+    }
+  },
+  bloat(e, dt, p, hpf) {
+    // Pestilent Bloat (wiki): walks round the tank in the middle; while it walks its flies hit anyone it can see,
+    // so hide behind the tank. Limbs fall from the ceiling. It sleeps, then stomps as it wakes.
+    const tank = { x: WORLD_W / 2 - 150, y: ARENA_TOP + (WORLD_H - ARENA_TOP) / 2 - 90, w: 300, h: 180 };
+    e.ai.tank = tank;
+    // the tank is solid: push the player out to its nearest side
+    if (p.x > tank.x - 10 && p.x < tank.x + tank.w + 10 && p.y > tank.y - 10 && p.y < tank.y + tank.h + 10) {
+      const opts = [[p.x - tank.x + 10, -1, 0], [tank.x + tank.w + 10 - p.x, 1, 0], [p.y - tank.y + 10, 0, -1], [tank.y + tank.h + 10 - p.y, 0, 1]].sort((a, b) => a[0] - b[0])[0];
+      p.x += opts[1] * opts[0]; p.y += opts[2] * opts[0];
+    }
+    const loop = [[tank.x - 170, tank.y - 90], [tank.x + tank.w + 170, tank.y - 90], [tank.x + tank.w + 170, tank.y + tank.h + 120], [tank.x - 170, tank.y + tank.h + 120]];
+    if (e.ai.wp === undefined) { e.ai.wp = 0; e.ai.walk = 10; e.x = loop[0][0]; e.y = loop[0][1]; }
+    e.slow = 0.01;
+    if (e.ai.sleep > 0) {
+      e.ai.sleep -= dt;
+      if (e.ai.sleep <= 0) { e.ai.walk = 8 + Math.random() * 6; slam(e.x, e.y, e.r + 150, 0.6, 0, 'melee', '#5fd34a', 'Bloat wakes!', { noPray: true, frac: 0.5 }); }
+      return;
+    }
+    e.resist = { melee: 0.5, ranged: 0.5, magic: 0.5 }; // half damage while it walks
+    const [tx, ty] = loop[e.ai.wp], d = Math.hypot(tx - e.x, ty - e.y);
+    if (d < 8) e.ai.wp = (e.ai.wp + 1) % 4; else { e.x += (tx - e.x) / d * 110 * dt; e.y += (ty - e.y) / d * 110 * dt; }
+    e.ai.walk -= dt;
+    if (e.ai.walk <= 0) { e.ai.sleep = 4.5; e.resist = null; chat('The Pestilent Bloat stops to sleep. Hit it, then get clear before it wakes.', 'g'); return; }
+    // flies: anyone in its line of sight gets hit
+    e.ai.seen = !rectBlocks(e.x, e.y - 40, p.x, p.y - 20, tank);
+    if (e.ai.seen && (e.ai.fly = (e.ai.fly || 0) - dt) <= 0) { e.ai.fly = 0.6; hurtPlayer(e.dmg * 0.5, 'melee', { pure: true, from: e }); if (!e.ai.flyTold) { e.ai.flyTold = true; chat('Flies swarm anyone the Bloat can see. Hide behind the tank!', 'r'); } }
+    if (e.ai.t > 0) return;
+    e.ai.t = 2.4;
+    for (let i = 0; i < 5; i++) { const s = i ? roomSpot() : p; slam(s.x, s.y, 55, 1.3, 0, 'melee', '#c8a080', i ? '' : 'Falling limbs!', { noPray: true, frac: 0.2 }); }
+  },
+  vasilias(e, dt, p, hpf, dist, near) {
+    // Nylocas Vasilias (wiki): changes between melee (white), ranged (green) and magic (aqua) forms,
+    // and hitting it with the wrong style bounces the damage back at you and heals it. Nylocas pour out of the pillars.
+    if ((e.ai.sw = (e.ai.sw ?? 0) - dt) <= 0) {
+      e.ai.sw = 7;
+      const forms = ['melee', 'ranged', 'magic'].filter((f) => f !== e.ai.form);
+      e.ai.form = forms[Math.floor(Math.random() * forms.length)];
+      e.formFile = VASILIAS_FORMS[e.ai.form];
+      e.mirror = e.ai.form;
+      chat(`Nylocas Vasilias turns ${{ melee: 'white: use melee', ranged: 'green: use ranged', magic: 'aqua: use magic' }[e.ai.form]}!`, 'r');
+      burst(e.x, e.y, { melee: '#e8e8e8', ranged: '#5fd34a', magic: '#5ad0d0' }[e.ai.form], 20);
+    }
+    if ((e.ai.nyT = (e.ai.nyT ?? 4) - dt) <= 0) { e.ai.nyT = 9; summon(e, ['nylocas_ischyros', 'nylocas_toxobolos', 'nylocas_hagios'][Math.floor(Math.random() * 3)], 2); }
+    if (e.ai.t > 0) return;
+    e.ai.t = 1.9;
+    if (e.ai.form === 'melee') { if (near) hurtPlayer(e.dmg * 1.5, 'melee', { from: e }); }
+    else styleShot(e, e.ai.form, 1.3);
+  },
+  sotetseg(e, dt, p, hpf) {
+    // Sotetseg (wiki): red (magic) and black (ranged) orbs, a death ball you must not stand under,
+    // and at 66% and 33% the maze: only the marked path is safe while he can't be hurt
+    if (hpGate(e, hpf, [0.66, 0.33])) {
+      const cols = 9, rows = 6, path = new Set();
+      let c = Math.floor(Math.random() * cols);
+      e.ai.start = c;
+      for (let r = rows - 1; r >= 0; r--) {
+        const nc = clamp(c + Math.floor(Math.random() * 7) - 3, 0, cols - 1);
+        for (let k = Math.min(c, nc); k <= Math.max(c, nc); k++) path.add(r * cols + k);
+        c = nc;
+      }
+      e.ai.maze = { cols, rows, path, t: 16, warm: 1.5 };
+      e.immune = true;
+      const cw = WORLD_W / cols, ch = (WORLD_H - ARENA_TOP) / rows;
+      p.x = (e.ai.start + 0.5) * cw; p.y = ARENA_TOP + (rows - 0.5) * ch;
+      chat('Sotetseg pulls you into the maze! Follow the dark path to the far side. Red tiles burn.', 'r');
+    }
+    const mz = e.ai.maze;
+    if (mz) {
+      const cw = WORLD_W / mz.cols, ch = (WORLD_H - ARENA_TOP) / mz.rows;
+      const col = clamp(Math.floor(p.x / cw), 0, mz.cols - 1), row = clamp(Math.floor((p.y - ARENA_TOP) / ch), 0, mz.rows - 1);
+      mz.t -= dt; mz.warm -= dt;
+      if (mz.warm <= 0 && !mz.path.has(row * mz.cols + col) && (mz.tick = (mz.tick || 0) - dt) <= 0) { mz.tick = 0.5; hurtPlayer(0, 'magic', { pure: true, fracCur: 0.12 }); burst(p.x, p.y, '#ff2a2a', 10); }
+      if ((row === 0 && mz.path.has(col)) || mz.t <= 0) { e.ai.maze = null; e.immune = false; chat(row === 0 ? 'You make it through the maze.' : 'The maze fades.', 'g'); }
+      return;
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 1.8;
+    const r = e.ai.phase++ % 10;
+    if (r === 9) { aimShot(e, 140, 'magic', '#3a0a3a', 0, { r: 30, pure: true, frac: 0.6 }); chat('Sotetseg launches the death ball. Get out of its way!', 'r'); }
+    else { const s = Math.random() < 0.5 ? 'magic' : 'ranged'; aimShot(e, 420, s, s === 'magic' ? '#ff2a2a' : '#222', e.dmg * 1.3, { r: 14 }); }
+  },
+  xarpus(e, dt, p, hpf) {
+    // Xarpus (wiki): first heals from exhumeds in the floor (stand on them to stop it, they poison you);
+    // then spits poison that pools on the floor; below 25% he stares at a quadrant, and attacking him from there brings a poison retaliation
+    if (e.ai.exT === undefined) { e.ai.exT = 14; e.ai.ex = []; e.immune = true; chat('Xarpus feeds on the exhumeds. Stand on them to stop him healing!', 'r'); }
+    if (e.ai.exT > 0) {
+      e.ai.exT -= dt;
+      if ((e.ai.exS = (e.ai.exS || 0) - dt) <= 0) { e.ai.exS = 1.6; const s = roomSpot(); e.ai.ex.push({ x: s.x, y: s.y, t: 4 }); }
+      for (const x of e.ai.ex) {
+        x.t -= dt;
+        const on = Math.hypot(p.x - x.x, p.y - x.y) < 42;
+        if (on) { x.held = true; if ((x.tick = (x.tick || 0) - dt) <= 0) { x.tick = 0.5; hurtPlayer(e.dmg * 0.3, 'magic', { pure: true, poison: 4 }); } }
+        if (x.t <= 0 && !x.held) { e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.05); burst(e.x, e.y, '#5fd34a', 10); }
+      }
+      e.ai.ex = e.ai.ex.filter((x) => x.t > 0);
+      if (e.ai.exT <= 0) { e.ai.ex = []; e.immune = false; chat('Xarpus rises from the pit!', 'r'); }
+      return;
+    }
+    if (hpf < 0.25) {
+      if ((e.ai.stareT = (e.ai.stareT || 0) - dt) <= 0) { e.ai.stareT = 3.5; e.ai.stare = Math.floor(Math.random() * 4); if (!e.ai.screech) { e.ai.screech = true; chat('Xarpus screeches and turns to stare. Don\'t attack him from the quadrant he faces!', 'r'); } }
+    }
+    if (e.ai.t > 0) return;
+    e.ai.t = 1.6;
+    const s = { x: p.x, y: p.y };
+    slam(s.x, s.y, 55, 1.0, 0, 'magic', '#5fd34a', 'Poison!', { noPray: true, frac: 0.2 });
+    setTimeout(() => { if (!e.dead && mode === 'play') hazards.push({ x: s.x, y: s.y, r: 48, t: 20, color: '#3a8a2a', dps: e.dmg * 0.7, poison: 4 }); }, 1000);
+  },
+};
+
+const RAID_DRAW = {
+  zebak(e) {
+    for (const j of e.ai.stones || []) { ctx.fillStyle = '#7a7a80'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(j.x, j.y, 40, 32, 0, 0, 7); ctx.fill(); ctx.stroke(); text('Stone', j.x, j.y + 4, 13, '#fff'); }
+    if (e.ai.roar > 0) text('Get behind a stone!', run.p.x, run.p.y - 90, 15, '#ff4a1a');
+  },
+  bloat(e) {
+    const t = e.ai.tank; if (!t) return;
+    ctx.fillStyle = '#4a3a3a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.fillRect(t.x, t.y, t.w, t.h); ctx.strokeRect(t.x, t.y, t.w, t.h);
+    text('Tank', t.x + t.w / 2, t.y + t.h / 2, 14, '#ddd');
+    if (e.ai.seen && !(e.ai.sleep > 0)) { ctx.strokeStyle = 'rgba(120,200,60,0.5)'; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(e.x, e.y - 40); ctx.lineTo(run.p.x, run.p.y - 20); ctx.stroke(); ctx.setLineDash([]); }
+  },
+  sotetseg(e) {
+    const mz = e.ai.maze; if (!mz) return;
+    const cw = WORLD_W / mz.cols, ch = (WORLD_H - ARENA_TOP) / mz.rows;
+    for (let r = 0; r < mz.rows; r++) for (let c = 0; c < mz.cols; c++) {
+      const safe = mz.path.has(r * mz.cols + c);
+      ctx.fillStyle = safe ? 'rgba(20,20,30,0.75)' : `rgba(200,20,20,${mz.warm > 0 ? 0.25 : 0.45})`;
+      ctx.fillRect(c * cw + 2, ARENA_TOP + r * ch + 2, cw - 4, ch - 4);
+    }
+  },
+  xarpus(e) {
+    for (const x of e.ai.ex || []) { ctx.fillStyle = x.held ? 'rgba(90,200,70,0.35)' : 'rgba(90,200,70,0.7)'; ctx.beginPath(); ctx.arc(x.x, x.y, 42, 0, 7); ctx.fill(); text('Exhumed', x.x, x.y + 4, 12, '#fff'); }
+    if (e.ai.stare !== undefined && e.hp / e.maxHp < 0.25) {
+      const h = (WORLD_H - ARENA_TOP) / 2, q = e.ai.stare;
+      ctx.fillStyle = 'rgba(160,40,160,0.18)'; ctx.fillRect(q % 2 ? WORLD_W / 2 : 0, ARENA_TOP + (q < 2 ? 0 : h), WORLD_W / 2, h);
+    }
+  },
+  muttadile(e) {
+    const t = e.ai.tree; if (!t || e.ai.chopped || e.id !== 'muttadile_large') return;
+    ctx.fillStyle = '#5a3a1a'; ctx.fillRect(t.x - 8, t.y - 10, 16, 40); ctx.fillStyle = '#8a2a2a'; ctx.beginPath(); ctx.arc(t.x, t.y - 22, 34, 0, 7); ctx.fill();
+    text('Meat tree', t.x, t.y - 64, 13, '#ff981f');
+  },
+  vasa(e) { const c = e.ai.charge; if (c && !c.dead) text('Glowing!', c.x, c.y - 60, 13, '#c0f0ff'); },
+};
+
 function bossMech(e, dt) {
   const p = run.p, k = e.d.boss, hpf = e.hp / e.maxHp;
   const dist = Math.hypot(p.x - e.x, p.y - e.y);
   const near = dist < e.r + p.r + 40;
+  if (RAID_MECH[k]) { RAID_MECH[k](e, dt, p, hpf, dist, near); return true; }
   if (k === 'cow') {
     // Brutus (wiki): "*growls*" then charges in a line; "*snort*" then stomps 1-3 times 3-6 tiles in front (step in close to dodge)
     if (e.ai.stomps > 0 && (e.ai.st -= dt) <= 0) {
@@ -4115,6 +4525,7 @@ window.__rr = {
   start: (i) => { pickedHero = HEROES[i || 0]; begin(); }, endStage: () => endStage(),
   skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: () => pickups.push({ kind: 'clue', x: run.p.x + 60, y: run.p.y, t: 0 }),
   killAll: () => { for (const e of enemies) e.hp = 1; },
+  kill: (e) => killEnemy(e),
   clearWave: () => { toSpawn = 0; run.evAt = null; run.insaneAt = null; run.circleAt = null; enemies.length = 0; },
   die: () => die(),
   rollOffers: () => { rollOffers(true); return offers; },

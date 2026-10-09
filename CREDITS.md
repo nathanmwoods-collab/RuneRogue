@@ -559,6 +559,32 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Potion | Stamina potion | https://oldschool.runescape.wiki/w/File:Stamina_potion(4).png |
 | Icon | Clue scroll | https://oldschool.runescape.wiki/w/File:Clue_scroll_(hard).png |
 | Icon | Reward casket | https://oldschool.runescape.wiki/w/File:Reward_casket_(hard).png |
+| Raid room | Ba-Ba | https://oldschool.runescape.wiki/w/File:Ba-Ba.png |
+| Raid room | Kephri | https://oldschool.runescape.wiki/w/File:Kephri.png |
+| Raid room | Akkha | https://oldschool.runescape.wiki/w/File:Akkha.png |
+| Raid room | Zebak | https://oldschool.runescape.wiki/w/File:Zebak.png |
+| Raid room | Tekton | https://oldschool.runescape.wiki/w/File:Tekton.png |
+| Raid room | Vanguard (melee) | https://oldschool.runescape.wiki/w/File:Vanguard_(melee).png |
+| Raid room | Vanguard (ranged) | https://oldschool.runescape.wiki/w/File:Vanguard_(ranged).png |
+| Raid room | Vanguard (magic) | https://oldschool.runescape.wiki/w/File:Vanguard_(magic).png |
+| Raid room | Vasa Nistirio | https://oldschool.runescape.wiki/w/File:Vasa_Nistirio.png |
+| Raid room | Vespula | https://oldschool.runescape.wiki/w/File:Vespula.png |
+| Raid room | Muttadile | https://oldschool.runescape.wiki/w/File:Muttadile.png |
+| Raid room | The Maiden of Sugadinti | https://oldschool.runescape.wiki/w/File:The_Maiden_of_Sugadinti.png |
+| Raid room | Nylocas Vasilias (melee) | https://oldschool.runescape.wiki/w/File:Nylocas_Vasilias_(melee).png |
+| Raid room | Nylocas Vasilias (ranged) | https://oldschool.runescape.wiki/w/File:Nylocas_Vasilias_(ranged).png |
+| Raid room | Nylocas Vasilias (magic) | https://oldschool.runescape.wiki/w/File:Nylocas_Vasilias_(magic).png |
+| Raid room | Sotetseg | https://oldschool.runescape.wiki/w/File:Sotetseg.png |
+| Raid room | Xarpus | https://oldschool.runescape.wiki/w/File:Xarpus.png |
+| Raid room | JalTok-Jad | https://oldschool.runescape.wiki/w/File:JalTok-Jad.png |
+| Raid room | Soldier Scarab | https://oldschool.runescape.wiki/w/File:Soldier_Scarab.png |
+| Raid room | Spitting Scarab | https://oldschool.runescape.wiki/w/File:Spitting_Scarab.png |
+| Raid room | Arcane Scarab | https://oldschool.runescape.wiki/w/File:Arcane_Scarab.png |
+| Raid room | Akkha's Shadow | https://oldschool.runescape.wiki/w/File:Akkha's_Shadow.png |
+| Raid room | Glowing crystal | https://oldschool.runescape.wiki/w/File:Glowing_crystal.png |
+| Raid room | Lux grub | https://oldschool.runescape.wiki/w/File:Lux_grub.png |
+| Raid room | Vespine soldier | https://oldschool.runescape.wiki/w/File:Vespine_soldier.png |
+| Raid room | Blood spawn | https://oldschool.runescape.wiki/w/File:Blood_spawn.png |
 | Scenery | Exit door | https://oldschool.runescape.wiki/w/File:Exit_door.png |
 | Food | Redberry pie | https://oldschool.runescape.wiki/w/File:Redberry_pie.png |
 | NPC | Yama | https://oldschool.runescape.wiki/w/File:Yama.png |
