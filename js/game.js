@@ -150,6 +150,7 @@ function sfx(freq, dur = 0.08, type = 'square', vol = 0.04) {
 // ======================================================================
 let meta = { sticks: 0, up: {}, heroes: [], cleared: -1, invo: {} };
 try { meta = Object.assign(meta, JSON.parse(localStorage.getItem('runerogue.meta') || '{}')); } catch (e) { /* optional */ }
+if (meta.invo) delete meta.invo.dehydration; // the Dehydration (no prayer potions) invocation was removed (Nathan)
 // ---------- Achievements ----------
 function achEvent(on, x) {
   if (!run && on !== 'win') return;
@@ -2756,7 +2757,6 @@ function updatePrayerButtons() {
 function useItem(kind) {
   if (!run || mode !== 'play' || run.inv[kind] <= 0) return;
   if (kind === 'shark' && inv('diet')) { chat('You are On a Diet: no eating this raid.', 'r'); return; }
-  if (kind === 'ppot' && inv('dehydration')) { chat('Dehydration: you can\'t drink potions this raid.', 'r'); return; }
   const st = stats();
   run.inv[kind]--;
   if (kind === 'shark') achEvent('eat');
@@ -3637,7 +3637,6 @@ function supplyPrice(kind, held = run.inv[kind]) {
 }
 function supplyBlocked(kind) {
   if (kind === 'shark' && inv('diet')) return 'On a Diet: no eating this raid';
-  if (kind === 'ppot' && inv('dehydration')) return 'Dehydration: no potions this raid';
   return '';
 }
 // How many you can afford in a row (each one dearer than the last), up to the carry limit.
