@@ -1172,7 +1172,9 @@ function spawnPker(pos) {
   const id = pool[Math.floor(Math.random() * pool.length)];
   pos = pos || spreadSpawn();
   const m = spawnMonster(id, pos.x, pos.y);
-  m.pkT = 1.2; m.pkN = 0;
+  // PKers are far tougher than the monsters around them: lots of HP, big hits, and they eat sharks when low
+  m.hp = m.maxHp = Math.round(m.hp * PK_HP); m.dmg *= PK_DMG; m.pkFood = 3;
+  m.pkT = 1.0; m.pkN = 0;
   chat(`${m.d.name} is hunting you!`, 'r');
   burst(pos.x, pos.y, '#c01a1a', 14);
 }
@@ -1180,20 +1182,26 @@ const PK_STYLES = ['melee', 'ranged', 'magic'];
 function pkerAct(e, dt, dist, dx, dy) {
   e.pkT -= dt;
   if (e.pkT > 0) return;
-  e.pkT = 1.5 + Math.random() * 0.7;
+  e.pkT = 1.0 + Math.random() * 0.5;
   e.pkN++;
   const p = run.p;
-  // every fourth move up close is a special attack dump
-  if (e.pkN % 4 === 0 && dist < 180) {
-    slam(p.x, p.y, 75, 0.6, e.dmg * 2.4, 'melee', '#ff3a1a', 'Spec');
+  // low on HP: eat a shark (up to 3 times)
+  if (e.pkFood > 0 && e.hp < e.maxHp * 0.35) {
+    e.pkFood--; e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.25);
+    fx.push({ kind: 'label', x: e.x, y: e.y - e.d.size * 0.6, t: 0.9, max: 0.9, txt: 'Eats a shark', color: '#5fd34a' });
+    return;
+  }
+  // every third move up close is a special attack dump
+  if (e.pkN % 3 === 0 && dist < 200) {
+    slam(p.x, p.y, 80, 0.55, e.dmg * 3, 'melee', '#ff3a1a', 'Spec');
     return;
   }
   e.pkStyle = PK_STYLES.filter((x) => x !== e.pkStyle)[Math.floor(Math.random() * 2)];
   if (e.pkStyle === 'melee' || dist > 460) return;
   const sp = e.pkStyle === 'ranged' ? 460 : 340;
-  const barrage = e.pkStyle === 'magic' && Math.random() < 0.35;
+  const barrage = e.pkStyle === 'magic' && Math.random() < 0.5;
   eshots.push({ x: e.x, y: e.y - e.d.size * 0.5, vx: dx / dist * sp, vy: (dy + e.d.size * 0.5) / dist * sp, r: 9, dmg: e.dmg, style: e.pkStyle,
-    color: e.pkStyle === 'ranged' ? '#c8a060' : barrage ? '#9fe8ff' : '#7a3aff', life: 3, freeze: barrage ? 1.2 : 0 });
+    color: e.pkStyle === 'ranged' ? '#c8a060' : barrage ? '#9fe8ff' : '#7a3aff', life: 3, freeze: barrage ? 1.6 : 0 });
 }
 // Skulled and cheating death: the most valuable thing you wear is lost, like dropping it in the Wilderness.
 function loseBestItem() {
