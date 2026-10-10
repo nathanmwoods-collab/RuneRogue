@@ -233,6 +233,7 @@ function newRun(hero) {
   run.p.hp = stats().maxHp; run.p.pp = stats().maxPp;
   setTimeout(() => achEvent('start'), 600);
   chatClear();
+  run.heroesAtStart = HEROES.filter(heroUnlocked).map((h) => h.id); // to show newly unlocked heroes when the run ends
   chat(`Welcome to RuneRogue, ${hero.name}.`);
   chat(`${AREAS.length} areas stand between you and the end. Good luck.`, 'b');
   if (run.raid) chat(`Raid level ${run.raid} (${raidMode(run.raid)} mode): ${INVOCATIONS.filter((v) => run.invo[v.id]).map((v) => v.name).join(', ')}.`, 'r');
@@ -2750,13 +2751,13 @@ function die() {
   achEvent('death');
   sfx(110, 0.6, 'sawtooth', 0.08);
   saveBest();
-  setTimeout(renderGameOver, 700);
+  setTimeout(() => showUnlocksThen(renderGameOver), 700);
 }
 function victory() {
   mode = 'over'; run.won = true;
   achEvent('win');
   saveBest(true);
-  renderVictory();
+  showUnlocksThen(renderVictory);
 }
 function awardSticks() {
   if (run.sticksGiven) return;
@@ -3829,6 +3830,30 @@ function renderPause() {
   a.focus();
 }
 
+// End of run: if any heroes were unlocked during the run, show them on their own screen first.
+function showUnlocksThen(next) {
+  const fresh = run.heroesAtStart && !run.unlocksShown ? HEROES.filter((h) => heroUnlocked(h) && !run.heroesAtStart.includes(h.id)) : [];
+  if (!fresh.length) { next(); return; }
+  run.unlocksShown = true;
+  const s = el('div', 'sheet'); s.style.maxWidth = '560px';
+  const secret = fresh.some((h) => h.unlock && h.unlock.secret);
+  s.appendChild(el('h1', '', fresh.length > 1 ? 'New heroes unlocked!' : secret ? 'Surprise hero unlocked!' : 'New hero unlocked!'));
+  for (const h of fresh) {
+    const row = el('div', 'row'); row.style.cssText = 'gap:14px;align-items:center;justify-content:flex-start;margin:12px 0';
+    const art = el('div', 'end-art'); art.style.cssText = 'width:96px;height:96px;flex:none'; art.appendChild(imgTag(h.file, h.name)); row.appendChild(art);
+    const txt = el('div');
+    txt.appendChild(el('h2', '', h.name + (h.unlock && h.unlock.secret ? ' <small style="color:var(--yellow)">(surprise hero)</small>' : '')));
+    const how = h.unlock.area !== undefined ? `You cleared ${AREAS[h.unlock.area].name}.` : h.unlock.boss ? `You defeated the ${MONSTERS[h.unlock.boss].name}.` : h.unlock.cows ? `You killed ${h.unlock.cows.toLocaleString()} cows.` : '';
+    txt.appendChild(el('p', '', `${how} ${h.name} is a ${h.lane} hero.`));
+    if (h.perk) txt.appendChild(el('p', '', h.perk));
+    txt.appendChild(el('p', '', 'Pick them on the hero select screen for your next run.'));
+    row.appendChild(txt); s.appendChild(row);
+  }
+  const r = el('div', 'row'); r.style.marginTop = '14px';
+  const b = btn('Continue', 'btn big', next); r.appendChild(b); s.appendChild(r);
+  sfx(880, 0.2, 'triangle', 0.06);
+  showScreen(s); b.focus();
+}
 function renderGameOver() {
   const s = el('div', 'sheet'); s.style.maxWidth = '560px';
   s.appendChild(el('h1', '', 'Oh dear, you are dead!'));
