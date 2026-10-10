@@ -318,10 +318,13 @@ kbd { font-family: var(--font-display); background: var(--stone-dark); border: 1
   <div id="screen"></div>
 </div>
 
-<script src="js/data.js"></script>
-<script src="js/achievements.js"></script>
-<script src="js/scores-config.js"></script>
-<script src="js/scores.js"></script>
-<script src="js/game.js"></script>
+<script>
+// Phones were keeping old copies of the game scripts after an update, so each load asks for a fresh copy
+// (the version changes every 10 minutes, matching how long GitHub Pages caches files).
+(() => {
+  const v = Math.floor(Date.now() / 600000);
+  for (const f of ['data', 'achievements', 'scores-config', 'scores', 'game']) document.write(`<script src="js/${f}.js?v=${v}"><\/script>`);
+})();
+</script>
 </body>
 </html>
