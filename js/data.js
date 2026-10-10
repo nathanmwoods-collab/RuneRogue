@@ -1253,7 +1253,7 @@ const AREA_MODS = [
 ];
 
 // ---------- Elemental weaknesses (OSRS Wiki monster infoboxes, via the wiki team's DPS calculator data) ----------
-// Standard elemental spells of that element deal +1% damage per point.
+// Standard elemental spells of that element deal +0.5% damage per point (halved from the game).
 const EL_WEAKNESS = {
   zombie: ['fire', 50],
   skeleton: ['earth', 35],

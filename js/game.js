@@ -241,13 +241,13 @@ function newRun(hero) {
 
 const KIND_STYLE = { swing: 'melee', shot: 'ranged', spell: 'magic' };
 // Your combat style comes from the weapon you hold, not the hero.
-// Combat triangle (Nathan): ranged beats magic, magic beats melee, melee beats ranged. The winner deals +25%, the loser -20%.
+// Combat triangle (Nathan): ranged beats magic, magic beats melee, melee beats ranged. The winner deals +15%, the loser -10%.
 const BEATS = { ranged: 'magic', magic: 'melee', melee: 'ranged' };
-function triangle(att, def) { return !att || !def || att === def ? 1 : BEATS[att] === def ? 1.25 : BEATS[def] === att ? 0.8 : 1; }
-// Elemental weakness (wiki): standard-spellbook elemental spells (Strike to Surge) deal +1% per weakness point.
+function triangle(att, def) { return !att || !def || att === def ? 1 : BEATS[att] === def ? 1.15 : BEATS[def] === att ? 0.9 : 1; }
+// Elemental weakness (wiki): standard-spellbook elemental spells (Strike to Surge) deal +0.5% per weakness point (half the game's value, Nathan).
 const EL_RUNE = { air: 'Air_rune.png', water: 'Water_rune.png', earth: 'Earth_rune.png', fire: 'Fire_rune.png' };
 function spellElement(w) { const m = w && w.spell && /^(Wind|Water|Earth|Fire) (Strike|Bolt|Blast|Wave|Surge)$/.exec(w.spell); return m ? (m[1] === 'Wind' ? 'air' : m[1].toLowerCase()) : null; }
-function elWeakMult(w, e) { const el = spellElement(w), wk = e.d.elWeak; return el && wk && wk.el === el ? 1 + wk.pct / 100 : 1; }
+function elWeakMult(w, e) { const el = spellElement(w), wk = e.d.elWeak; return el && wk && wk.el === el ? 1 + wk.pct / 200 : 1; }
 function enemyStyle(e) { return e.pkStyle || e.d.style; }
 function weaponStyle() { return KIND_STYLE[ITEMS[run.gear.weapon].w.kind]; }
 // Gear damage bonuses only count when they match the weapon's style, like OSRS.
@@ -3269,7 +3269,7 @@ function drawHud() {
     bb.hidden = false;
     const extra = bossAlive.d.boss === 'zulrah' ? ` · ${ZULRAH_FORMS[bossAlive.ai.form || 0].name}` : bossAlive.d.boss === 'verzik' ? ` · phase ${bossAlive.ai.vphase || 1}` : bossAlive.d.boss === 'kq' && bossAlive.ai.form2 ? ' · airborne' : '';
     const wk = bossAlive.d.elWeak;
-    $('bossName').textContent = `${bossAlive.d.name}${bossAlive.d.lvl ? ` (level-${bossAlive.d.lvl})` : ''}${extra}${wk ? ` · weak to ${wk.el} spells (+${wk.pct}%)` : ''}`;
+    $('bossName').textContent = `${bossAlive.d.name}${bossAlive.d.lvl ? ` (level-${bossAlive.d.lvl})` : ''}${extra}${wk ? ` · weak to ${wk.el} spells (+${wk.pct / 2}%)` : ''}`;
     $('bossHp').firstElementChild.style.width = `${clamp(bossAlive.hp / bossAlive.maxHp, 0, 1) * 100}%`;
   } else bb.hidden = true;
 }
@@ -3359,7 +3359,7 @@ function renderTitle() {
     s.appendChild(kr);
   }
   const r = el('div', 'row'); r.style.marginTop = '16px';
-  r.appendChild(el('p', '', 'Move with <kbd>WASD</kbd> or arrows (on touch, drag anywhere). Attacks are automatic. Combat triangle: ranged beats magic, magic beats melee, melee beats ranged (+25% for the winner, -20% for the loser). Prayers <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, eat <kbd>E</kbd>, prayer potion <kbd>Q</kbd>, music <kbd>M</kbd>, pause <kbd>P</kbd>.'));
+  r.appendChild(el('p', '', 'Move with <kbd>WASD</kbd> or arrows (on touch, drag anywhere). Attacks are automatic. Combat triangle: ranged beats magic, magic beats melee, melee beats ranged (+15% for the winner, -10% for the loser). Prayers <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, eat <kbd>E</kbd>, prayer potion <kbd>Q</kbd>, music <kbd>M</kbd>, pause <kbd>P</kbd>.'));
   const b = btn(`Play as ${pickedHero.name}`, 'btn big', begin);
   const ub = btn('', 'btn', renderUpgrades);
   ub.appendChild(imgTag(STICKS_FILE, 'Trading sticks')); ub.appendChild(document.createTextNode(` Upgrades (${meta.sticks.toLocaleString()} sticks)`));
