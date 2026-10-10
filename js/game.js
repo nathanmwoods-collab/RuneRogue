@@ -89,6 +89,7 @@ addEventListener('keydown', (e) => {
   if (k === 'e') useItem('shark');
   if (k === 'q') useItem('ppot');
   if (k === ' ') specialAttack();
+  if (k === 't') toggleAutoSpec();
   if (k === 'r') castSpell();
   if (k === 'p' || k === 'escape') togglePause();
 });
@@ -111,6 +112,19 @@ cv.addEventListener('pointerup', endStick);
 cv.addEventListener('pointercancel', endStick);
 
 document.getElementById('specBtn').addEventListener('click', () => specialAttack());
+// Auto special attack (Nathan, 2026-10-10, for mobile): fires the spec by itself whenever there is enough
+// energy and an enemy is in reach. Saved across runs.
+let autoSpec = false;
+try { autoSpec = localStorage.getItem('runerogue.autospec') === 'on'; } catch (e) { /* optional */ }
+function showAutoSpec() { const b = document.getElementById('autoSpecBtn'); b.classList.toggle('on', autoSpec); b.setAttribute('aria-pressed', autoSpec); }
+function toggleAutoSpec() {
+  autoSpec = !autoSpec;
+  try { localStorage.setItem('runerogue.autospec', autoSpec ? 'on' : 'off'); } catch (e) { /* optional */ }
+  showAutoSpec();
+  if (run) chat(`Auto special attack ${autoSpec ? 'on' : 'off'}.`, 'g');
+}
+showAutoSpec();
+document.getElementById('autoSpecBtn').addEventListener('click', toggleAutoSpec);
 document.getElementById('spellBtn').addEventListener('click', () => castSpell());
 document.querySelectorAll('.pbtn[data-pray], .pbtn[data-use]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.pray) togglePrayer(b.dataset.pray); else useItem(b.dataset.use);
@@ -1746,11 +1760,12 @@ function renderPets() {
 }
 
 // ---------- Special attacks ----------
-function specialAttack() {
+// auto = fired by the auto-spec toggle: stays quiet when it can't fire, and only uses buff specs with an enemy close by.
+function specialAttack(auto) {
   if (mode !== 'play' || !run) return;
   const p = run.p, st = stats(), w = st.weapon, S = SPECS[run.gear.weapon];
-  if (!S) { chat(`Your ${ITEMS[run.gear.weapon].name} has no special attack.`, 'b'); return; }
-  if (run.spec < specCost(S)) { chat(`You need ${specCost(S)}% special attack energy for ${S.name}.`, 'b'); return; }
+  if (!S) { if (!auto) chat(`Your ${ITEMS[run.gear.weapon].name} has no special attack.`, 'b'); return; }
+  if (run.spec < specCost(S)) { if (!auto) chat(`You need ${specCost(S)}% special attack energy for ${S.name}.`, 'b'); return; }
   if (p.frozen > 0) return;
   // a sure hit: specs re-roll a miss once
   const roll = (base, e) => { let r = rollDamage(base, e, st); if (!r.dmg) r = rollDamage(base, e, st); return r; };
@@ -1760,11 +1775,12 @@ function specialAttack() {
     if (S.bind && !e.dead && !e.d.boss) e.frozen = Math.max(e.frozen, S.bind);
   };
   if (S.lock) {
+    if (auto && ((run.buffs.lock && run.buffs.lock.t > 0) || !nearestEnemy(p.x, p.y, 300))) return;
     run.buffs.lock = { t: S.lock, amount: 0.5, name: S.name, file: ITEMS[run.gear.weapon].file };
   } else if (w.kind === 'swing') {
     const reach = w.reach * MELEE_REACH * (1 + 0.15 * bv('reach')) * 1.3;
     const target = nearestEnemy(p.x, p.y, (S.aoe || reach) + 10);
-    if (!target) { chat('Nothing in reach for a special attack.', 'b'); return; }
+    if (!target) { if (!auto) chat('Nothing in reach for a special attack.', 'b'); return; }
     const ang = Math.atan2(target.y - p.y, target.x - p.x);
     p.face = ang; p.anim = { kind: 'swing', ang, t: 0, dur: 0.25, arc: S.arc ? 6.3 : (w.arc || 1.5) };
     fx.push({ kind: 'slash', x: p.x, y: p.y - 30, a: ang, arc: S.arc ? 6.3 : Math.min(w.arc, 6.3), r: S.aoe || reach, t: 0.3, max: 0.3 });
@@ -1779,7 +1795,7 @@ function specialAttack() {
     if (!S.instant) p.atkT = Math.max(p.atkT, w.cd / st.aspd);
   } else {
     const target = nearestEnemy(p.x, p.y, w.range * st.range * 1.2);
-    if (!target) { chat('Nothing in range for a special attack.', 'b'); return; }
+    if (!target) { if (!auto) chat('Nothing in range for a special attack.', 'b'); return; }
     const ang = Math.atan2(target.y - p.y, target.x - p.x);
     p.face = ang; p.anim = { kind: w.kind, ang, t: 0, dur: 0.2, arc: 0 };
     if (w.kind === 'shot') {
@@ -2666,6 +2682,7 @@ function updatePlayer(dt) {
   coins = coins.filter((c) => !c.got);
   for (const k in run.buffs) run.buffs[k].t -= dt;
   run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * (weaponStyle() === 'melee' ? MELEE_SPEC_REGEN : 1) * dt);
+  if (autoSpec && (run.autoSpecT = (run.autoSpecT || 0) - dt) <= 0) { run.autoSpecT = 0.25; specialAttack(true); }
   if (run.vengT > 0) run.vengT -= dt;
   for (const k in run.sp) if (typeof run.sp[k] === 'number') run.sp[k] -= dt;
   if (run.spellCd > 0) run.spellCd -= dt;
