@@ -1533,7 +1533,7 @@ function slayerPoints(n, why) {
 }
 function slayerKill(e) {
   if (e.summoned) return;
-  if (e.d.boss && !e.raidBoss && !e.clueBoss && isBoss && slayUnlocked('boss') && e.id === area.boss) slayerPoints(10 + 2 * areaIndex(), `Boss task done: ${e.d.name}.`);
+  if (SLAYER_TASKS && e.d.boss && !e.raidBoss && !e.clueBoss && isBoss && slayUnlocked('boss') && e.id === area.boss) slayerPoints(10 + 2 * areaIndex(), `Boss task done: ${e.d.name}.`);
   const t = run.task;
   if (!t || e.id !== t.id) return;
   t.got++;
@@ -3378,7 +3378,7 @@ function renderTitle() {
   const slb = btn('', 'btn', renderSlayer);
   slb.appendChild(imgTag('Slayer_icon.png', 'Slayer')); slb.appendChild(document.createTextNode(` Slayer (${(meta.slayPts || 0).toLocaleString()} points)`));
   slb.classList.add('sticks-btn');
-  r.appendChild(slb);
+  if (SLAYER_TASKS) r.appendChild(slb); // rewards hidden while tasks are off (Nathan)
   const spl = btn('', 'btn', renderSpells);
   spl.appendChild(imgTag(currentSpell().file, 'Spellbook')); spl.appendChild(document.createTextNode(` Spellbook (${currentSpell().name})`));
   spl.classList.add('sticks-btn');
