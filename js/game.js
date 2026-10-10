@@ -307,7 +307,7 @@ function startStage() {
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
   bossAlive = null; stageEnding = 0; run.bossHurt = false; run.door = null;
   // a task whose monster doesn't live in this area is swapped for a new one
-  if (!isBoss && !area.raid && (!run.task || ![...area.hordes, ...area.elites].includes(run.task.id))) assignTask();
+  if (SLAYER_TASKS && !isBoss && !area.raid && (!run.task || ![...area.hordes, ...area.elites].includes(run.task.id))) assignTask();
   areaModStart();
   run.stageT = 0; run.enraged = false; run.obeliskT = 12; run.aerialT = 5; run.boulderT = 8; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.thiefTold = false;
   endEvent();
@@ -1497,6 +1497,7 @@ function infight(e, dt) {
 }
 
 // ---------- Slayer ----------
+const SLAYER_TASKS = false; // Nathan turned tasks off for now (2026-10-10)
 function slayUnlocked(id) { return !!(meta.slay || {})[id]; }
 function slayLocked(it) { return !!(it.slayer && run && run.skills.slayer < it.slayer); }
 function assignTask() {
@@ -1533,7 +1534,7 @@ function renderSlayer() {
   head.appendChild(el('h2', '', 'Slayer rewards'));
   head.appendChild(el('div', 'purse txt', `${(meta.slayPts || 0).toLocaleString()} Slayer points`));
   s.appendChild(head);
-  s.appendChild(el('p', '', `During a run you get Slayer tasks: kill a number of one monster from the area. Each finished task gives Slayer points (kept forever) and +3 Slayer levels. Real slayer drops like the abyssal whip need their real Slayer level before you can take them. Tasks done so far: ${meta.tasks || 0}.`));
+  s.appendChild(el('p', '', `${SLAYER_TASKS ? 'During a run you get Slayer tasks: kill a number of one monster from the area. Each finished task gives Slayer points (kept forever) and +3 Slayer levels. ' : 'Slayer tasks are switched off for now. '}Real slayer drops like the abyssal whip need their real Slayer level before you can take them. Tasks done so far: ${meta.tasks || 0}.`));
   const g = el('div', 'grid offers invos'); s.appendChild(g);
   for (const u of SLAYER_UNLOCKS) {
     const has = !!meta.slay[u.id], can = !has && (meta.slayPts || 0) >= u.cost;
