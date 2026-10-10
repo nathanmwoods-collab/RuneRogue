@@ -195,6 +195,14 @@ img.wiki { image-rendering: auto; }
 .offer-wrap.is-locked > .offer { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow) inset; }
 .lock-btn { font-size: 12px; padding: 4px 6px; }
 .lock-btn.on { color: var(--yellow); }
+.supplies { margin-bottom: 14px; }
+.supply { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; align-items: center; background: var(--stone-dark); border: 1px solid var(--ink); padding: 6px 8px; margin-top: 6px; color: var(--yellow); }
+.supply img { width: 28px; height: 28px; object-fit: contain; }
+.supply .nm { font-size: 14px; line-height: 1.25; }
+.supply .nm small { color: var(--muted); }
+.supply .held { font-variant-numeric: tabular-nums; }
+.sup-btns { display: flex; flex-direction: column; gap: 4px; }
+.sup-btn { font: bold 13px var(--font-body); padding: 5px 8px; min-height: 0; white-space: nowrap; }
 .lock-note { font-size: 13px; opacity: .8; margin: 8px 0 0; }
 .gear { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .slot { width: 52px; height: 52px; background: var(--stone-dark); border: 1px solid var(--ink); outline: 1px solid var(--rim); display: grid; place-items: center; position: relative; }

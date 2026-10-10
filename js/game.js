@@ -3495,10 +3495,10 @@ function itemScore(it) { return it ? it.price + it.tier * 10 : -1; }
 function rollOffers(fresh) {
   const style = weaponStyle(), a = areaIndex();
   // Locked items stay in every shop until you buy or unlock them. Each one takes a slot, so fewer new items roll.
-  run.locked = (run.locked || []).filter((id) => ITEMS[id] && (ITEMS[id].slot === 'food' || run.gear[ITEMS[id].slot] !== id));
+  run.locked = (run.locked || []).filter((id) => ITEMS[id] && ITEMS[id].slot !== 'food' && run.gear[ITEMS[id].slot] !== id);
   const picks = run.locked.map((id) => ({ it: ITEMS[id], sold: false }));
   const pool = Object.values(ITEMS).filter((it) => {
-    if (it.start || it.price <= 0) return false;
+    if (it.start || it.price <= 0 || it.slot === 'food') return false; // supplies have their own always-open counter
     if (run.locked.includes(it.id)) return false;
     if (it.tier > a + 1) return false;
     if (it.rarity === 'mega' && a < 10) return false;
@@ -3600,6 +3600,58 @@ function buy(offer) {
   chat(`You buy ${it.name}.`, 'g');
   sfx(900, 0.08, 'triangle', 0.05);
   renderShop();
+}
+
+// ---------- Supplies counter ----------
+// Sharks and prayer potions can always be bought between waves, but they are pricey:
+// the price rises as the run goes on, and each one costs 60% more for every one you already carry.
+const SUPPLY_KINDS = ['shark', 'ppot'];
+const SUPPLY_BASE = { shark: 40, ppot: 50 };
+const SUPPLY_CAP = 5;
+function supplyCap() { return Math.max(1, Math.round(SUPPLY_CAP * Math.min(1, supplyMult(run.invo)))); }
+function supplyPrice(kind, held = run.inv[kind]) {
+  return Math.round(SUPPLY_BASE[kind] * (1 + 0.15 * run.stage) * Math.pow(1.6, held) / 5) * 5;
+}
+function supplyBlocked(kind) {
+  if (kind === 'shark' && inv('diet')) return 'On a Diet: no eating this raid';
+  if (kind === 'ppot' && inv('dehydration')) return 'Dehydration: no potions this raid';
+  return '';
+}
+// How many you can afford in a row (each one dearer than the last), up to the carry limit.
+function supplyMax(kind) {
+  let n = 0, cost = 0, held = run.inv[kind];
+  while (held + n < supplyCap() && cost + supplyPrice(kind, held + n) <= run.gold) { cost += supplyPrice(kind, held + n); n++; }
+  return { n, cost };
+}
+function buySupply(kind, many) {
+  if (supplyBlocked(kind)) return;
+  const n = many ? supplyMax(kind).n : (run.inv[kind] < supplyCap() && run.gold >= supplyPrice(kind) ? 1 : 0);
+  if (!n) { chat(run.inv[kind] >= supplyCap() ? `You can't carry more than ${supplyCap()} of those.` : 'You don\'t have enough coins.', 'r'); return; }
+  for (let i = 0; i < n; i++) { run.gold -= supplyPrice(kind); run.inv[kind]++; }
+  run.bought += n; achEvent('buy', ITEMS[kind]);
+  chat(`You buy ${n} ${ITEMS[kind].name.toLowerCase()}${n > 1 ? 's' : ''}.`, 'g');
+  sfx(900, 0.08, 'triangle', 0.05);
+  renderShop();
+}
+function suppliesPanel() {
+  const box = el('div', 'supplies');
+  box.appendChild(el('div', 'sec-title', 'Supplies'));
+  for (const k of SUPPLY_KINDS) {
+    const it = ITEMS[k], held = run.inv[k], full = held >= supplyCap(), blocked = supplyBlocked(k);
+    const row = el('div', 'supply');
+    row.appendChild(imgTag(it.file, it.name));
+    row.appendChild(el('div', 'nm', `<b>${it.name}</b> <span class="held">×${held} / ${supplyCap()}</span><br><small>${blocked || it.desc.split('.')[0]}</small>`));
+    const one = btn(full ? 'Full' : `Buy 1 · ${supplyPrice(k).toLocaleString()} gp`, 'btn sup-btn', () => buySupply(k, false));
+    one.disabled = !!blocked || full || run.gold < supplyPrice(k);
+    const mx = supplyMax(k);
+    const all = btn(mx.n > 1 ? `Buy ${mx.n} · ${mx.cost.toLocaleString()} gp` : 'Buy max', 'btn sup-btn', () => buySupply(k, true));
+    all.disabled = !!blocked || mx.n < 2;
+    const bs = el('div', 'sup-btns'); bs.appendChild(one); bs.appendChild(all);
+    row.appendChild(bs);
+    box.appendChild(row);
+  }
+  box.appendChild(el('p', 'lock-note', `Carry up to ${supplyCap()} of each. Each one you already carry makes the next cost 60% more, and prices rise as the run goes on.`));
+  return box;
 }
 
 let trainStep = 1; // levels bought per tap: 1, 5 or 10
@@ -3748,6 +3800,7 @@ function renderShop() {
   grid.appendChild(left);
 
   const right = el('div');
+  right.appendChild(suppliesPanel());
   right.appendChild(el('div', 'sec-title', 'Shop: any hero can use any item'));
   const of = el('div', 'grid offers');
   run.locked = run.locked || [];
