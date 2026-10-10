@@ -3436,8 +3436,12 @@ function rarityWeight(it) {
 function itemScore(it) { return it ? it.price + it.tier * 10 : -1; }
 function rollOffers(fresh) {
   const style = weaponStyle(), a = areaIndex();
+  // Locked items stay in every shop until you buy or unlock them. Each one takes a slot, so fewer new items roll.
+  run.locked = (run.locked || []).filter((id) => ITEMS[id] && (ITEMS[id].slot === 'food' || run.gear[ITEMS[id].slot] !== id));
+  const picks = run.locked.map((id) => ({ it: ITEMS[id], sold: false }));
   const pool = Object.values(ITEMS).filter((it) => {
     if (it.start || it.price <= 0) return false;
+    if (run.locked.includes(it.id)) return false;
     if (it.tier > a + 1) return false;
     if (it.rarity === 'mega' && a < 10) return false;
     if (it.id === 'slayer_helmet' && !slayUnlocked('masq')) return false;
@@ -3458,7 +3462,6 @@ function rollOffers(fresh) {
     if (!run.gear[it.slot] && it.slot !== 'food') wt *= 1.4;
     return { it, wt };
   });
-  const picks = [];
   while (picks.length < 5 && bag.length) {
     const total = bag.reduce((x, b) => x + b.wt, 0);
     let r = Math.random() * total, i = 0;
@@ -3533,6 +3536,7 @@ function buy(offer) {
   } else equip(it);
   run.gold -= it.price;
   offer.sold = true;
+  if (run.locked) run.locked = run.locked.filter((id) => id !== it.id);
   run.bought++; achEvent('buy', it); achEvent('gear', it);
   chat(`You buy ${it.name}.`, 'g');
   sfx(900, 0.08, 'triangle', 0.05);
@@ -3685,12 +3689,25 @@ function renderShop() {
   const right = el('div');
   right.appendChild(el('div', 'sec-title', 'Shop: any hero can use any item'));
   const of = el('div', 'grid offers');
+  run.locked = run.locked || [];
   for (const o of offers) {
     const c = offerCard(o.it, o.sold ? 'Bought' : `${o.it.price.toLocaleString()} gp`, () => buy(o), o.sold);
     c.disabled = o.sold || run.gold < o.it.price || slayLocked(o.it);
-    of.appendChild(c);
+    const isLocked = run.locked.includes(o.it.id);
+    const wrap = el('div', 'offer-wrap' + (isLocked ? ' is-locked' : ''));
+    wrap.appendChild(c);
+    if (!o.sold) {
+      const lb = btn(isLocked ? '🔒 Locked (tap to unlock)' : '🔓 Lock for later shops', 'btn lock-btn' + (isLocked ? ' on' : ''), () => {
+        run.locked = isLocked ? run.locked.filter((id) => id !== o.it.id) : run.locked.concat(o.it.id);
+        chat(isLocked ? `${o.it.name} unlocked. It won't be kept for the next shop.` : `${o.it.name} locked. It will stay in your shop until you buy or unlock it.`, 'b');
+        renderShop();
+      });
+      wrap.appendChild(lb);
+    }
+    of.appendChild(wrap);
   }
   right.appendChild(of);
+  right.appendChild(el('p', 'lock-note', run.locked.length ? `Locked: ${run.locked.length} of 5 slots. Locked items stay in every shop, so ${5 - run.locked.length} new item${5 - run.locked.length === 1 ? '' : 's'} roll each time.` : 'Lock an item to keep it in later shops. Each lock means one fewer new item rolls.'));
   const rr = el('div', 'row'); rr.style.marginTop = '12px';
   const free = run.freeRerolls > 0;
   const rerollCost = free ? 0 : 5 + run.rerolls * 4 + run.stage * 2;

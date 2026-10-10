@@ -189,6 +189,12 @@ img.wiki { image-rendering: auto; }
 .offer .price { font-family: var(--font-body); font-weight: bold; color: var(--yellow); font-size: 16px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .offer .price img { width: 20px; height: 18px; }
 .offer.sold { opacity: .4; pointer-events: none; }
+.offer-wrap { display: flex; flex-direction: column; gap: 4px; }
+.offer-wrap > .offer { flex: 1; }
+.offer-wrap.is-locked > .offer { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow) inset; }
+.lock-btn { font-size: 12px; padding: 4px 6px; }
+.lock-btn.on { color: var(--yellow); }
+.lock-note { font-size: 13px; opacity: .8; margin: 8px 0 0; }
 .gear { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .slot { width: 52px; height: 52px; background: var(--stone-dark); border: 1px solid var(--ink); outline: 1px solid var(--rim); display: grid; place-items: center; position: relative; }
 .slot img { max-width: 40px; max-height: 40px; object-fit: contain; }
