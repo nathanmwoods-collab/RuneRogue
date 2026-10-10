@@ -483,8 +483,8 @@ item('bellator_ring', 'Bellator ring', 'melee', 'ring', 13, 'rare', { dmg: 0.16,
 // Skills: gold buys levels. Combat skills boost whichever style your weapon uses.
 // ---------------------------------------------------------------------------
 const SKILLS = [
-  { id: 'attack', name: 'Attack', file: 'Attack_icon.png', lane: 'melee', start: 1, info: '+1% melee attack speed' },
-  { id: 'strength', name: 'Strength', file: 'Strength_icon.png', lane: 'melee', start: 1, info: '+3% melee damage' },
+  { id: 'attack', name: 'Attack', file: 'Attack_icon.png', lane: 'melee', start: 1, info: '+1% melee damage, fewer misses (none at 99)' },
+  { id: 'strength', name: 'Strength', file: 'Strength_icon.png', lane: 'melee', start: 1, info: '+3% melee damage, +1% speed' },
   { id: 'ranged', name: 'Ranged', file: 'Ranged_icon.png', lane: 'ranged', start: 1, info: '+3% ranged damage, +1% speed' },
   { id: 'magic', name: 'Magic', file: 'Magic_icon.png', lane: 'magic', start: 1, info: '+3% magic damage, +1% splash' },
   { id: 'defence', name: 'Defence', file: 'Defence_icon.png', lane: 'any', start: 1, info: 'blocks more damage' },

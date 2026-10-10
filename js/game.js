@@ -282,20 +282,24 @@ function stats() {
   const range = (m.range || 1) * (1 + sum('range')) * (1 + 0.15 * bv('reach')) * (inv('myopia') ? 0.75 : 1);
   let splash = (m.splash || 1) * (1 + 0.2 * bv('pierce'));
   // Skill levels run to 99, so each level is a small step.
-  if (lane === 'melee') { dmgMult *= 1 + 0.03 * (s.strength - 1); aspd *= 1 + 0.01 * (s.attack - 1); }
+  // Melee (buffed, Nathan): Strength alone now matches Ranged (+3% damage and +1% speed a level), and Attack is
+  // accuracy on top: +1% damage a level and fewer misses, down to none at 99.
+  if (lane === 'melee') { dmgMult *= (1 + 0.03 * (s.strength - 1)) * (1 + 0.01 * (s.attack - 1)); aspd *= 1 + 0.01 * (s.strength - 1); }
   if (lane === 'ranged') { dmgMult *= 1 + 0.03 * (s.ranged - 1); aspd *= 1 + 0.01 * (s.ranged - 1); }
   if (lane === 'magic') { dmgMult *= 1 + 0.03 * (s.magic - 1); splash *= 1 + 0.01 * (s.magic - 1); }
   const defPts = (sum('def') + 6 * bv('thickskin')) * 1.2 + (s.defence - 1) * 0.7;
   const takenGear = gear.reduce((a, it) => a * (it.taken || 1), 1);
   return {
     lane, weapon, dmgMult, aspd, range, splash,
+    miss: lane === 'melee' ? 0.1 * (1 - (s.attack - 1) / 98) : 0.1,
     pierce: sum('pierce') + bv('pierce'),
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
     maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.5 : 1) * (inv('frailty') ? 0.8 : 1)),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
     reduce: inv('relentless') ? 0 : Math.min(0.75, defPts / 100),
-    taken: (m.taken || 1) * takenGear * Math.pow(0.95, bv('might') + bv('rigour') + bv('augury')) * (run.sp && run.sp.ward > 0 ? 0.75 : 1) * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
+    // MELEE_GUARD: holding a melee weapon blocks some damage, since melee fights up close.
+    taken: (m.taken || 1) * (lane === 'melee' ? MELEE_GUARD : 1) * takenGear * Math.pow(0.95, bv('might') + bv('rigour') + bv('augury')) * (run.sp && run.sp.ward > 0 ? 0.75 : 1) * (1 - upVal('def')) * Math.pow(0.9, bv('skin')) * (ycon('clouding') ? 1.35 : 1),
     speed: (run.p && run.p.slowT > 0 ? 0.6 : 1) * (run.p && run.p.wet ? 0.55 : 1) * 230 * (run.frogT > 0 ? 0.5 : 1) * (m.speed || 1) * buffMult('speed') * (1 + 0.12 * bv('fleet')) * (1 + 0.006 * (s.agility - 1) + sum('speed') + upVal('speed')),
     goldMult: (m.gold || 1) * (1 + 0.02 * (s.thieving - 1)) * (1 + sum('gold')) * (1 + upVal('gold')) * (1 + 0.25 * bv('greed')) * (ycon('breath') ? 1.75 : 1) * (run.skull ? SKULL.gold : 1),
     crit: 0.05 + (m.crit || 0) + 0.005 * (s.slayer - 1) + upVal('crit') + 0.08 * bv('crit') + (ycon('glyphic') ? 0.25 : 0),
@@ -1345,7 +1349,7 @@ function nearestEnemy(x, y, maxD) {
 }
 
 function rollDamage(base, target, st) {
-  if (Math.random() < 0.1) return { dmg: 0, crit: false };
+  if (Math.random() < st.miss) return { dmg: 0, crit: false };
   let dmg = base * st.dmgMult * (0.65 + Math.random() * 0.35);
   if (st.weapon.tbow) dmg *= 1 + Math.min(1.2, target.d.lvl / 400);
   dmg *= triangle(st.lane, enemyStyle(target));
@@ -1800,6 +1804,8 @@ function specialAttack() {
 
 // Melee swings reach this much farther than each weapon's listed reach, so melee heroes can hit from a safer distance.
 const MELEE_REACH = 1.3;
+// Melee buffs (Nathan, 2026-10-10): 15% less damage taken and special attack energy refills 50% faster.
+const MELEE_GUARD = 0.85, MELEE_SPEC_REGEN = 1.5;
 
 function playerAttack(dt) {
   const p = run.p, st = stats(), w = st.weapon;
@@ -2659,7 +2665,7 @@ function updatePlayer(dt) {
   }
   coins = coins.filter((c) => !c.got);
   for (const k in run.buffs) run.buffs[k].t -= dt;
-  run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * dt);
+  run.spec = Math.min(100, run.spec + SPEC_REGEN * (1 + bv('light')) * (weaponStyle() === 'melee' ? MELEE_SPEC_REGEN : 1) * dt);
   if (run.vengT > 0) run.vengT -= dt;
   for (const k in run.sp) if (typeof run.sp[k] === 'number') run.sp[k] -= dt;
   if (run.spellCd > 0) run.spellCd -= dt;
