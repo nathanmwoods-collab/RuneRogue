@@ -302,11 +302,15 @@ function stats() {
   if (lane === 'melee') { dmgMult *= (1 + 0.03 * (s.strength - 1)) * (1 + 0.01 * (s.attack - 1)); aspd *= 1 + 0.01 * (s.strength - 1); }
   if (lane === 'ranged') { dmgMult *= 1 + 0.03 * (s.ranged - 1); aspd *= 1 + 0.01 * (s.ranged - 1); }
   if (lane === 'magic') { dmgMult *= 1 + 0.03 * (s.magic - 1); splash *= 1 + 0.01 * (s.magic - 1); }
+  // Crystal armour only boosts a crystal bow (Bow of Faerdhinen, Crystal bow)
+  const crystal = CRYSTAL_BOWS.includes(run.gear.weapon) ? Object.keys(CRYSTAL_ARMOUR).filter((id) => SLOTS.some((sl) => run.gear[sl] === id)).map((id) => CRYSTAL_ARMOUR[id]) : [];
+  dmgMult *= 1 + crystal.reduce((a, c) => a + c.dmg, 0);
+  const crystalAcc = crystal.reduce((a, c) => a + c.acc, 0);
   const defPts = (sum('def') + 6 * bv('thickskin')) * 1.2 + (s.defence - 1) * 0.7;
   const takenGear = gear.reduce((a, it) => a * (it.taken || 1), 1);
   return {
     lane, weapon, dmgMult, aspd, range, splash,
-    miss: lane === 'melee' ? 0.1 * (1 - (s.attack - 1) / 98) : 0.1,
+    miss: (lane === 'melee' ? 0.1 * (1 - (s.attack - 1) / 98) : 0.1) * (1 - crystalAcc),
     pierce: sum('pierce') + bv('pierce'),
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
     maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.5 : 1) * (inv('frailty') ? 0.8 : 1)),
@@ -3594,6 +3598,8 @@ function itemStatsText(it) {
   }
   if (it.slayer) bits.push(`Needs level ${it.slayer} Slayer (dropped by ${it.slayerSrc})`);
   if (it.barrows) { const B = BARROWS_SETS[it.barrows]; bits.push(`<b>${B.name} set (${B.effect})</b>, all 4 pieces: ${B.info}`); }
+  if (CRYSTAL_ARMOUR[it.id]) bits.push(`<b>Crystal set bonus</b> with a Bow of Faerdhinen or Crystal bow: +${CRYSTAL_ARMOUR[it.id].dmg * 100}% damage, +${CRYSTAL_ARMOUR[it.id].acc * 100}% accuracy (full set +15% damage, +30% accuracy)`);
+  if (CRYSTAL_BOWS.includes(it.id)) bits.push('<b>Crystal armour</b> boosts this bow: helm, body and legs together give +15% damage and +30% accuracy');
   if (it.proc) bits.push(`<b>${BOLT_PROCS[it.proc].name}</b>: ${BOLT_PROCS[it.proc].info}`);
   if (it.def) bits.push(it.def > 0 ? `+${it.def} defence` : `<span style="color:var(--red)">${it.def} defence</span>`);
   if (it.dmg) bits.push(`+${Math.round(it.dmg * 100)}% ${it.lane === 'any' ? '' : LANE_NAME[it.lane] + ' '}damage`);

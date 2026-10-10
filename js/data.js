@@ -1313,6 +1313,10 @@ item('eclipse_moon_chestplate', 'Eclipse Moon chestplate', 'ranged', 'body', 7, 
 item('eclipse_moon_tassets', 'Eclipse Moon tassets', 'ranged', 'legs', 7, 'uncommon', { def: 9, dmg: 0.1 });
 item('crystal_body', 'Crystal body', 'ranged', 'body', 9, 'uncommon', { def: 11, dmg: 0.16, pp: 2 });
 item('crystal_legs', 'Crystal legs', 'ranged', 'legs', 9, 'uncommon', { def: 9, dmg: 0.11, pp: 2 });
+// Crystal armour set bonus, as in OSRS: each piece adds damage and accuracy, but only with a crystal bow
+// (Bow of Faerdhinen or Crystal bow). The full set gives +15% damage and +30% accuracy (30% fewer misses).
+const CRYSTAL_BOWS = ['bow_of_faerdhinen', 'crystal_bow'];
+const CRYSTAL_ARMOUR = { crystal_helm: { dmg: 0.025, acc: 0.05 }, crystal_body: { dmg: 0.075, acc: 0.15 }, crystal_legs: { dmg: 0.05, acc: 0.1 } };
 item('iron_arrow', 'Iron arrow', 'ranged', 'ammo', 0, 'common', { dmg: 0.04 }, 'Iron_arrow_5.png');
 item('mithril_arrow', 'Mithril arrow', 'ranged', 'ammo', 1, 'common', { dmg: 0.06 }, 'Mithril_arrow_5.png');
 item('broad_arrows', 'Broad arrows', 'ranged', 'ammo', 4, 'common', { dmg: 0.1 }, 'Broad_arrows_5.png');
