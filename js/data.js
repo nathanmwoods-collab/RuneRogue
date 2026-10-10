@@ -859,7 +859,6 @@ const INVOCATIONS = [
   { id: 'quiet', name: 'Quiet Prayers', lvl: 20, icon: 'prayer', info: 'Protection prayers block half the damage instead of 70%' },
   { id: 'deadly', name: 'Deadly Prayers', lvl: 20, icon: 'prayer', info: 'Every hit you take drains prayer by 20% of its damage' },
   { id: 'diet', name: 'On a Diet', lvl: 15, icon: 'diet', info: 'You can\'t eat sharks or pies' },
-  { id: 'dehydration', name: 'Dehydration', lvl: 30, icon: 'dehy', info: 'You can\'t drink prayer potions' },
   { id: 'draining', name: 'Overly Draining', lvl: 15, icon: 'drain', info: 'Every special attack uses all of your energy' },
   { id: 'medic', name: 'Medic!', lvl: 15, icon: 'kephri', info: 'Scarab swarms join every wave' },
   { id: 'overlords', name: 'More Overlords', lvl: 15, icon: 'kephri', info: 'Waves have 40% more enemies, with more alive at once' },
