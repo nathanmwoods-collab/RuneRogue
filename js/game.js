@@ -281,7 +281,7 @@ function stats() {
     lane, weapon, dmgMult, aspd, range, splash,
     pierce: sum('pierce') + bv('pierce'),
     regen: sum('regen') + (m.regen || 0) + 1.5 * bv('heal'),
-    maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.6 : 1) * (inv('frailty') ? 0.8 : 1)),
+    maxHp: Math.round((50 + 5 * (s.hitpoints - 10) + sum('hp') + upVal('hp') + (m.hp || 0)) * (ycon('bloodied') ? 0.5 : 1) * (inv('frailty') ? 0.8 : 1)),
     maxPp: 20 + 2 * (s.prayer - 1) + sum('pp') + upVal('prayer'),
     ppDrain: PRAYER_DRAIN * (m.ppDrain || 1) / (1 + 0.03 * (s.prayer - 1)) * Math.pow(0.75, bv('preserve')),
     reduce: inv('relentless') ? 0 : Math.min(0.75, defPts / 100),
@@ -609,7 +609,7 @@ function renderYama(next) {
     card.appendChild(el('div', 'sign', 'Sign'));
     card.addEventListener('click', () => {
       run.contracts[c.id] = true;
-      if (c.id === 'clouding') run.boons.multi = bv('multi') + 2;
+      if (c.id === 'clouding') run.boons.multi = bv('multi') + 1;
       if (c.id === 'glyphic') run.spec = 100;
       if (c.id === 'severance') run.prayer = null;
       run.p.hp = Math.min(stats().maxHp, run.p.hp);
@@ -1371,7 +1371,7 @@ function damageEnemy(e, dmg, crit, opts = {}) {
     fx.push({ kind: 'label', x: e.x, y: e.y - e.d.size * 0.6, t: 0.9, max: 0.9, txt: BARROWS_SETS[proc].effect, color: '#c8a0ff' });
   }
   const leech = (opts.leech || 0) + 0.03 * bv('vamp');
-  if (leech && dmg > 0) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech * PLAYER_LEECH);
+  if (leech && dmg > 0 && !ycon('breath')) run.p.hp = Math.min(stats().maxHp, run.p.hp + dmg * leech * PLAYER_LEECH);
   if (bv('execute') && !e.d.boss && !e.clueBoss && e.hp > 0 && e.hp < e.maxHp * 0.12) e.hp = 0;
   if (e.hp <= 0) {
     if (e.d.boss && bossPhaseOnDeath(e)) return;
@@ -1951,6 +1951,7 @@ function hurtPlayer(raw, style, opts = {}) {
   // OSRS protection prayers block all damage of their style (Quiet Prayers: 80%)
   if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= inv('quiet') ? 0.2 : 0;
   if (run.enraged && !opts.pure) dmg *= 1.5;
+  if (ycon('severance')) dmg *= fixed ? 1.3 : 1.15; // no prayers, and big boss hits land even harder
   dmg = Math.round(dmg * (fixed ? 1 : 0.6 + Math.random() * 0.4));
   p.hp -= dmg;
   p.hurtT = 0.15;
@@ -2554,7 +2555,7 @@ function updatePlayer(dt) {
   p.hurtT = Math.max(0, p.hurtT - dt);
   if (p.over) { p.over.t -= dt; if (p.over.t <= 0) p.over = null; }
   if (p.anim) { p.anim.t += dt; if (p.anim.t > p.anim.dur + 0.1) p.anim = null; }
-  if (st.regen > 0 && p.hp > 0) p.hp = Math.min(st.maxHp, p.hp + st.regen * dt);
+  if (st.regen > 0 && p.hp > 0 && !ycon('breath')) p.hp = Math.min(st.maxHp, p.hp + st.regen * dt);
   if (p.poison > 0) {
     p.poison -= dt;
     p.poisonTick = (p.poisonTick || 0) - dt;
@@ -2665,7 +2666,7 @@ function useItem(kind) {
   const st = stats();
   run.inv[kind]--;
   if (kind === 'shark') achEvent('eat');
-  if (kind === 'shark') { if (ycon('breath')) chat('You eat the shark, but your contract with Yama stops it healing you.', 'r'); else { run.p.hp = Math.min(st.maxHp, run.p.hp + 20); run.p.eatT = EAT_DELAY; chat('You eat the shark. It heals some health.'); } }
+  if (kind === 'shark') { if (ycon('breath')) chat('You eat the shark, but your contract with Yama stops it healing you.', 'r'); else { run.p.hp = Math.min(st.maxHp, run.p.hp + (ycon('bloodied') ? 10 : 20)); run.p.eatT = EAT_DELAY; chat('You eat the shark. It heals some health.'); } }
   else { run.p.pp = Math.min(st.maxPp, run.p.pp + 20); chat('You drink some of your prayer potion.'); }
   sfx(400, 0.1, 'sine', 0.05);
 }

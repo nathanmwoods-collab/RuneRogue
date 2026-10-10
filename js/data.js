@@ -825,10 +825,10 @@ const YAMA = { name: 'Yama', file: 'Yama.png', quotes: [
 ] };
 const YAMA_CHANCE = 0.12, YAMA_MAX = 2, YAMA_PITY = 13;
 const CONTRACTS = [
-  { id: 'severance', name: 'Contract of Divine Severance', gain: '+60% damage', cost: 'You can no longer use protection prayers' },
-  { id: 'bloodied', name: 'Contract of Bloodied Blows', gain: '+50% attack speed', cost: 'Your max hitpoints drop by 40%' },
-  { id: 'breath', name: 'Contract of Forfeit Breath', gain: '+75% gold and +50% luck', cost: 'Sharks, pies and round-end rests no longer heal you' },
-  { id: 'clouding', name: 'Contract of Sensory Clouding', gain: '+2 Multishot', cost: 'Enemies hit 35% harder' },
+  { id: 'severance', name: 'Contract of Divine Severance', gain: '+60% damage', cost: 'No protection prayers, enemies hit 15% harder and big boss attacks 30% harder' },
+  { id: 'bloodied', name: 'Contract of Bloodied Blows', gain: '+50% attack speed', cost: 'Your max hitpoints are halved and sharks heal half as much' },
+  { id: 'breath', name: 'Contract of Forfeit Breath', gain: '+75% gold and +50% luck', cost: 'Nothing heals you: no sharks, pies, rests, regeneration or lifesteal' },
+  { id: 'clouding', name: 'Contract of Sensory Clouding', gain: '+1 Multishot', cost: 'Enemies hit 35% harder' },
   { id: 'glyphic', name: 'Contract of Glyphic Attenuation', gain: '+25% critical hit chance and a full special attack bar', cost: 'Enemies have 40% more hitpoints' },
 ];
 // Invocations, after the Tombs of Amascut (names, raid levels and icons from the wiki's Invocations page).
