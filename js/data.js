@@ -163,7 +163,7 @@ item('rune_kiteshield', 'Rune kiteshield', 'melee', 'shield', 2, 'common', { def
 item('dragon_defender', 'Dragon defender', 'melee', 'shield', 4, 'common', { def: 4, aspd: 0.12 });
 item('dragonfire_shield', 'Dragonfire shield', 'melee', 'shield', 7, 'uncommon', { def: 12, hp: 10 });
 item('avernic_defender', 'Avernic defender', 'melee', 'shield', 11, 'uncommon', { def: 8, aspd: 0.18, dmg: 0.06 });
-item('elysian_spirit_shield', 'Elysian spirit shield', 'any', 'shield', 15, 'rare', { def: 18, hp: 30, taken: 0.85 });
+item('elysian_spirit_shield', 'Elysian spirit shield', 'any', 'shield', 15, 'rare', { def: 22, hp: 40, taken: 0.8 });
 item('leather_gloves', 'Leather gloves', 'any', 'hands', 0, 'common', { def: 1 });
 item('barrows_gloves', 'Barrows gloves', 'any', 'hands', 5, 'common', { def: 4, dmg: 0.08, aspd: 0.04 });
 item('ferocious_gloves', 'Ferocious gloves', 'melee', 'hands', 10, 'uncommon', { def: 3, dmg: 0.14 });
@@ -247,7 +247,7 @@ item('wizard_boots', 'Wizard boots', 'magic', 'feet', 1, 'uncommon', { dmg: 0.04
 item('mystic_boots', 'Mystic boots', 'magic', 'feet', 2, 'common', { def: 1, dmg: 0.03 });
 item('eternal_boots', 'Eternal boots', 'magic', 'feet', 10, 'uncommon', { def: 3, dmg: 0.1 });
 item('mages_book', "Mage's book", 'magic', 'shield', 4, 'common', { dmg: 0.1 });
-item('arcane_spirit_shield', 'Arcane spirit shield', 'magic', 'shield', 11, 'rare', { def: 10, dmg: 0.12 });
+item('arcane_spirit_shield', 'Arcane spirit shield', 'magic', 'shield', 11, 'rare', { def: 12, dmg: 0.16 });
 item('saradomin_cape', 'Saradomin cape', 'magic', 'cape', 3, 'common', { dmg: 0.06 });
 item('imbued_saradomin_cape', 'Imbued Saradomin cape', 'magic', 'cape', 8, 'uncommon', { dmg: 0.12 });
 item('imbued_zamorak_cape', 'Imbued Zamorak cape', 'magic', 'cape', 9, 'uncommon', { dmg: 0.12, def: 2 });
@@ -415,7 +415,7 @@ item('justiciar_legguards', 'Justiciar legguards', 'any', 'legs', 12, 'rare', { 
 // Shield
 item('granite_shield', 'Granite shield', 'melee', 'shield', 4, 'common', { def: 9 });
 item('book_of_darkness', 'Book of Darkness', 'magic', 'shield', 5, 'common', { dmg: 0.08, pp: 5 });
-item('spectral_spirit_shield', 'Spectral spirit shield', 'any', 'shield', 9, 'uncommon', { def: 12, pp: 3, taken: 0.95 });
+item('spectral_spirit_shield', 'Spectral spirit shield', 'any', 'shield', 9, 'uncommon', { def: 15, pp: 5, taken: 0.92 });
 // Hands
 item('dragon_gloves', 'Dragon gloves', 'melee', 'hands', 4, 'common', { def: 3, dmg: 0.09 });
 item('regen_bracelet', 'Regen bracelet', 'any', 'hands', 6, 'uncommon', { dmg: 0.04, regen: 1.2 });
