@@ -325,6 +325,7 @@ function startStage() {
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
   run.prayer = null;
   const a = areaIndex(), sub = subIndex();
+  run.waveDps = effectiveDps(null);
   toSpawn = isBoss ? 4 + a * 2 : 12 + a * 4 + sub * 6;
   if (!isBoss && inv('overlords')) toSpawn = Math.round(toSpawn * 1.4);
   if (!isBoss && inv('quartet')) { toSpawn++; run.quartet = true; }
@@ -388,6 +389,8 @@ const ENRAGE_AT = 0.33;
 const EAT_DELAY = 1.2;
 // Healing from your own damage (lifesteal weapons, specs, boons) is halved (Nathan).
 const PLAYER_LEECH = 0.5;
+// Normal enemies hit harder each round, and the growth speeds up later in the run (Nathan: damage must keep up).
+function enemyDmgScale() { return 1 + 0.045 * run.stage + 0.0012 * run.stage * run.stage; }
 function stageScale() { return 1 + 0.085 * run.stage + 0.004 * run.stage * run.stage; }
 
 const SAFE_SPAWN = 260; // nothing appears closer than this to the player
@@ -409,7 +412,7 @@ function spawnMonster(id, x, y, opts = {}) {
   const sc = d.boss ? 1 : stageScale();
   const e = {
     id, d, x, y, r: d.size * 0.36, hp: Math.round(hp * (d.boss ? 1 : sc)), maxHp: 0,
-    dmg: d.clue ? 3.2 * stageScale() * (d.clueMult || 1) * BOSS_DMG : d.dmg * (d.boss ? BOSS_DMG : 1 + 0.03 * run.stage),
+    dmg: d.clue ? 3.2 * stageScale() * (d.clueMult || 1) * BOSS_DMG : d.dmg * (d.boss ? BOSS_DMG : enemyDmgScale()),
     hitCd: 0, frozen: 0, castT: 1 + Math.random() * 2, kx: 0, ky: 0, flash: 0, over: null,
     ai: { t: 2.5 + Math.random(), phase: 0, burrow: 0 }, ...opts,
   };
@@ -420,6 +423,11 @@ function spawnMonster(id, x, y, opts = {}) {
     e.hp = Math.max(e.hp, Math.round(effectiveDps(d) * ttk));
     // Safety net for builds the estimate misses: a boss can't lose more than its HP over ~70% of that time.
     e.capRate = e.hp / (ttk * 0.7); e.capBank = e.capRate * 2;
+  }
+  // Waves scale to your build: from the Sewers on, normal enemies take at least a set time to kill at your damage.
+  if (!d.boss && !d.clue && !opts.noFloor && run.waveDps && areaIndex() >= 3) {
+    const a = areaIndex(), ttk = d.elite ? 2.5 + 0.2 * a : 0.35 + 0.04 * a;
+    e.hp = Math.max(e.hp, Math.round(run.waveDps * ttk));
   }
   if (ycon('glyphic')) e.hp = Math.round(e.hp * 1.4);
   if (inv('cm') && !d.boss) { e.hp = Math.round(e.hp * 1.5); e.dmg *= 1.2; }
@@ -467,13 +475,14 @@ function spawnTick(dt) {
   if (run.insaneAt !== null && toSpawn <= run.insaneAt) { run.insaneAt = null; spawnInsane(); }
   if (run.circleAt !== null && toSpawn <= run.circleAt) { run.circleAt = null; wizardCircle(); }
   if (run.evAt !== null && run.evAt !== undefined && toSpawn <= run.evAt) { run.evAt = null; startRandomEvent(); if (mode !== 'play') return; }
-  const maxAlive = Math.round((isBoss ? 4 + a : 7 + Math.floor(a * 0.8) + subIndex() * 2) * (!isBoss && inv('overlords') ? 1.4 : 1));
+  // pressure grows after the first few areas: more enemies alive at once and faster spawns, but the same total per wave (so no extra gold)
+  const maxAlive = Math.round((isBoss ? 4 + a : 7 + Math.floor(a * 1.1) + subIndex() * 2) * (!isBoss && inv('overlords') ? 1.4 : 1));
   if (spawnT > 0 || enemies.length >= maxAlive) return;
-  spawnT = isBoss ? 4 : Math.max(0.7, 1.7 - a * 0.05);
-  const group = Math.min(toSpawn, 1 + Math.floor(Math.random() * 2));
+  spawnT = isBoss ? 4 : Math.max(0.45, 1.6 - a * 0.07);
+  const group = Math.min(toSpawn, 1 + Math.floor(Math.random() * (a >= 6 ? 3 : 2)));
   for (let i = 0; i < group; i++) {
     let id = area.hordes[Math.floor(Math.random() * area.hordes.length)];
-    if (area.elites.length && Math.random() < Math.min(0.4, 0.1 + subIndex() * 0.08 + a * 0.015)) id = area.elites[Math.floor(Math.random() * area.elites.length)];
+    if (area.elites.length && Math.random() < Math.min(0.5, 0.1 + subIndex() * 0.08 + a * 0.022)) id = area.elites[Math.floor(Math.random() * area.elites.length)];
     const pos = spreadSpawn();
     if (run.skull && !isBoss && Math.random() < 0.12 && enemies.filter((e) => e.d.pker && !e.dead).length < 2) { spawnPker(pos); continue; }
     if (!isBoss && inv('medic') && Math.random() < 0.18) { medicScarab(pos); continue; }
@@ -2337,23 +2346,34 @@ function bossAI(e, dt) {
       chat('General Graardor and his sergeants: Strongstack (melee), Steelwill (magic) and Grimspike (ranged).', 'r');
     }
     const d = Math.hypot(p.x - e.x, p.y - e.y), reach = e.r + p.r + 40;
-    if (!e.charge && d > 380 && (e.ai.ct = (e.ai.ct || 0) - dt) <= 0) {
-      e.ai.ct = 4;
+    // at half health his sergeants come back once
+    if (!e.ai.guards2 && e.hp < e.maxHp * 0.5) {
+      e.ai.guards2 = true;
+      for (const id of ['sergeant_strongstack', 'sergeant_steelwill', 'sergeant_grimspike']) { const sp = edgeSpawn(); const m = spawnMonster(id, sp.x, sp.y); m.summoned = true; }
+      say(e, 'Brargh!'); chat('Graardor\'s sergeants rejoin the fight!', 'r');
+    }
+    // out of reach he hurls rocks at you: three telegraphed impacts around you
+    if (d > reach + 60 && (e.ai.rt = (e.ai.rt ?? 2) - dt) <= 0) {
+      e.ai.rt = 3.2;
+      for (let i = 0; i < 3; i++) { const s2 = i ? nearSpot(p, 150) : p; slam(s2.x, s2.y, 70, 0.9, e.dmg * 1.4, 'ranged', '#a08060', i ? '' : 'Rocks!'); }
+    }
+    if (!e.charge && d > 260 && (e.ai.ct = (e.ai.ct || 0) - dt) <= 0) {
+      e.ai.ct = 2.6;
       const a = Math.atan2(p.y - e.y, p.x - e.x);
       say(e, 'CHAAARGE!');
       e.charge = { vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, t: 0.6, spd: 0 };
     }
-    if (e.ai.t <= 0 && d < reach) {
-      e.ai.t = 2.2;
+    if (e.ai.t <= 0 && d < reach + 20) {
+      e.ai.t = 1.6;
       if (Math.random() < 1 / 3) {
         // ground slam: hits wherever you stand; only Protect from Missiles helps
         burst(e.x, e.y, '#c8a060', 40);
         for (let i = 0; i < 6; i++) burst(e.x + (Math.random() - 0.5) * 500, e.y + (Math.random() - 0.5) * 400, '#8a6a3c', 10);
         sfx(55, 0.5, 'sawtooth', 0.08);
-        hurtPlayer(0, 'ranged', { frac: 0.3 });
+        hurtPlayer(0, 'ranged', { frac: 0.4 });
         if (e.ai.phase++ === 0) chat('Graardor slams the ground! It hits the whole room. Protect from Missiles.', 'r');
       } else {
-        hurtPlayer(eDrain(e) * e.dmg * 2.0, 'melee', { from: e });
+        hurtPlayer(eDrain(e) * e.dmg * 2.6, 'melee', { from: e });
         burst(p.x, p.y - 20, '#ff4a1a', 12);
       }
       shout(e);
