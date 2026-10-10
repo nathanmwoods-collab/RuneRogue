@@ -4774,11 +4774,22 @@ function bossMech(e, dt) {
   }
   if (k === 'kbd') {
     // King Black Dragon: four dragonfires (wiki). Shock lowers your stats, ice freezes, poison poisons. A dragon shield blocks most of it.
-    if (e.ai.t <= 0) {
-      e.ai.t = 2.5;
-      const kind = ['fire', 'poison', 'ice', 'shock'][e.ai.phase++ % 4];
+    // Harder to dodge (Nathan): faster, denser breaths, a second wave that fills the gaps, and a big fire cone where you stand.
+    const kbdBreath = (kind, off) => {
       const color = { fire: '#ff6a1a', poison: '#5fd34a', ice: '#9fe8ff', shock: '#e0e0ff' }[kind];
-      fan(e, 9, 0.13, 360, 'magic', color, e.dmg * 0.75, { dragonfire: true, freeze: kind === 'ice' ? 1.1 : 0, poison: kind === 'poison' ? 8 : 0, weaken: kind === 'shock' ? 6 : 0 });
+      const ex = { dragonfire: true, freeze: kind === 'ice' ? 1.1 : 0, poison: kind === 'poison' ? 8 : 0, weaken: kind === 'shock' ? 6 : 0 };
+      for (let i = 0; i < 13; i++) aimShot(e, 470, 'magic', color, e.dmg * 0.75, ex, (i - 6) * 0.09 + off);
+    };
+    if (e.ai.wave2 && (e.ai.wave2.t -= dt) <= 0) { kbdBreath(e.ai.wave2.kind, 0.045); e.ai.wave2 = null; }
+    if (e.ai.t <= 0) {
+      e.ai.t = 1.9;
+      const kind = ['fire', 'poison', 'ice', 'shock'][e.ai.phase++ % 4];
+      kbdBreath(kind, 0);
+      if (e.ai.phase % 2 === 0) e.ai.wave2 = { t: 0.35, kind };
+      if (e.ai.phase % 3 === 0) {
+        const a = Math.atan2(p.y - e.y, p.x - e.x);
+        slam(e.x, e.y - 20, 420, 0.8, e.dmg * 2, 'magic', '#ff6a1a', 'Dragonfire!', { shape: 'cone', a, spread: 0.55, fx: { dragonfire: true } });
+      }
       sfx(70, 0.4, 'sawtooth', 0.06);
       if (e.ai.phase === 1) chat('The King Black Dragon breathes fire! An anti-dragon or dragonfire shield blocks most of it.', 'r');
     }
