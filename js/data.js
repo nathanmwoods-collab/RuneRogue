@@ -71,6 +71,10 @@ const HEROES = [
   { id: 'woox', name: 'Woox', file: 'Mysterious_Adventurer.png', lane: 'ranged', weapon: 'toxic_blowpipe', unlock: { boss: 'clue_corp', secret: 'A wanderer in search of a new challenge. Prove you can stand alone against a beast few would face.' },
     perk: 'Jagex\'s Mysterious Adventurer, a tribute to Woox, the first player to solo the Corporeal Beast. Bosses take 20% more damage, +10% critical hits, and he moves 10% faster.', mods: { bossDmg: 1.2, crit: 0.1, speed: 1.1 },
     skills: { ranged: 20, agility: 10 }, quotes: ['He stares off stoically into the distance. In search of a new challenge, perhaps?'] },
+  { id: 'cow31337killer', name: 'Cow31337Killer', file: 'Cow31337Killer.png', lane: 'melee', weapon: 'dharoks_greataxe', gear: { head: 'dharoks_helm', body: 'rune_platebody', legs: 'rune_platelegs', feet: 'rune_boots' },
+    unlock: { cows: 1000, secret: 'He hates cows so much.' },
+    perk: 'The legendary cow hunter from Animal Magnetism, in his own Dharok\'s helm and greataxe. Cows and the cow boss take triple damage, and every other enemy takes 10% more.', mods: { cowDmg: 3, dmg: 1.1 },
+    skills: { attack: 15, strength: 20, hitpoints: 15 }, quotes: ['He hates cows so much.'] },
 ];
 
 // ---------------------------------------------------------------------------

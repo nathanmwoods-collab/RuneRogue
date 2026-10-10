@@ -187,6 +187,7 @@ function heroUnlocked(h) {
 function unlockText(h) {
   if (h.unlock.area !== undefined) return `Clear ${AREAS[h.unlock.area].name} to unlock`;
   if (h.unlock.boss) return `Defeat the ${MONSTERS[h.unlock.boss].name} to unlock`;
+  if (h.unlock.cows) return `Kill ${h.unlock.cows.toLocaleString()} cows to unlock`;
   return `Costs ${h.unlock.sticks} trading sticks`;
 }
 function upLevel(id) { return meta.up[id] || 0; }
@@ -1322,6 +1323,7 @@ function rollDamage(base, target, st) {
   let dmg = base * st.dmgMult * (0.65 + Math.random() * 0.35);
   if (st.weapon.tbow) dmg *= 1 + Math.min(1.2, target.d.lvl / 400);
   if (target.d.boss && run.hero.mods && run.hero.mods.bossDmg) dmg *= run.hero.mods.bossDmg;
+  if ((target.id === 'cow' || target.id === 'cow_boss') && run.hero.mods && run.hero.mods.cowDmg) dmg *= run.hero.mods.cowDmg;
   const crit = Math.random() < st.crit;
   if (crit) dmg *= 2 + 0.5 * bv('crit');
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
@@ -1429,6 +1431,11 @@ function killEnemy(e) {
   if (e.loot) { for (let i = 0; i < 3; i++) coins.push({ x: e.x + (Math.random() - 0.5) * 60, y: e.y + (Math.random() - 0.5) * 60, v: Math.ceil(e.loot * 0.5), t: 0 }); }
   maybeDropArtefact(e);
   maybeDropPet(e);
+  if (e.id === 'cow' && !e.summoned) {
+    meta.cows = (meta.cows || 0) + 1;
+    for (const h of HEROES) if (h.unlock && h.unlock.cows && meta.cows >= h.unlock.cows && !meta.heroes.includes(h.id)) { meta.heroes.push(h.id); saveMeta(); chat(`New hero unlocked: ${h.name}!`, 'g'); }
+    if (meta.cows % 25 === 0) saveMeta();
+  }
   slayerKill(e);
   if (run.sp.dcharge > 0 && !e.summoned) run.spec = Math.min(100, run.spec + 15);
   if (inv('volatility') && !e.d.boss && !e.d.clue) slam(e.x, e.y, 80, 0.7, e.dmg * 1.5, 'magic', '#ff7a1a', '', { noPray: true });
