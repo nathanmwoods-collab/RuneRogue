@@ -174,8 +174,9 @@ item('primordial_boots', 'Primordial boots', 'melee', 'feet', 10, 'uncommon', { 
 item('obsidian_cape', 'Obsidian cape', 'melee', 'cape', 3, 'common', { def: 3, dmg: 0.05 });
 item('fire_cape', 'Fire cape', 'any', 'cape', 11, 'uncommon', { def: 5, dmg: 0.1, hp: 10 });
 item('infernal_cape', 'Infernal cape', 'any', 'cape', 15, 'rare', { def: 8, dmg: 0.16, hp: 15 });
-// Max capes: the best capes for each style (the imbued god max cape is the best magic cape)
-item('max_cape', 'Max cape', 'any', 'cape', 12, 'ultra', { def: 6, dmg: 0.06, pp: 4, hp: 10 });
+// Max capes: the best capes for each style (the imbued god max cape is the best magic cape). The plain max cape has
+// the Ava's accumulator effect built in, as in OSRS, a bit stronger (Nathan: better for ranged than the accumulator).
+item('max_cape', 'Max cape', 'any', 'cape', 12, 'ultra', { def: 6, dmg: 0.06, pp: 4, hp: 10, aspd: 0.12, range: 0.18 });
 item('infernal_max_cape', 'Infernal max cape', 'melee', 'cape', 16, 'ultra', { def: 9, dmg: 0.2, hp: 18, pp: 4 });
 item('imbued_saradomin_max_cape', 'Imbued Saradomin max cape', 'magic', 'cape', 13, 'ultra', { def: 6, dmg: 0.18, hp: 10, pp: 4 }, 'Imbued_Saradomin_max_cape.png');
 item('masori_assembler_max_cape', 'Masori assembler max cape', 'ranged', 'cape', 16, 'ultra', { aspd: 0.18, range: 0.25, dmg: 0.15, pp: 4 });
