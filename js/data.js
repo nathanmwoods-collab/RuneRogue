@@ -896,6 +896,9 @@ function raidMode(lvl) { return lvl >= 300 ? 'Expert' : lvl >= 150 ? 'Normal' : 
 const SKULL = { file: 'Skull_(status)_icon.png', gold: 2, luck: 0.75 };
 // PKers hunt skulled players. They switch attack styles like real PKers, freeze you with Ice Barrage and dump special attacks.
 // Durial321 is left out when you are playing as him.
+// OSRS experience table: OSRS_XP[n] is the XP needed for level n. Level 92 is about half of 99's XP.
+const OSRS_XP = (() => { const xp = [0, 0]; let pts = 0; for (let l = 1; l < 99; l++) { pts += Math.floor(l + 300 * Math.pow(2, l / 7)); xp[l + 1] = Math.floor(pts / 4); } return xp; })();
+const LEVEL_GP_PER_XP = 0.0045; // gp per XP point for high levels
 const PK_HP = 2.5, PK_DMG = 1.6; // PKers get this much more HP and damage than their base stats
 const PKERS = ['pk_durial', 'pk_pkmaster', 'pk_purepker', 'pk_pete', 'pk_revenant', 'pk_dark_warrior', 'pk_rogue'];
 mon('pk_durial', 'Durial321', 'Durial321.png', 115, 260, 175, 13, 64, 40, 'melee', { elite: true, pker: true });

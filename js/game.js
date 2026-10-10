@@ -3511,9 +3511,10 @@ function rollOffers(fresh) {
 }
 
 function skillCost(sk) {
-  // High levels get steep: about 30,000 gp from 1 to 99, twice the old price, and most of it above level 70.
+  // Follows the real OSRS XP curve at high levels, so 92 to 99 costs about as much as 1 to 92 (about 62,000 gp to 99).
+  // Below about level 70 the old gentle price is the floor.
   const lvl = run.skills[sk.id];
-  return Math.round((5 + 0.06 * lvl * lvl + 0.0004 * lvl * lvl * lvl) * ((run.hero.mods || {}).skillCost || 1));
+  return Math.round(Math.max(5 + 0.06 * lvl * lvl, LEVEL_GP_PER_XP * (OSRS_XP[lvl + 1] - OSRS_XP[lvl])) * ((run.hero.mods || {}).skillCost || 1));
 }
 
 function itemStatsText(it) {
