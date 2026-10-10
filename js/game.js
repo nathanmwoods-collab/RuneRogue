@@ -244,6 +244,10 @@ const KIND_STYLE = { swing: 'melee', shot: 'ranged', spell: 'magic' };
 // Combat triangle (Nathan): ranged beats magic, magic beats melee, melee beats ranged. The winner deals +25%, the loser -20%.
 const BEATS = { ranged: 'magic', magic: 'melee', melee: 'ranged' };
 function triangle(att, def) { return !att || !def || att === def ? 1 : BEATS[att] === def ? 1.25 : BEATS[def] === att ? 0.8 : 1; }
+// Elemental weakness (wiki): standard-spellbook elemental spells (Strike to Surge) deal +1% per weakness point.
+const EL_RUNE = { air: 'Air_rune.png', water: 'Water_rune.png', earth: 'Earth_rune.png', fire: 'Fire_rune.png' };
+function spellElement(w) { const m = w && w.spell && /^(Wind|Water|Earth|Fire) (Strike|Bolt|Blast|Wave|Surge)$/.exec(w.spell); return m ? (m[1] === 'Wind' ? 'air' : m[1].toLowerCase()) : null; }
+function elWeakMult(w, e) { const el = spellElement(w), wk = e.d.elWeak; return el && wk && wk.el === el ? 1 + wk.pct / 100 : 1; }
 function enemyStyle(e) { return e.pkStyle || e.d.style; }
 function weaponStyle() { return KIND_STYLE[ITEMS[run.gear.weapon].w.kind]; }
 // Gear damage bonuses only count when they match the weapon's style, like OSRS.
@@ -1327,6 +1331,7 @@ function rollDamage(base, target, st) {
   let dmg = base * st.dmgMult * (0.65 + Math.random() * 0.35);
   if (st.weapon.tbow) dmg *= 1 + Math.min(1.2, target.d.lvl / 400);
   dmg *= triangle(st.lane, enemyStyle(target));
+  dmg *= elWeakMult(st.weapon, target);
   if (target.d.boss && run.hero.mods && run.hero.mods.bossDmg) dmg *= run.hero.mods.bossDmg;
   if ((target.id === 'cow' || target.id === 'cow_boss') && run.hero.mods && run.hero.mods.cowDmg) dmg *= run.hero.mods.cowDmg;
   const crit = Math.random() < st.crit;
@@ -3134,6 +3139,10 @@ function drawEnemy(e) {
   if (e.immune) ctx.globalAlpha = 0.55;
   drawSprite(wikiImage(e.formFile || e.d.file), e.x, e.y + 2, h, { color: e.d.boss ? '#8a2a2a' : e.d.elite ? '#7a5a2a' : '#6a6a4a', label: e.d.name[0] });
   ctx.restore();
+  if (e.d.elWeak && !e.d.boss && (e.d.elite || spellElement(ITEMS[run.gear.weapon].w) === e.d.elWeak.el)) {
+    const ri = wikiImage(EL_RUNE[e.d.elWeak.el]);
+    if (ready(ri)) ctx.drawImage(ri, e.x - Math.max(30, e.r * 1.6) / 2 - 22, Math.max(2, e.y - h - 16), 16, 16);
+  }
   { // combat triangle marker: green up = your style beats theirs, red down = theirs beats yours
     const t = triangle(weaponStyle(), enemyStyle(e));
     if (t !== 1) text(t > 1 ? '▲' : '▼', e.x + Math.max(30, e.r * 1.6) / 2 + 8, Math.max(10, e.y - h - 6), 12, t > 1 ? '#5fe05f' : '#ff5a5a');
@@ -3259,7 +3268,8 @@ function drawHud() {
   if (bossAlive && !bossAlive.dead) {
     bb.hidden = false;
     const extra = bossAlive.d.boss === 'zulrah' ? ` · ${ZULRAH_FORMS[bossAlive.ai.form || 0].name}` : bossAlive.d.boss === 'verzik' ? ` · phase ${bossAlive.ai.vphase || 1}` : bossAlive.d.boss === 'kq' && bossAlive.ai.form2 ? ' · airborne' : '';
-    $('bossName').textContent = `${bossAlive.d.name}${bossAlive.d.lvl ? ` (level-${bossAlive.d.lvl})` : ''}${extra}`;
+    const wk = bossAlive.d.elWeak;
+    $('bossName').textContent = `${bossAlive.d.name}${bossAlive.d.lvl ? ` (level-${bossAlive.d.lvl})` : ''}${extra}${wk ? ` · weak to ${wk.el} spells (+${wk.pct}%)` : ''}`;
     $('bossHp').firstElementChild.style.width = `${clamp(bossAlive.hp / bossAlive.maxHp, 0, 1) * 100}%`;
   } else bb.hidden = true;
 }
@@ -3455,6 +3465,7 @@ function itemStatsText(it) {
     bits.push(`${w.dmg} dmg every ${w.cd}s`);
     if (w.wt && WEAPON_TYPES[w.wt]) bits.push(WEAPON_TYPES[w.wt].info);
     if (w.spell) bits.push(`casts ${w.spell}`);
+    if (spellElement(w)) bits.push(`${spellElement(w)} spell: extra damage on monsters weak to ${spellElement(w)}`);
     if (w.god) bits.push(`${GOD_SPELLS[w.god].info}; Charge makes it hit 50% harder`);
     if (w.kind === 'swing') bits.push(w.arc > 6 ? 'hits all around you' : `reach ${Math.round(w.reach * MELEE_REACH)}`);
     if (w.hits) bits.push(`${w.hits} hits per swing`);
