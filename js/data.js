@@ -1046,7 +1046,6 @@ const BOONS = [
   { id: 'barrage', name: 'Ice Barrage', file: 'Ice_Barrage.png', max: 3, info: '10% of hits freeze normal enemies for 1.5 sec' },
   { id: 'venom', name: 'Venom', file: 'Serpentine_helm.png', max: 2, info: 'Hits envenom enemies: 10% of their max HP over 5 sec (2% on bosses)' },
   { id: 'veng', name: 'Vengeance', file: 'Vengeance.png', max: 2, info: 'Every 20 sec, the next hit you take is thrown back at 75%' },
-  { id: 'dharok', name: "Dharok's set", file: "Dharok's_greataxe.png", max: 2, info: 'Up to +50% damage as your hitpoints drop' },
   { id: 'phoenix', name: 'Phoenix necklace', file: 'Phoenix_necklace.png', max: 1, info: 'Once per area, heal 30% HP when you fall below 20%' },
   { id: 'wealth', name: 'Ring of wealth', file: 'Ring_of_wealth.png', max: 2, info: '+25% luck: clues, potions and pies drop more' },
   { id: 'slayer', name: 'Slayer helmet', file: 'Slayer_helmet.png', max: 3, info: '+20% damage to elite enemies' },

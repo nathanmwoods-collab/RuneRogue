@@ -1338,7 +1338,6 @@ function rollDamage(base, target, st) {
   if (crit) dmg *= 2 + 0.5 * bv('crit');
   if (target.d.boss) dmg *= 1 + 0.25 * bv('giant');
   if (target.d.elite) dmg *= 1 + 0.2 * bv('slayer');
-  if (bv('dharok')) dmg *= 1 + 0.5 * bv('dharok') * clamp(1 - run.p.hp / st.maxHp, 0, 1);
   if (run.sp.mark > 0) dmg *= 1.25;
   if (run.task && target.id === run.task.id) dmg *= 1 + gearItems().reduce((x, it) => x + (it.task || 0), 0);
   if (barrowsSet() === 'dharok') dmg *= 1 + 0.6 * clamp(1 - run.p.hp / st.maxHp, 0, 1);
