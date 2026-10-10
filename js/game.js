@@ -582,7 +582,7 @@ function endStage() {
   playMusic(MUSIC_SHOP);
   rollOffers(true);
   const next = () => { if (isBoss) { renderBoons(); return; } mode = 'shop'; renderShop(); };
-  if (!isBoss && !run.revSeen && areaIndex() >= 3 && Math.random() < REV_CHANCE) { run.revSeen = true; renderRevOffer(next); return; }
+  if (!isBoss && !run.revSeen && AREAS[areaIndex()].name === 'Wilderness' && Math.random() < REV_CHANCE) { run.revSeen = true; renderRevOffer(next); return; }
   if (yamaShows()) { renderYama(next); return; }
   next();
 }

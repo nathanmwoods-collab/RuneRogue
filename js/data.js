@@ -951,10 +951,10 @@ const JEKYLL_HERBS = [['Guam leaf', 'super_strength'], ['Tarromin', 'super_attac
 mon('pheasant', 'Pheasant', 'Pheasant_(1_tail).png', 1, 1, 70, 0, 40, 0, 'melee', { harmless: true });
 mon('mr_hyde', 'Mr Hyde', 'Dr_Jekyll.png', 90, 130, 135, 10, 66, 25, 'melee', { elite: true });
 
-// The Revenant Caves: a rare bonus round. Revenants drop ancient artefacts, and a PKer is always hunting there.
+// The Revenant Caves: a bonus round offered only after Wilderness waves (20% each). Revenants drop ancient artefacts, and a PKer is always hunting there.
 const REV_AREA = { name: 'Revenant Caves', bg: 'Revenant_Caves.png', music: 'Revenants.ogg', look: ['#2e2a3a', '#26222f', '#3a3446'],
   hordes: ['rev_imp', 'rev_goblin', 'rev_pyrefiend', 'rev_hobgoblin', 'rev_cyclops', 'rev_hellhound', 'rev_ork'], elites: ['rev_demon', 'rev_dark_beast', 'rev_dragon'] };
-const REV_CHANCE = 0.1;
+const REV_CHANCE = 0.2;
 mon('rev_imp', 'Revenant imp', 'Revenant_imp.png', 7, 30, 140, 4, 40, 6, 'magic', { caster: MAGIC_BOLT('#9fe8ff') });
 mon('rev_goblin', 'Revenant goblin', 'Revenant_goblin.png', 15, 45, 120, 5, 46, 6, 'melee');
 mon('rev_pyrefiend', 'Revenant pyrefiend', 'Revenant_pyrefiend.png', 52, 60, 130, 6, 54, 8, 'magic', { caster: MAGIC_BOLT('#ff7a1a') });
