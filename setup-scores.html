@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score board setup</title>
+<style>
+body { margin: 0; padding: 24px 16px; background: #2b241b; color: #ffd27a; font: 17px/1.45 system-ui, sans-serif; }
+main { max-width: 480px; margin: 0 auto; }
+h1 { color: #ff981f; font-size: 26px; margin: 0 0 12px; }
+button { font: 600 20px system-ui, sans-serif; color: #ffd27a; background: #4a3f2e; border: 2px solid #000; padding: 14px 20px; width: 100%; margin-top: 14px; }
+code { display: block; word-break: break-all; background: #1a1611; padding: 12px; margin-top: 14px; color: #fff; }
+p { color: #d8c8a8; }
+</style></head>
+<body><main>
+<h1>RuneRogue score board setup</h1>
+<p>Tap the button once. It makes an empty shared score board and shows its link. Copy the link and paste it to Claude.</p>
+<button id="make" type="button">Create score board</button>
+<div id="out"></div>
+</main>
+<script>
+const out = document.getElementById('out'), make = document.getElementById('make');
+make.addEventListener('click', async () => {
+  make.disabled = true; out.innerHTML = '<p>Creating...</p>';
+  try {
+    const res = await fetch('https://jsonblob.com/api/jsonBlob', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: '{}' });
+    const loc = res.headers.get('Location') || res.headers.get('location') || '';
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const id = loc.split('/').pop() || res.headers.get('x-jsonblob-id') || '';
+    if (!id) throw new Error('no link came back');
+    const link = 'https://jsonblob.com/api/jsonBlob/' + id;
+    out.innerHTML = '';
+    const c = document.createElement('code'); c.textContent = link; out.appendChild(c);
+    const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = 'Copy link'; out.appendChild(copy);
+    copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(link); copy.textContent = 'Copied! Paste it to Claude'; } catch (e) { copy.textContent = 'Press and hold the link above to copy it'; } });
+  } catch (e) {
+    make.disabled = false;
+    out.innerHTML = '<p>That did not work (' + String(e.message).replace(/[<>&]/g, '') + '). Tell Claude what this says.</p>';
+  }
+});
+</script>
+</body></html>
