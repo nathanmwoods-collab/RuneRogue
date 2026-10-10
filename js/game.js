@@ -424,6 +424,8 @@ function safeSpot(x, y) {
   if (nx < 20 || nx > WORLD_W - 20 || ny < 110 || ny > WORLD_H - 20) { nx = p.x - dx / d * SAFE_SPAWN; ny = p.y - dy / d * SAFE_SPAWN; }
   return { x: clamp(nx, 20, WORLD_W - 20), y: clamp(ny, 110, WORLD_H - 20) };
 }
+const MINION_CAP = 14;
+const MINION_EXEMPT = new Set(['fumus', 'umbra', 'cruor', 'glacies', 'olm_left_claw', 'olm_right_claw', 'vasa_crystal', 'scorpia_guardian', 'dark_core', 'vetion_hound', 'akkha_shadow', 'zombified_spawn', 'jaltok_jad']);
 function spawnMonster(id, x, y, opts = {}) {
   const d = MONSTERS[id];
   if (!d.boss) ({ x, y } = safeSpot(x, y));
@@ -453,6 +455,12 @@ function spawnMonster(id, x, y, opts = {}) {
   if (inv('cm') && !d.boss) { e.hp = Math.round(e.hp * 1.5); e.dmg *= 1.2; }
   if (inv('hmt') && d.boss) e.hp = Math.round(e.hp * 1.3);
   e.maxHp = e.hp;
+  // Minion cap (Nathan): during a boss fight, however high the scaling, only MINION_CAP adds can be alive at once.
+  // Extra spawns are dropped (returned dead and never placed). Mechanic pieces a boss depends on are exempt.
+  if (!opts.wave && !d.boss && !d.clue && !e.raidBoss && !MINION_EXEMPT.has(id) && enemies.some((x) => !x.dead && (x.d.boss || x.d.clue))) {
+    const adds = enemies.reduce((n, x) => n + (!x.dead && !x.d.boss && !x.d.clue && !x.raidBoss ? 1 : 0), 0);
+    if (adds >= MINION_CAP) { e.dead = true; return e; }
+  }
   enemies.push(e);
   if (d.say) say(e, d.say);
   return e;
@@ -509,7 +517,7 @@ function spawnTick(dt) {
     if (run.quartet && area.elites.length) { run.quartet = false; id = area.elites[Math.floor(Math.random() * area.elites.length)]; }
     if (!isBoss && amod('gobwar') && Math.random() < 0.6) id = 'goblin';
     if (!isBoss && amod('riot') && Math.random() < 0.5) id = Math.random() < 0.5 ? 'white_knight' : 'black_knight';
-    const m = spawnMonster(id, pos.x, pos.y);
+    const m = spawnMonster(id, pos.x, pos.y, { wave: true });
     if (id === 'goblin' && amod('gobwar')) m.team = Math.random() < 0.5 ? 'red' : 'green';
     if ((id === 'white_knight' || id === 'black_knight') && amod('riot')) m.team = id === 'white_knight' ? 'white' : 'black';
     if (amod('faction')) { if (wearsGod('bandos')) m.passive = true; else m.dmg *= 1.25; }
