@@ -314,7 +314,7 @@ function startStage() {
   area = AREAS[areaIndex()];
   isBoss = subIndex() === WAVES_PER_AREA;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = [];
-  bossAlive = null; stageEnding = 0; run.bossHurt = false; run.door = null;
+  bossAlive = null; stageEnding = 0; run.bossHurt = false; run.door = null; run.thrallShots = [];
   // a task whose monster doesn't live in this area is swapped for a new one
   if (SLAYER_TASKS && !isBoss && !area.raid && (!run.task || ![...area.hordes, ...area.elites].includes(run.task.id))) assignTask();
   areaModStart();
@@ -1007,7 +1007,7 @@ function startBonus() {
   run.bonus = true; run.revPk = 0; run.revPkT = 4;
   area = REV_AREA; isBoss = false;
   enemies = []; shots = []; eshots = []; coins = []; fx = []; telegraphs = []; pickups = []; hazards = []; endEvent();
-  bossAlive = null; stageEnding = 0; run.door = null;
+  bossAlive = null; stageEnding = 0; run.door = null; run.thrallShots = [];
   run.stageT = 0; run.enraged = false; run.insaneAt = null; run.circleAt = null; run.evAt = null; run.quartet = false;
   const st = stats();
   Object.assign(run.p, { x: WORLD_W / 2, y: WORLD_H * 0.62, frozen: 0, poison: 0, pp: st.maxPp, anim: null });
@@ -2627,8 +2627,21 @@ function updatePlayer(dt) {
     if (run.thrallT <= 0) {
       const t = nearestEnemy(p.x, p.y, 420);
       run.thrallT = t ? 1 : 0.2;
-      if (t) { damageEnemy(t, Math.max(1, Math.round(weaponDps(st) * 0.25 * thrallLvl() * (0.7 + Math.random() * 0.3))), false); burst(t.x, t.y, '#b8e0ff', 6); }
+      // the ghost fires a ghostly bolt that flies to the target and hits on arrival
+      if (t) { run.thrallCast = 0.3; (run.thrallShots = run.thrallShots || []).push({ x: p.x + (p.flip ? 48 : -48), y: p.y - 30, t, dmg: Math.max(1, Math.round(weaponDps(st) * 0.25 * thrallLvl() * (0.7 + Math.random() * 0.3))), trail: [] }); sfx(420, 0.08, 'sine', 0.03); }
     }
+  }
+  if (run.thrallCast > 0) run.thrallCast -= dt;
+  if (run.thrallShots && run.thrallShots.length) {
+    for (const s of run.thrallShots) {
+      const tx = s.t.x, ty = s.t.y - s.t.d.size * 0.35, dx = tx - s.x, dy = ty - s.y, d = Math.hypot(dx, dy), step = 620 * dt;
+      s.trail.push([s.x, s.y]); if (s.trail.length > 6) s.trail.shift();
+      if (s.t.hp <= 0 || s.t.dead || d <= step) {
+        if (s.t.hp > 0 && !s.t.dead) { damageEnemy(s.t, s.dmg, false); burst(tx, ty, '#b8e0ff', 8); }
+        s.done = true;
+      } else { s.x += dx / d * step; s.y += dy / d * step; }
+    }
+    run.thrallShots = run.thrallShots.filter((s) => !s.done);
   }
   for (const pk of pickups) {
     pk.t += dt;
@@ -3065,8 +3078,16 @@ function drawPlayer() {
   if (thrallLvl()) {
     const tb = Math.sin(performance.now() / 300) * 5;
     ctx.save(); ctx.globalAlpha = 0.85;
-    drawSprite(wikiImage(THRALL_FILE), p.x + (p.flip ? 48 : -48), p.y - 6 + tb, 58, { color: '#9ab8d8', label: 'G' });
+    const cast = run.thrallCast > 0 ? run.thrallCast / 0.3 : 0;
+    drawSprite(wikiImage(THRALL_FILE), p.x + (p.flip ? 48 : -48), p.y - 6 + tb - cast * 8, 58 * (1 + cast * 0.15), { color: '#9ab8d8', label: 'G' });
     ctx.restore();
+  }
+  if (run.thrallShots) for (const s of run.thrallShots) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    s.trail.forEach(([x, y], i) => { ctx.globalAlpha = (i + 1) / s.trail.length * 0.4; ctx.fillStyle = '#9fd8ff'; ctx.beginPath(); ctx.arc(x, y, 3 + i, 0, 7); ctx.fill(); });
+    ctx.globalAlpha = 1; const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 13);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.4, '#b8e8ff'); g.addColorStop(1, 'rgba(120,180,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(s.x, s.y, 13, 0, 7); ctx.fill(); ctx.restore();
   }
   const bob = p.moving ? Math.abs(Math.sin(performance.now() / 90)) * 3 : 0;
   ctx.save();
