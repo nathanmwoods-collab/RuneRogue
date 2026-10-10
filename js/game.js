@@ -3587,7 +3587,7 @@ function itemStatsText(it) {
   if (it.slayer) bits.push(`Needs level ${it.slayer} Slayer (dropped by ${it.slayerSrc})`);
   if (it.barrows) { const B = BARROWS_SETS[it.barrows]; bits.push(`<b>${B.name} set (${B.effect})</b>, all 4 pieces: ${B.info}`); }
   if (it.proc) bits.push(`<b>${BOLT_PROCS[it.proc].name}</b>: ${BOLT_PROCS[it.proc].info}`);
-  if (it.def) bits.push(`${it.def > 0 ? '+' : ''}${it.def} defence`);
+  if (it.def) bits.push(it.def > 0 ? `+${it.def} defence` : `<span style="color:var(--red)">${it.def} defence</span>`);
   if (it.dmg) bits.push(`+${Math.round(it.dmg * 100)}% ${it.lane === 'any' ? '' : LANE_NAME[it.lane] + ' '}damage`);
   if (it.hp) bits.push(`+${it.hp} hitpoints`);
   if (it.pp) bits.push(`+${it.pp} prayer`);
@@ -3598,7 +3598,7 @@ function itemStatsText(it) {
   if (it.gold) bits.push(`+${Math.round(it.gold * 100)}% gold`);
   if (armourPenalty(it)) bits.push(`<span style="color:var(--red)">-${Math.round(armourPenalty(it) * 100)}% ${LANE_NAME[WEAK_STYLE[it.lane]]} damage</span>`);
   if (it.regen) bits.push(`heals ${it.regen} HP a second`);
-  if (it.taken) bits.push(`${Math.round((1 - it.taken) * 100)}% less damage taken`);
+  if (it.taken) bits.push(it.taken < 1 ? `${Math.round((1 - it.taken) * 100)}% less damage taken` : `<span style="color:var(--red)">${Math.round((it.taken - 1) * 100)}% more damage taken</span>`);
   return bits.join(' · ');
 }
 
@@ -3732,12 +3732,13 @@ function compareText(it) {
   run.gear[it.slot] = old;
   const out = [];
   const pct = (a, b) => Math.round((b / a - 1) * 100);
-  const add = (label, v, unit = '%') => { if (v) out.push(`<span style="color:${v > 0 ? 'var(--green)' : 'var(--red)'}">${v > 0 ? '▲ +' : '▼ '}${v}${unit} ${label}</span>`); };
+  // the arrow and sign show which way the number moves; the colour shows whether that helps you (green) or hurts you (red)
+  const add = (label, v, unit = '%', lowerIsBetter = false) => { if (v) out.push(`<span style="color:${(v > 0) !== lowerIsBetter ? 'var(--green)' : 'var(--red)'}">${v > 0 ? '▲ +' : '▼ '}${v}${unit} ${label}</span>`); };
   add('damage per second', pct(weaponDps(before), weaponDps(after)));
   add('blocked', Math.round((after.reduce - before.reduce) * 100), ' pts');
   add('hitpoints', after.maxHp - before.maxHp, '');
   add('prayer', after.maxPp - before.maxPp, '');
-  add('damage taken', -pct(before.taken, after.taken));
+  add('damage taken', pct(before.taken, after.taken), '%', true);
   add('run speed', pct(before.speed, after.speed));
   add('gold', pct(before.goldMult, after.goldMult));
   add('crit', Math.round((after.crit - before.crit) * 100), ' pts');
