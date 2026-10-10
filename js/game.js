@@ -378,7 +378,7 @@ function bossIntro(b) {
 }
 
 // Global boss toughness (Nathan: bosses were too easy).
-const BOSS_TEMPO = 1.3, BOSS_HP = 1.5, BOSS_DMG = 1.35;
+const BOSS_TEMPO = 1.45, BOSS_HP = 1.5, BOSS_DMG = 1.35;
 // Protection prayers block everything but drain fast; flick them on for the hit and off again.
 const PRAYER_DRAIN = 4, FLICK_TICK = 0.6;
 // Rest between rounds heals this share of max hitpoints (Nathan: 15%).
