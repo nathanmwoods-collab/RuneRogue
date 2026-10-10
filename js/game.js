@@ -3820,6 +3820,7 @@ function renderPause() {
   const s = el('div', 'sheet'); s.style.maxWidth = '460px';
   s.appendChild(el('h2', '', 'Paused'));
   s.appendChild(el('p', '', `${area.name}. ${run.kills} kills so far.`));
+  s.appendChild(el('div', 'sec-title', 'Worn Equipment')); s.appendChild(equipmentPanel());
   const r = el('div', 'row'); r.style.marginTop = '14px';
   const a = btn('Resume', 'btn', togglePause);
   r.appendChild(a); r.appendChild(btn('Quit run', 'btn', () => { saveBest(); renderTitle(); playMusic(MUSIC_TITLE); }));

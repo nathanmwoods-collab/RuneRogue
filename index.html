@@ -74,6 +74,7 @@ img.wiki { image-rendering: auto; }
 .hud-bottom { position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
 .prayers { display: flex; gap: 6px; pointer-events: auto; }
 .ds.cmp { margin-top: 4px; font-size: 12px; line-height: 1.35; border-top: 1px solid #5a4d3a; padding-top: 4px; }
+#gearBar { display: none !important; } /* worn gear no longer covers the play area (Nathan); it shows on the pause and shop screens */
 #gearBar { position: absolute; left: 8px; top: 64px; max-height: calc(100% - 150px); display: flex; flex-direction: column; flex-wrap: wrap; gap: 3px; }
 #gearBar .gs { width: 30px; height: 30px; background: rgba(40,33,24,.82); border: 1px solid #000; outline: 1px solid #5a4d3a; display: grid; place-items: center; }
 #gearBar .gs img { max-width: 26px; max-height: 26px; object-fit: contain; }
