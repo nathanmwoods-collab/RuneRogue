@@ -3872,17 +3872,7 @@ function renderCasket(choices, tier = 3) {
   head.appendChild(t);
   s.appendChild(head);
   const g = el('div', 'grid offers'); g.style.marginTop = '12px';
-  for (const it of choices) {
-    g.appendChild(offerCard(it, 'Free', () => {
-      if (slayLocked(it)) return;
-      equip(it);
-      chat(`You take the ${it.name} from the casket.`, 'g');
-      achEvent('gear', it);
-      sfx(900, 0.15, 'triangle', 0.06);
-      mode = 'play'; showScreen(null);
-    }));
-  }
-  // Every casket also holds a shark to eat later, unless you can't carry or eat one.
+  // Every casket also holds a shark to eat later, unless you can't carry or eat one. It goes first so phones see it without scrolling.
   const sharkNo = supplyBlocked('shark') || (run.inv.shark >= supplyCap() ? `You already carry ${supplyCap()} sharks` : '');
   const sc = offerCard(ITEMS.shark, sharkNo ? 'Unavailable' : 'Free', () => {
     if (sharkNo) return;
@@ -3894,6 +3884,16 @@ function renderCasket(choices, tier = 3) {
   sc.insertBefore(el('div', 'unlock', sharkNo || `You carry ${run.inv.shark} / ${supplyCap()}`), sc.querySelector('.price'));
   if (sharkNo) { sc.classList.add('locked'); sc.disabled = true; }
   g.appendChild(sc);
+  for (const it of choices) {
+    g.appendChild(offerCard(it, 'Free', () => {
+      if (slayLocked(it)) return;
+      equip(it);
+      chat(`You take the ${it.name} from the casket.`, 'g');
+      achEvent('gear', it);
+      sfx(900, 0.15, 'triangle', 0.06);
+      mode = 'play'; showScreen(null);
+    }));
+  }
   s.appendChild(g);
   const r = el('div', 'row'); r.style.marginTop = '14px';
   r.appendChild(btn('Skip, keep my gear', 'btn', () => {
