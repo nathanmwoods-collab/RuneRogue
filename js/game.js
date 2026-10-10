@@ -241,6 +241,10 @@ function newRun(hero) {
 
 const KIND_STYLE = { swing: 'melee', shot: 'ranged', spell: 'magic' };
 // Your combat style comes from the weapon you hold, not the hero.
+// Combat triangle (Nathan): ranged beats magic, magic beats melee, melee beats ranged. The winner deals +25%, the loser -20%.
+const BEATS = { ranged: 'magic', magic: 'melee', melee: 'ranged' };
+function triangle(att, def) { return !att || !def || att === def ? 1 : BEATS[att] === def ? 1.25 : BEATS[def] === att ? 0.8 : 1; }
+function enemyStyle(e) { return e.pkStyle || e.d.style; }
 function weaponStyle() { return KIND_STYLE[ITEMS[run.gear.weapon].w.kind]; }
 // Gear damage bonuses only count when they match the weapon's style, like OSRS.
 function gearDmg(it, style) { return it.lane === 'any' || it.lane === style ? (it.dmg || 0) : 0; }
@@ -1322,6 +1326,7 @@ function rollDamage(base, target, st) {
   if (Math.random() < 0.1) return { dmg: 0, crit: false };
   let dmg = base * st.dmgMult * (0.65 + Math.random() * 0.35);
   if (st.weapon.tbow) dmg *= 1 + Math.min(1.2, target.d.lvl / 400);
+  dmg *= triangle(st.lane, enemyStyle(target));
   if (target.d.boss && run.hero.mods && run.hero.mods.bossDmg) dmg *= run.hero.mods.bossDmg;
   if ((target.id === 'cow' || target.id === 'cow_boss') && run.hero.mods && run.hero.mods.cowDmg) dmg *= run.hero.mods.cowDmg;
   const crit = Math.random() < st.crit;
@@ -1958,6 +1963,7 @@ function hurtPlayer(raw, style, opts = {}) {
   // OSRS protection prayers block all damage of their style (Quiet Prayers: 80%)
   if (run.prayer && run.prayer === style && !opts.pure && !opts.noPray) dmg *= inv('quiet') ? 0.2 : 0;
   if (run.enraged && !opts.pure) dmg *= 1.5;
+  if (!fixed && !opts.pure) dmg *= triangle(style, weaponStyle());
   if (ycon('severance')) dmg *= fixed ? 1.3 : 1.15; // no prayers, and big boss hits land even harder
   dmg = Math.round(dmg * (fixed ? 1 : 0.6 + Math.random() * 0.4));
   p.hp -= dmg;
@@ -3128,6 +3134,10 @@ function drawEnemy(e) {
   if (e.immune) ctx.globalAlpha = 0.55;
   drawSprite(wikiImage(e.formFile || e.d.file), e.x, e.y + 2, h, { color: e.d.boss ? '#8a2a2a' : e.d.elite ? '#7a5a2a' : '#6a6a4a', label: e.d.name[0] });
   ctx.restore();
+  { // combat triangle marker: green up = your style beats theirs, red down = theirs beats yours
+    const t = triangle(weaponStyle(), enemyStyle(e));
+    if (t !== 1) text(t > 1 ? '▲' : '▼', e.x + Math.max(30, e.r * 1.6) / 2 + 8, Math.max(10, e.y - h - 6), 12, t > 1 ? '#5fe05f' : '#ff5a5a');
+  }
   if (e.hp < e.maxHp && !e.d.boss) {
     const w = Math.max(30, e.r * 1.6);
     const by = Math.max(4, e.y - h - 8);
@@ -3339,7 +3349,7 @@ function renderTitle() {
     s.appendChild(kr);
   }
   const r = el('div', 'row'); r.style.marginTop = '16px';
-  r.appendChild(el('p', '', 'Move with <kbd>WASD</kbd> or arrows (on touch, drag anywhere). Attacks are automatic. Prayers <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, eat <kbd>E</kbd>, prayer potion <kbd>Q</kbd>, music <kbd>M</kbd>, pause <kbd>P</kbd>.'));
+  r.appendChild(el('p', '', 'Move with <kbd>WASD</kbd> or arrows (on touch, drag anywhere). Attacks are automatic. Combat triangle: ranged beats magic, magic beats melee, melee beats ranged (+25% for the winner, -20% for the loser). Prayers <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, eat <kbd>E</kbd>, prayer potion <kbd>Q</kbd>, music <kbd>M</kbd>, pause <kbd>P</kbd>.'));
   const b = btn(`Play as ${pickedHero.name}`, 'btn big', begin);
   const ub = btn('', 'btn', renderUpgrades);
   ub.appendChild(imgTag(STICKS_FILE, 'Trading sticks')); ub.appendChild(document.createTextNode(` Upgrades (${meta.sticks.toLocaleString()} sticks)`));
