@@ -3868,7 +3868,7 @@ function renderCasket(choices, tier = 3) {
   const s = el('div', 'sheet'); s.style.maxWidth = '720px';
   const head = el('div', 'row'); head.style.justifyContent = 'flex-start';
   head.appendChild(imgTag(casketFile(tier), 'Reward casket'));
-  const t = el('div'); t.appendChild(el('h2', '', `You open the ${CLUE_TIERS[tier].name.toLowerCase()} reward casket`)); t.appendChild(el('p', '', 'Pick one item to keep. It is equipped straight away. Or skip to keep your current gear.'));
+  const t = el('div'); t.appendChild(el('h2', '', `You open the ${CLUE_TIERS[tier].name.toLowerCase()} reward casket`)); t.appendChild(el('p', '', 'Pick one item to keep. Gear is equipped straight away. Or skip to keep your current gear.'));
   head.appendChild(t);
   s.appendChild(head);
   const g = el('div', 'grid offers'); g.style.marginTop = '12px';
@@ -3882,10 +3882,21 @@ function renderCasket(choices, tier = 3) {
       mode = 'play'; showScreen(null);
     }));
   }
-  if (!choices.length) g.appendChild(el('p', '', 'The casket is empty.'));
+  // Every casket also holds a shark to eat later, unless you can't carry or eat one.
+  const sharkNo = supplyBlocked('shark') || (run.inv.shark >= supplyCap() ? `You already carry ${supplyCap()} sharks` : '');
+  const sc = offerCard(ITEMS.shark, sharkNo ? 'Unavailable' : 'Free', () => {
+    if (sharkNo) return;
+    run.inv.shark++;
+    chat('You take a shark from the casket.', 'g');
+    sfx(900, 0.15, 'triangle', 0.06);
+    mode = 'play'; showScreen(null);
+  });
+  sc.insertBefore(el('div', 'unlock', sharkNo || `You carry ${run.inv.shark} / ${supplyCap()}`), sc.querySelector('.price'));
+  if (sharkNo) { sc.classList.add('locked'); sc.disabled = true; }
+  g.appendChild(sc);
   s.appendChild(g);
   const r = el('div', 'row'); r.style.marginTop = '14px';
-  r.appendChild(btn(choices.length ? 'Skip, keep my gear' : 'Close', 'btn', () => {
+  r.appendChild(btn('Skip, keep my gear', 'btn', () => {
     chat('You leave the casket items behind.', 'b');
     achEvent('skipCasket');
     mode = 'play'; showScreen(null);
@@ -5238,6 +5249,7 @@ window.__rr = {
   yamaShows: () => yamaShows(),
   achEvent: (o, x) => achEvent(o, x),
   get meta() { return meta; },
+  casket: (tier) => openCasket({ tier: tier ?? 3 }),
   dropPie: () => pickups.push({ kind: 'pie', x: run.p.x + 60, y: run.p.y, t: 0 }),
   cameo: (id) => addCameo(id),
   event: (id) => { run.evSeen = RANDOM_EVENTS.filter((d) => d.id !== id).map((d) => d.id); startRandomEvent(); },
