@@ -1190,6 +1190,136 @@ item('torags_platelegs', "Torag's platelegs", 'melee', 'legs', 7, 'uncommon', { 
 item('torags_hammers', "Torag's hammers", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 17, cd: 0.7, reach: 88, arc: 1.8, hits: 2 } });
 item('karils_crossbow', "Karil's crossbow", 'ranged', 'weapon', 6, 'uncommon', { w: { kind: 'shot', dmg: 30, cd: 0.55, range: 450, speed: 1080, pierce: 2, count: 1, bolt: true } });
 item('ahrims_staff', "Ahrim's staff", 'magic', 'weapon', 6, 'uncommon', { w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 30, cd: 0.78, range: 420, speed: 640, splash: 66, color: '#ff7a1a' } });
+// --- Evening out the styles (Nathan, 2026-10-10): more real magic and ranged gear so every style gets a similar pool.
+// Magic weapons: combination battlestaves and mystic staves, Mage Training Arena wands, sceptres and boss staves
+const SP = (spell, icon, dmg, cd, splash, color, extra) => ({ w: { kind: 'spell', spell, icon, dmg, cd, range: 410, speed: 640, splash, color, ...(extra || {}) } });
+for (const [eid, name, spell, color, fx] of [
+  ['lava', 'Lava', 'Fire', '#ff5a1a', { knock: 35 }], ['mud', 'Mud', 'Earth', '#6a5a3a', { freeze: 0.35 }], ['steam', 'Steam', 'Fire', '#e0e0e0', { freeze: 0.35 }],
+  ['smoke', 'Smoke', 'Fire', '#9a9a9a', { cd: 0.68 }], ['mist', 'Mist', 'Water', '#bfe0ff', { cd: 0.68 }], ['dust', 'Dust', 'Earth', '#c8b080', { cd: 0.68 }],
+]) {
+  item(`${eid}_battlestaff`, `${name} battlestaff`, 'magic', 'weapon', 3, 'common', SP(`${spell} Blast`, `${spell}_Blast.png`, 24, fx.cd || 0.8, 56, color, { freeze: fx.freeze, knock: fx.knock }));
+  item(`mystic_${eid}_staff`, `Mystic ${eid} staff`, 'magic', 'weapon', 5, 'common', SP(`${spell} Wave`, `${spell}_Wave.png`, 35, fx.cd || 0.8, 66, color, { freeze: fx.freeze, knock: fx.knock }));
+}
+item('skull_sceptre', 'Skull sceptre', 'magic', 'weapon', 1, 'common', SP('Earth Bolt', 'Earth_Bolt.png', 13, 0.75, 46, '#8a6a3a'));
+item('beginner_wand', 'Beginner wand', 'magic', 'weapon', 1, 'common', SP('Fire Bolt', 'Fire_Bolt.png', 12, 0.72, 44, '#ff7a1a'));
+item('slayers_staff', "Slayer's staff", 'magic', 'weapon', 2, 'common', SP('Magic Dart', 'Magic_Dart.png', 18, 0.6, 30, '#c0a0ff'));
+item('apprentice_wand', 'Apprentice wand', 'magic', 'weapon', 2, 'common', SP('Fire Blast', 'Fire_Blast.png', 18, 0.75, 52, '#ff7a1a'));
+item('teacher_wand', 'Teacher wand', 'magic', 'weapon', 4, 'common', SP('Fire Wave', 'Fire_Wave.png', 26, 0.78, 60, '#ff7a1a'));
+item('lunar_staff', 'Lunar staff', 'magic', 'weapon', 4, 'common', SP('Water Wave', 'Water_Wave.png', 27, 0.75, 60, '#bfe0ff'));
+item('bryophytas_staff', "Bryophyta's staff", 'magic', 'weapon', 4, 'uncommon', SP('Earth Wave', 'Earth_Wave.png', 30, 0.8, 64, '#5fd04a'));
+item('warped_sceptre', 'Warped sceptre', 'magic', 'weapon', 7, 'uncommon', SP('Warped', null, 38, 0.7, 50, '#b04bff'));
+item('accursed_sceptre', 'Accursed sceptre', 'magic', 'weapon', 9, 'uncommon', SP('Accursed', null, 46, 0.7, 60, '#7a3aff'));
+item('nightmare_staff', 'Nightmare staff', 'magic', 'weapon', 9, 'uncommon', SP('Fire Surge', 'Fire_Surge.png', 44, 0.72, 60, '#ff5a1a'));
+item('purging_staff', 'Purging staff', 'magic', 'weapon', 9, 'uncommon', SP('Fire Surge', 'Fire_Surge.png', 45, 0.72, 62, '#ffd24a'));
+item('zuriels_staff', "Zuriel's staff", 'magic', 'weapon', 9, 'rare', SP('Ice Barrage', 'Ice_Barrage.png', 42, 0.85, 85, '#9fe8ff', { freeze: 1.2 }));
+item('crystal_staff_perfected', 'Crystal staff (perfected)', 'magic', 'weapon', 10, 'uncommon', SP('Crystal', null, 50, 0.68, 58, '#7fe0ff'));
+item('ancient_sceptre', 'Ancient sceptre', 'magic', 'weapon', 10, 'uncommon', SP('Ice Barrage', 'Ice_Barrage.png', 48, 0.8, 90, '#9fe8ff', { freeze: 1.2 }));
+item('blood_ancient_sceptre', 'Blood ancient sceptre', 'magic', 'weapon', 11, 'rare', SP('Blood Barrage', 'Blood_Barrage.png', 54, 0.8, 90, '#d01a2a', { leech: 0.08 }));
+item('ice_ancient_sceptre', 'Ice ancient sceptre', 'magic', 'weapon', 11, 'rare', SP('Ice Barrage', 'Ice_Barrage.png', 52, 0.8, 95, '#9fe8ff', { freeze: 1.8 }));
+item('smoke_ancient_sceptre', 'Smoke ancient sceptre', 'magic', 'weapon', 11, 'rare', SP('Smoke Barrage', 'Smoke_Barrage.png', 54, 0.7, 95, '#9a9a9a'));
+item('shadow_ancient_sceptre', 'Shadow ancient sceptre', 'magic', 'weapon', 11, 'rare', SP('Shadow Barrage', 'Shadow_Barrage.png', 60, 0.8, 95, '#5a2a7a'));
+item('dawnbringer', 'Dawnbringer', 'magic', 'weapon', 11, 'rare', SP('Dawnbringer', null, 56, 0.7, 60, '#ffe680'));
+item('eldritch_nightmare_staff', 'Eldritch nightmare staff', 'magic', 'weapon', 12, 'rare', SP('Eldritch', null, 66, 0.7, 70, '#7a3aff'));
+// Magic armour: wizard, Splitbark, Lunar, Dagon'hai, Xerician, Skeletal, Bloodbark, Swampbark, Blue moon, Elder chaos, Zuriel's
+item('black_wizard_hat', 'Black wizard hat', 'magic', 'head', 0, 'common', { def: 1, dmg: 0.03 });
+item('black_robe', 'Black robe', 'magic', 'body', 0, 'common', { def: 1, dmg: 0.06 });
+item('black_skirt', 'Black skirt', 'magic', 'legs', 0, 'common', { def: 1, dmg: 0.03 });
+for (const [set, pre, tier, rar, d, h, extra] of [
+  ['xerician', 'Xerician', 1, 'common', 0.02, 2, {}], ['splitbark', 'Splitbark', 3, 'common', 0.03, 4, {}], ['skeletal', 'Skeletal', 4, 'common', 0.03, 5, { def: 1 }],
+  ['lunar', 'Lunar', 5, 'common', 0.04, 4, { pp: 1 }], ['swampbark', 'Swampbark', 7, 'uncommon', 0.05, 6, {}], ['bloodbark', 'Bloodbark', 8, 'uncommon', 0.05, 5, { regen: 0.3 }],
+]) {
+  const P = { xerician: ['hat', 'top', 'robe'], splitbark: ['helm', 'body', 'legs'], skeletal: ['helm', 'top', 'bottoms'], lunar: ['helm', 'torso', 'legs'], swampbark: ['helm', 'body', 'legs'], bloodbark: ['helm', 'body', 'legs'] }[set];
+  item(`${set}_${P[0]}`, `${pre} ${P[0]}`, 'magic', 'head', tier, rar, { def: h, dmg: d * 1.5, ...extra });
+  item(`${set}_${P[1]}`, `${pre} ${P[1]}`, 'magic', 'body', tier, rar, { def: h + 3, dmg: d * 3, ...extra });
+  item(`${set}_${P[2]}`, `${pre} ${P[2]}`, 'magic', 'legs', tier, rar, { def: h + 1, dmg: d * 2, ...extra });
+  if (set !== 'xerician') {
+    const G = set === 'lunar' || set === 'skeletal' ? 'gloves' : 'gauntlets';
+    item(`${set}_boots`, `${pre} boots`, 'magic', 'feet', tier, rar, { def: Math.round(h / 2), dmg: d });
+    item(`${set}_${G}`, `${pre} ${G}`, 'magic', 'hands', tier, rar, { def: Math.round(h / 2), dmg: d });
+  }
+}
+item('mystic_hat_dark', 'Mystic hat (dark)', 'magic', 'head', 3, 'common', { def: 2, dmg: 0.06 });
+item('mystic_robe_top_dark', 'Mystic robe top (dark)', 'magic', 'body', 3, 'common', { def: 3, dmg: 0.11 });
+item('mystic_robe_bottom_dark', 'Mystic robe bottom (dark)', 'magic', 'legs', 3, 'common', { def: 2, dmg: 0.07 });
+item('dagonhai_hat', "Dagon'hai hat", 'magic', 'head', 6, 'uncommon', { def: 3, dmg: 0.07 });
+item('dagonhai_robe_top', "Dagon'hai robe top", 'magic', 'body', 6, 'uncommon', { def: 5, dmg: 0.14 });
+item('dagonhai_robe_bottom', "Dagon'hai robe bottom", 'magic', 'legs', 6, 'uncommon', { def: 4, dmg: 0.09 });
+item('blue_moon_helm', 'Blue Moon helm', 'magic', 'head', 7, 'uncommon', { def: 6, dmg: 0.07 });
+item('blue_moon_chestplate', 'Blue Moon chestplate', 'magic', 'body', 7, 'uncommon', { def: 10, dmg: 0.13 });
+item('blue_moon_tassets', 'Blue Moon tassets', 'magic', 'legs', 7, 'uncommon', { def: 8, dmg: 0.09 });
+item('elder_chaos_hood', 'Elder chaos hood', 'magic', 'head', 8, 'uncommon', { def: 2, dmg: 0.09 });
+item('elder_chaos_top', 'Elder chaos top', 'magic', 'body', 8, 'uncommon', { def: 3, dmg: 0.17 });
+item('elder_chaos_robe', 'Elder chaos robe', 'magic', 'legs', 8, 'uncommon', { def: 2, dmg: 0.11 });
+item('zuriels_hood', "Zuriel's hood", 'magic', 'head', 9, 'rare', { def: 6, dmg: 0.09, hp: 5 });
+item('zuriels_robe_top', "Zuriel's robe top", 'magic', 'body', 9, 'rare', { def: 10, dmg: 0.17, hp: 10 });
+item('zuriels_robe_bottom', "Zuriel's robe bottom", 'magic', 'legs', 9, 'rare', { def: 8, dmg: 0.11, hp: 5 });
+item('infinity_gloves', 'Infinity gloves', 'magic', 'hands', 5, 'uncommon', { def: 2, dmg: 0.06 });
+item('confliction_gauntlets', 'Confliction gauntlets', 'magic', 'hands', 13, 'rare', { def: 4, dmg: 0.16 });
+item('tome_of_fire', 'Tome of fire', 'magic', 'shield', 7, 'uncommon', { dmg: 0.12 });
+item('tome_of_water', 'Tome of water', 'magic', 'shield', 7, 'uncommon', { dmg: 0.1, def: 3 });
+item('tome_of_earth', 'Tome of earth', 'magic', 'shield', 7, 'uncommon', { dmg: 0.1, hp: 8 });
+item('malediction_ward', 'Malediction ward', 'magic', 'shield', 6, 'uncommon', { def: 10, dmg: 0.06 });
+item('elidinis_ward', "Elidinis' ward", 'magic', 'shield', 12, 'rare', { def: 12, dmg: 0.12, pp: 4 });
+item('elidinis_ward_f', "Elidinis' ward (f)", 'magic', 'shield', 14, 'rare', { def: 14, dmg: 0.2, pp: 4 });
+item('imbued_guthix_cape', 'Imbued Guthix cape', 'magic', 'cape', 8, 'uncommon', { dmg: 0.12, hp: 5 });
+item('lunar_amulet', 'Lunar amulet', 'magic', 'neck', 4, 'common', { dmg: 0.1 });
+item('lunar_ring', 'Lunar ring', 'magic', 'ring', 4, 'common', { dmg: 0.06, pp: 2 });
+// Ranged weapons
+const SH = (dmg, cd, range, extra) => ({ w: { kind: 'shot', dmg, cd, range, speed: 950, pierce: 1, count: 1, ...(extra || {}) } });
+item('training_bow', 'Training bow', 'ranged', 'weapon', 0, 'common', SH(4, 0.5, 360, { wt: 'short' }));
+item('cursed_goblin_bow', 'Cursed goblin bow', 'ranged', 'weapon', 0, 'common', SH(5, 0.48, 370, { wt: 'short' }));
+item('phoenix_crossbow', 'Phoenix crossbow', 'ranged', 'weapon', 0, 'common', SH(8, 0.85, 420, { wt: 'xbow', pierce: 3, bolt: true }));
+item('ogre_bow', 'Ogre bow', 'ranged', 'weapon', 1, 'common', SH(11, 0.9, 520, { wt: 'long', pierce: 2 }));
+item('hunters_crossbow', "Hunters' crossbow", 'ranged', 'weapon', 1, 'common', SH(10, 0.7, 420, { wt: 'xbow', pierce: 2, bolt: true }));
+item('comp_ogre_bow', 'Comp ogre bow', 'ranged', 'weapon', 2, 'common', SH(15, 0.85, 540, { wt: 'long', pierce: 2 }));
+item('hunters_sunlight_crossbow', "Hunters' sunlight crossbow", 'ranged', 'weapon', 3, 'common', SH(19, 0.7, 440, { wt: 'xbow', pierce: 2, bolt: true }));
+item('seercull', 'Seercull', 'ranged', 'weapon', 4, 'uncommon', SH(15, 0.42, 440, { wt: 'short' }));
+item('amethyst_dart', 'Amethyst dart', 'ranged', 'weapon', 6, 'common', SH(9, 0.24, 230, { wt: 'dart', dart: true, speed: 900 }));
+item('toktz_xil_ul', 'Toktz-xil-ul', 'ranged', 'weapon', 6, 'uncommon', SH(14, 0.34, 320, { wt: 'thrownaxe', bounce: 1, speed: 900 }));
+item('light_ballista', 'Light ballista', 'ranged', 'weapon', 8, 'uncommon', SH(80, 1.3, 580, { pierce: 5, bolt: true, speed: 1250 }));
+item('crystal_bow', 'Crystal bow', 'ranged', 'weapon', 8, 'uncommon', SH(34, 0.55, 500, { pierce: 2, speed: 1100 }));
+item('morrigans_throwing_axe', "Morrigan's throwing axe", 'ranged', 'weapon', 9, 'rare', SH(30, 0.55, 340, { wt: 'thrownaxe', bounce: 2, speed: 900 }));
+item('morrigans_javelin', "Morrigan's javelin", 'ranged', 'weapon', 9, 'rare', SH(42, 0.7, 400, { pierce: 2, speed: 1000 }));
+item('webweaver_bow', 'Webweaver bow', 'ranged', 'weapon', 9, 'rare', SH(14, 0.24, 440, { wt: 'short' }));
+item('eclipse_atlatl', 'Eclipse atlatl', 'ranged', 'weapon', 9, 'uncommon', SH(38, 0.6, 380, { pierce: 2, speed: 900 }));
+// Ranged armour: snakeskin, studded, red d'hide, spined, god d'hide, Eclipse moon, crystal, void
+for (const [pre, tier, rar, d, h] of [['Snakeskin', 2, 'common', 0.03, 3], ['Studded', 1, 'common', 0.03, 3], ['Spined', 4, 'common', 0.04, 4]]) {
+  const id = pre.toLowerCase();
+  item(`${id}_body`, `${pre} body`, 'ranged', 'body', tier, rar, { def: h + 2, dmg: d * 3 });
+  item(`${id}_chaps`, `${pre} chaps`, 'ranged', 'legs', tier, rar, { def: h, dmg: d * 2 });
+}
+item('snakeskin_bandana', 'Snakeskin bandana', 'ranged', 'head', 2, 'common', { def: 2, dmg: 0.04 });
+item('snakeskin_vambraces', 'Snakeskin vambraces', 'ranged', 'hands', 2, 'common', { def: 2, dmg: 0.04 });
+item('spined_helm', 'Spined helm', 'ranged', 'head', 4, 'common', { def: 4, dmg: 0.05 });
+item('spined_gloves', 'Spined gloves', 'ranged', 'hands', 4, 'common', { def: 2, dmg: 0.05 });
+item('spined_boots', 'Spined boots', 'ranged', 'feet', 4, 'common', { def: 2, dmg: 0.04 });
+item('archer_helm', 'Archer helm', 'ranged', 'head', 4, 'common', { def: 5, dmg: 0.04 });
+item('red_dhide_body', "Red d'hide body", 'ranged', 'body', 4, 'common', { def: 7, dmg: 0.11 });
+item('blue_dhide_chaps', "Blue d'hide chaps", 'ranged', 'legs', 3, 'common', { def: 5, dmg: 0.06 });
+item('red_dhide_chaps', "Red d'hide chaps", 'ranged', 'legs', 4, 'common', { def: 5, dmg: 0.07 });
+item('blue_dhide_vambraces', "Blue d'hide vambraces", 'ranged', 'hands', 3, 'common', { def: 2, dmg: 0.06 });
+item('red_dhide_vambraces', "Red d'hide vambraces", 'ranged', 'hands', 4, 'common', { def: 3, dmg: 0.07 });
+for (const god of ['Saradomin', 'Guthix', 'Zamorak', 'Armadyl', 'Bandos', 'Ancient']) {
+  const g = god.toLowerCase();
+  item(`${g}_coif`, `${god} coif`, 'ranged', 'head', 6, 'common', { def: 5, dmg: 0.06, pp: 1 });
+  item(`${g}_dhide_body`, `${god} d'hide body`, 'ranged', 'body', 6, 'common', { def: 9, dmg: 0.13, pp: 1 });
+  item(`${g}_chaps`, `${god} chaps`, 'ranged', 'legs', 6, 'common', { def: 7, dmg: 0.09, pp: 1 });
+}
+item('saradomin_dhide_shield', "Saradomin d'hide shield", 'ranged', 'shield', 6, 'common', { def: 7, dmg: 0.04 });
+item('armadyl_dhide_shield', "Armadyl d'hide shield", 'ranged', 'shield', 6, 'common', { def: 7, dmg: 0.04 });
+item('zamorak_dhide_shield', "Zamorak d'hide shield", 'ranged', 'shield', 6, 'common', { def: 7, dmg: 0.04 });
+item('void_ranger_helm', 'Void ranger helm', 'ranged', 'head', 7, 'uncommon', { def: 6, dmg: 0.1 });
+item('eclipse_moon_helm', 'Eclipse Moon helm', 'ranged', 'head', 7, 'uncommon', { def: 6, dmg: 0.07 });
+item('eclipse_moon_chestplate', 'Eclipse Moon chestplate', 'ranged', 'body', 7, 'uncommon', { def: 11, dmg: 0.15 });
+item('eclipse_moon_tassets', 'Eclipse Moon tassets', 'ranged', 'legs', 7, 'uncommon', { def: 9, dmg: 0.1 });
+item('crystal_body', 'Crystal body', 'ranged', 'body', 9, 'uncommon', { def: 11, dmg: 0.16, pp: 2 });
+item('crystal_legs', 'Crystal legs', 'ranged', 'legs', 9, 'uncommon', { def: 9, dmg: 0.11, pp: 2 });
+item('iron_arrow', 'Iron arrow', 'ranged', 'ammo', 0, 'common', { dmg: 0.04 }, 'Iron_arrow_5.png');
+item('mithril_arrow', 'Mithril arrow', 'ranged', 'ammo', 1, 'common', { dmg: 0.06 }, 'Mithril_arrow_5.png');
+item('broad_arrows', 'Broad arrows', 'ranged', 'ammo', 4, 'common', { dmg: 0.1 }, 'Broad_arrows_5.png');
+item('runite_bolts', 'Runite bolts', 'ranged', 'ammo', 4, 'common', { dmg: 0.11 }, 'Runite_bolts_5.png');
+item('dragon_bolts', 'Dragon bolts', 'ranged', 'ammo', 7, 'uncommon', { dmg: 0.15 }, 'Dragon_bolts_5.png');
+item('atlatl_dart', 'Atlatl dart', 'ranged', 'ammo', 8, 'uncommon', { dmg: 0.16 }, 'Atlatl_dart_5.png');
 // Set effects from the wiki, turned into this game's terms. 25% of hits trigger them (Dharok's always works).
 const BARROWS_SETS = {
   dharok: { name: "Dharok's", effect: 'Wretched Strength', pieces: ['dharoks_helm', 'dharoks_platebody', 'dharoks_platelegs', 'dharoks_greataxe'], info: 'Up to +60% damage the lower your hitpoints are' },

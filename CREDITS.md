@@ -923,6 +923,161 @@ Area backgrounds are top-down tiles from the OSRS Wiki world map (https://maps.r
 | Player spoof | Hopleez | https://oldschool.runescape.wiki/w/File:Hopleez.png |
 | Player spoof (Woox tribute) and the Woox hero | Mysterious Adventurer | https://oldschool.runescape.wiki/w/File:Mysterious_Adventurer.png |
 | Item | Anti-dragon shield | https://oldschool.runescape.wiki/w/File:Anti-dragon_shield.png |
+| Item | Lava battlestaff | https://oldschool.runescape.wiki/w/File:Lava_battlestaff.png |
+| Item | Mystic lava staff | https://oldschool.runescape.wiki/w/File:Mystic_lava_staff.png |
+| Item | Mud battlestaff | https://oldschool.runescape.wiki/w/File:Mud_battlestaff.png |
+| Item | Mystic mud staff | https://oldschool.runescape.wiki/w/File:Mystic_mud_staff.png |
+| Item | Steam battlestaff | https://oldschool.runescape.wiki/w/File:Steam_battlestaff.png |
+| Item | Mystic steam staff | https://oldschool.runescape.wiki/w/File:Mystic_steam_staff.png |
+| Item | Smoke battlestaff | https://oldschool.runescape.wiki/w/File:Smoke_battlestaff.png |
+| Item | Mystic smoke staff | https://oldschool.runescape.wiki/w/File:Mystic_smoke_staff.png |
+| Item | Mist battlestaff | https://oldschool.runescape.wiki/w/File:Mist_battlestaff.png |
+| Item | Mystic mist staff | https://oldschool.runescape.wiki/w/File:Mystic_mist_staff.png |
+| Item | Dust battlestaff | https://oldschool.runescape.wiki/w/File:Dust_battlestaff.png |
+| Item | Mystic dust staff | https://oldschool.runescape.wiki/w/File:Mystic_dust_staff.png |
+| Item | Skull sceptre | https://oldschool.runescape.wiki/w/File:Skull_sceptre.png |
+| Item | Beginner wand | https://oldschool.runescape.wiki/w/File:Beginner_wand.png |
+| Item | Slayer's staff | https://oldschool.runescape.wiki/w/File:Slayer's_staff.png |
+| Item | Apprentice wand | https://oldschool.runescape.wiki/w/File:Apprentice_wand.png |
+| Item | Teacher wand | https://oldschool.runescape.wiki/w/File:Teacher_wand.png |
+| Item | Lunar staff | https://oldschool.runescape.wiki/w/File:Lunar_staff.png |
+| Item | Bryophyta's staff | https://oldschool.runescape.wiki/w/File:Bryophyta's_staff.png |
+| Item | Warped sceptre | https://oldschool.runescape.wiki/w/File:Warped_sceptre.png |
+| Item | Accursed sceptre | https://oldschool.runescape.wiki/w/File:Accursed_sceptre.png |
+| Item | Nightmare staff | https://oldschool.runescape.wiki/w/File:Nightmare_staff.png |
+| Item | Purging staff | https://oldschool.runescape.wiki/w/File:Purging_staff.png |
+| Item | Zuriel's staff | https://oldschool.runescape.wiki/w/File:Zuriel's_staff.png |
+| Item | Crystal staff (perfected) | https://oldschool.runescape.wiki/w/File:Crystal_staff_(perfected).png |
+| Item | Ancient sceptre | https://oldschool.runescape.wiki/w/File:Ancient_sceptre.png |
+| Item | Blood ancient sceptre | https://oldschool.runescape.wiki/w/File:Blood_ancient_sceptre.png |
+| Item | Ice ancient sceptre | https://oldschool.runescape.wiki/w/File:Ice_ancient_sceptre.png |
+| Item | Smoke ancient sceptre | https://oldschool.runescape.wiki/w/File:Smoke_ancient_sceptre.png |
+| Item | Shadow ancient sceptre | https://oldschool.runescape.wiki/w/File:Shadow_ancient_sceptre.png |
+| Item | Dawnbringer | https://oldschool.runescape.wiki/w/File:Dawnbringer.png |
+| Item | Eldritch nightmare staff | https://oldschool.runescape.wiki/w/File:Eldritch_nightmare_staff.png |
+| Item | Black wizard hat | https://oldschool.runescape.wiki/w/File:Black_wizard_hat.png |
+| Item | Black robe | https://oldschool.runescape.wiki/w/File:Black_robe.png |
+| Item | Black skirt | https://oldschool.runescape.wiki/w/File:Black_skirt.png |
+| Item | Xerician hat | https://oldschool.runescape.wiki/w/File:Xerician_hat.png |
+| Item | Xerician top | https://oldschool.runescape.wiki/w/File:Xerician_top.png |
+| Item | Xerician robe | https://oldschool.runescape.wiki/w/File:Xerician_robe.png |
+| Item | Splitbark helm | https://oldschool.runescape.wiki/w/File:Splitbark_helm.png |
+| Item | Splitbark body | https://oldschool.runescape.wiki/w/File:Splitbark_body.png |
+| Item | Splitbark legs | https://oldschool.runescape.wiki/w/File:Splitbark_legs.png |
+| Item | Splitbark boots | https://oldschool.runescape.wiki/w/File:Splitbark_boots.png |
+| Item | Splitbark gauntlets | https://oldschool.runescape.wiki/w/File:Splitbark_gauntlets.png |
+| Item | Skeletal helm | https://oldschool.runescape.wiki/w/File:Skeletal_helm.png |
+| Item | Skeletal top | https://oldschool.runescape.wiki/w/File:Skeletal_top.png |
+| Item | Skeletal bottoms | https://oldschool.runescape.wiki/w/File:Skeletal_bottoms.png |
+| Item | Skeletal boots | https://oldschool.runescape.wiki/w/File:Skeletal_boots.png |
+| Item | Skeletal gloves | https://oldschool.runescape.wiki/w/File:Skeletal_gloves.png |
+| Item | Lunar helm | https://oldschool.runescape.wiki/w/File:Lunar_helm.png |
+| Item | Lunar torso | https://oldschool.runescape.wiki/w/File:Lunar_torso.png |
+| Item | Lunar legs | https://oldschool.runescape.wiki/w/File:Lunar_legs.png |
+| Item | Lunar boots | https://oldschool.runescape.wiki/w/File:Lunar_boots.png |
+| Item | Lunar gloves | https://oldschool.runescape.wiki/w/File:Lunar_gloves.png |
+| Item | Swampbark helm | https://oldschool.runescape.wiki/w/File:Swampbark_helm.png |
+| Item | Swampbark body | https://oldschool.runescape.wiki/w/File:Swampbark_body.png |
+| Item | Swampbark legs | https://oldschool.runescape.wiki/w/File:Swampbark_legs.png |
+| Item | Swampbark boots | https://oldschool.runescape.wiki/w/File:Swampbark_boots.png |
+| Item | Swampbark gauntlets | https://oldschool.runescape.wiki/w/File:Swampbark_gauntlets.png |
+| Item | Bloodbark helm | https://oldschool.runescape.wiki/w/File:Bloodbark_helm.png |
+| Item | Bloodbark body | https://oldschool.runescape.wiki/w/File:Bloodbark_body.png |
+| Item | Bloodbark legs | https://oldschool.runescape.wiki/w/File:Bloodbark_legs.png |
+| Item | Bloodbark boots | https://oldschool.runescape.wiki/w/File:Bloodbark_boots.png |
+| Item | Bloodbark gauntlets | https://oldschool.runescape.wiki/w/File:Bloodbark_gauntlets.png |
+| Item | Mystic hat (dark) | https://oldschool.runescape.wiki/w/File:Mystic_hat_(dark).png |
+| Item | Mystic robe top (dark) | https://oldschool.runescape.wiki/w/File:Mystic_robe_top_(dark).png |
+| Item | Mystic robe bottom (dark) | https://oldschool.runescape.wiki/w/File:Mystic_robe_bottom_(dark).png |
+| Item | Dagon'hai hat | https://oldschool.runescape.wiki/w/File:Dagon'hai_hat.png |
+| Item | Dagon'hai robe top | https://oldschool.runescape.wiki/w/File:Dagon'hai_robe_top.png |
+| Item | Dagon'hai robe bottom | https://oldschool.runescape.wiki/w/File:Dagon'hai_robe_bottom.png |
+| Item | Blue Moon helm | https://oldschool.runescape.wiki/w/File:Blue_Moon_helm.png |
+| Item | Blue Moon chestplate | https://oldschool.runescape.wiki/w/File:Blue_Moon_chestplate.png |
+| Item | Blue Moon tassets | https://oldschool.runescape.wiki/w/File:Blue_Moon_tassets.png |
+| Item | Elder chaos hood | https://oldschool.runescape.wiki/w/File:Elder_chaos_hood.png |
+| Item | Elder chaos top | https://oldschool.runescape.wiki/w/File:Elder_chaos_top.png |
+| Item | Elder chaos robe | https://oldschool.runescape.wiki/w/File:Elder_chaos_robe.png |
+| Item | Zuriel's hood | https://oldschool.runescape.wiki/w/File:Zuriel's_hood.png |
+| Item | Zuriel's robe top | https://oldschool.runescape.wiki/w/File:Zuriel's_robe_top.png |
+| Item | Zuriel's robe bottom | https://oldschool.runescape.wiki/w/File:Zuriel's_robe_bottom.png |
+| Item | Infinity gloves | https://oldschool.runescape.wiki/w/File:Infinity_gloves.png |
+| Item | Confliction gauntlets | https://oldschool.runescape.wiki/w/File:Confliction_gauntlets.png |
+| Item | Tome of fire | https://oldschool.runescape.wiki/w/File:Tome_of_fire.png |
+| Item | Tome of water | https://oldschool.runescape.wiki/w/File:Tome_of_water.png |
+| Item | Tome of earth | https://oldschool.runescape.wiki/w/File:Tome_of_earth.png |
+| Item | Malediction ward | https://oldschool.runescape.wiki/w/File:Malediction_ward.png |
+| Item | Elidinis' ward | https://oldschool.runescape.wiki/w/File:Elidinis'_ward.png |
+| Item | Elidinis' ward (f) | https://oldschool.runescape.wiki/w/File:Elidinis'_ward_(f).png |
+| Item | Imbued Guthix cape | https://oldschool.runescape.wiki/w/File:Imbued_Guthix_cape.png |
+| Item | Lunar amulet | https://oldschool.runescape.wiki/w/File:Lunar_amulet.png |
+| Item | Lunar ring | https://oldschool.runescape.wiki/w/File:Lunar_ring.png |
+| Item | Training bow | https://oldschool.runescape.wiki/w/File:Training_bow.png |
+| Item | Cursed goblin bow | https://oldschool.runescape.wiki/w/File:Cursed_goblin_bow.png |
+| Item | Phoenix crossbow | https://oldschool.runescape.wiki/w/File:Phoenix_crossbow.png |
+| Item | Ogre bow | https://oldschool.runescape.wiki/w/File:Ogre_bow.png |
+| Item | Hunters' crossbow | https://oldschool.runescape.wiki/w/File:Hunters'_crossbow.png |
+| Item | Comp ogre bow | https://oldschool.runescape.wiki/w/File:Comp_ogre_bow.png |
+| Item | Hunters' sunlight crossbow | https://oldschool.runescape.wiki/w/File:Hunters'_sunlight_crossbow.png |
+| Item | Seercull | https://oldschool.runescape.wiki/w/File:Seercull.png |
+| Item | Amethyst dart | https://oldschool.runescape.wiki/w/File:Amethyst_dart.png |
+| Item | Toktz-xil-ul | https://oldschool.runescape.wiki/w/File:Toktz-xil-ul.png |
+| Item | Light ballista | https://oldschool.runescape.wiki/w/File:Light_ballista.png |
+| Item | Crystal bow | https://oldschool.runescape.wiki/w/File:Crystal_bow.png |
+| Item | Morrigan's throwing axe | https://oldschool.runescape.wiki/w/File:Morrigan's_throwing_axe.png |
+| Item | Morrigan's javelin | https://oldschool.runescape.wiki/w/File:Morrigan's_javelin.png |
+| Item | Webweaver bow | https://oldschool.runescape.wiki/w/File:Webweaver_bow.png |
+| Item | Eclipse atlatl | https://oldschool.runescape.wiki/w/File:Eclipse_atlatl.png |
+| Item | Snakeskin body | https://oldschool.runescape.wiki/w/File:Snakeskin_body.png |
+| Item | Snakeskin chaps | https://oldschool.runescape.wiki/w/File:Snakeskin_chaps.png |
+| Item | Studded body | https://oldschool.runescape.wiki/w/File:Studded_body.png |
+| Item | Studded chaps | https://oldschool.runescape.wiki/w/File:Studded_chaps.png |
+| Item | Spined body | https://oldschool.runescape.wiki/w/File:Spined_body.png |
+| Item | Spined chaps | https://oldschool.runescape.wiki/w/File:Spined_chaps.png |
+| Item | Snakeskin bandana | https://oldschool.runescape.wiki/w/File:Snakeskin_bandana.png |
+| Item | Snakeskin vambraces | https://oldschool.runescape.wiki/w/File:Snakeskin_vambraces.png |
+| Item | Spined helm | https://oldschool.runescape.wiki/w/File:Spined_helm.png |
+| Item | Spined gloves | https://oldschool.runescape.wiki/w/File:Spined_gloves.png |
+| Item | Spined boots | https://oldschool.runescape.wiki/w/File:Spined_boots.png |
+| Item | Archer helm | https://oldschool.runescape.wiki/w/File:Archer_helm.png |
+| Item | Red d'hide body | https://oldschool.runescape.wiki/w/File:Red_d'hide_body.png |
+| Item | Blue d'hide chaps | https://oldschool.runescape.wiki/w/File:Blue_d'hide_chaps.png |
+| Item | Red d'hide chaps | https://oldschool.runescape.wiki/w/File:Red_d'hide_chaps.png |
+| Item | Blue d'hide vambraces | https://oldschool.runescape.wiki/w/File:Blue_d'hide_vambraces.png |
+| Item | Red d'hide vambraces | https://oldschool.runescape.wiki/w/File:Red_d'hide_vambraces.png |
+| Item | Saradomin coif | https://oldschool.runescape.wiki/w/File:Saradomin_coif.png |
+| Item | Saradomin d'hide body | https://oldschool.runescape.wiki/w/File:Saradomin_d'hide_body.png |
+| Item | Saradomin chaps | https://oldschool.runescape.wiki/w/File:Saradomin_chaps.png |
+| Item | Guthix coif | https://oldschool.runescape.wiki/w/File:Guthix_coif.png |
+| Item | Guthix d'hide body | https://oldschool.runescape.wiki/w/File:Guthix_d'hide_body.png |
+| Item | Guthix chaps | https://oldschool.runescape.wiki/w/File:Guthix_chaps.png |
+| Item | Zamorak coif | https://oldschool.runescape.wiki/w/File:Zamorak_coif.png |
+| Item | Zamorak d'hide body | https://oldschool.runescape.wiki/w/File:Zamorak_d'hide_body.png |
+| Item | Zamorak chaps | https://oldschool.runescape.wiki/w/File:Zamorak_chaps.png |
+| Item | Armadyl coif | https://oldschool.runescape.wiki/w/File:Armadyl_coif.png |
+| Item | Armadyl d'hide body | https://oldschool.runescape.wiki/w/File:Armadyl_d'hide_body.png |
+| Item | Armadyl chaps | https://oldschool.runescape.wiki/w/File:Armadyl_chaps.png |
+| Item | Bandos coif | https://oldschool.runescape.wiki/w/File:Bandos_coif.png |
+| Item | Bandos d'hide body | https://oldschool.runescape.wiki/w/File:Bandos_d'hide_body.png |
+| Item | Bandos chaps | https://oldschool.runescape.wiki/w/File:Bandos_chaps.png |
+| Item | Ancient coif | https://oldschool.runescape.wiki/w/File:Ancient_coif.png |
+| Item | Ancient d'hide body | https://oldschool.runescape.wiki/w/File:Ancient_d'hide_body.png |
+| Item | Ancient chaps | https://oldschool.runescape.wiki/w/File:Ancient_chaps.png |
+| Item | Saradomin d'hide shield | https://oldschool.runescape.wiki/w/File:Saradomin_d'hide_shield.png |
+| Item | Armadyl d'hide shield | https://oldschool.runescape.wiki/w/File:Armadyl_d'hide_shield.png |
+| Item | Zamorak d'hide shield | https://oldschool.runescape.wiki/w/File:Zamorak_d'hide_shield.png |
+| Item | Void ranger helm | https://oldschool.runescape.wiki/w/File:Void_ranger_helm.png |
+| Item | Eclipse Moon helm | https://oldschool.runescape.wiki/w/File:Eclipse_Moon_helm.png |
+| Item | Eclipse Moon chestplate | https://oldschool.runescape.wiki/w/File:Eclipse_Moon_chestplate.png |
+| Item | Eclipse Moon tassets | https://oldschool.runescape.wiki/w/File:Eclipse_Moon_tassets.png |
+| Item | Crystal body | https://oldschool.runescape.wiki/w/File:Crystal_body.png |
+| Item | Crystal legs | https://oldschool.runescape.wiki/w/File:Crystal_legs.png |
+| Item | Iron arrow | https://oldschool.runescape.wiki/w/File:Iron_arrow_5.png |
+| Item | Mithril arrow | https://oldschool.runescape.wiki/w/File:Mithril_arrow_5.png |
+| Item | Broad arrows | https://oldschool.runescape.wiki/w/File:Broad_arrows_5.png |
+| Item | Runite bolts | https://oldschool.runescape.wiki/w/File:Runite_bolts_5.png |
+| Item | Dragon bolts | https://oldschool.runescape.wiki/w/File:Dragon_bolts_5.png |
+| Item | Atlatl dart | https://oldschool.runescape.wiki/w/File:Atlatl_dart_5.png |
 
 ## RunePong
 
