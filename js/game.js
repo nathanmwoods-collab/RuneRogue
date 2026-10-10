@@ -2041,6 +2041,16 @@ function updateEnemies(dt) {
     if (e.guardOf) { guardianTick(e, dt); continue; }
     if (e.coreOf) { coreTick(e, dt); continue; }
     if (THIEVES.has(e.id) && thiefMove(e, dt)) continue;
+    if (e.ai.morph > 0) { // Kalphite Queen changing form: she can't act or be hurt
+      e.ai.morph -= dt;
+      if (e.ai.morph <= KQ_MORPH / 2 && !e.ai.morphed) {
+        e.ai.morphed = true; e.formFile = KQ_FORM2_FILE;
+        burst(e.x, e.y - e.d.size * 0.4, '#c8a0ff', 50); shout(e);
+        chat('The Kalphite Queen sheds her exoskeleton and rises in her airborne form!', 'r');
+      }
+      if (e.ai.morph <= 0) { e.immune = false; e.ai.t = 1.2; }
+      continue;
+    }
     if (e.d.boss) bossAI(e, dt);
     if (e.dead || e.ai.burrow > 0) continue;
     if (e.d.clue) clueHelpers(e, dt);
@@ -2139,8 +2149,10 @@ function bossPhaseOnDeath(e) {
   if (bossDeathMech(e)) return true;
   const k = e.d.boss;
   if (k === 'kq' && !e.ai.form2) {
+    // she collapses, sheds her exoskeleton, then rises again in her airborne form (see the morph step in updateEnemies)
     e.ai.form2 = true; e.hp = e.maxHp; e.resist = { melee: 0.5 };
-    chat('The Kalphite Queen transforms into her airborne form!', 'r');
+    e.ai.morph = KQ_MORPH; e.immune = true; wikiImage(KQ_FORM2_FILE);
+    chat('The Kalphite Queen collapses...', 'r');
     burst(e.x, e.y, '#c8a060', 40);
     return true;
   }
@@ -3157,6 +3169,23 @@ function drawEnemy(e) {
   if (e.flash > 0) ctx.filter = 'brightness(1.8)';
   if (e.frozen > 0) ctx.filter = 'hue-rotate(160deg) brightness(1.2)';
   if (e.immune) ctx.globalAlpha = 0.55;
+  if (e.ai && e.ai.morph > 0) {
+    // first half: the crawling form keels over and fades; second half: the airborne form rises up
+    const half = KQ_MORPH / 2;
+    if (e.ai.morph > half) {
+      const k = 1 - (e.ai.morph - half) / half;
+      ctx.globalAlpha = 1 - k * 0.85; ctx.filter = `grayscale(${k}) brightness(${1 - k * 0.4})`;
+      ctx.translate(e.x, e.y + 2); ctx.rotate(k * 1.2); ctx.translate(-e.x, -(e.y + 2));
+      drawSprite(wikiImage(e.d.file), e.x, e.y + 2 + k * 10, h * (1 - k * 0.2), { color: '#8a2a2a', label: 'K' });
+    } else {
+      const k = 1 - e.ai.morph / half;
+      ctx.globalAlpha = 0.25 + k * 0.75;
+      drawSprite(wikiImage(KQ_FORM2_FILE), e.x, e.y + 2 - (1 - k) * 30, h * (0.6 + k * 0.4), { color: '#8a2a2a', label: 'K' });
+    }
+    ctx.restore();
+    text(e.ai.morph > half ? 'Collapsing...' : 'Rising...', e.x, Math.max(14, e.y - h - 10), 13, '#c8a0ff');
+    return;
+  }
   drawSprite(wikiImage(e.formFile || e.d.file), e.x, e.y + 2, h, { color: e.d.boss ? '#8a2a2a' : e.d.elite ? '#7a5a2a' : '#6a6a4a', label: e.d.name[0] });
   ctx.restore();
   if (e.d.elWeak && !e.d.boss && (e.d.elite || spellElement(ITEMS[run.gear.weapon].w) === e.d.elWeak.el)) {
@@ -3629,6 +3658,8 @@ function offerCard(it, priceLabel, onClick, sold) {
 }
 
 function renderShop() {
+  // re-rendering after a buy, lock or reroll keeps your scroll position instead of jumping to the top
+  const prev = screen.querySelector('.grid.shop') ? [screen.scrollTop, (screen.querySelector('.sheet') || {}).scrollTop || 0, window.scrollY] : null;
   const st = stats();
   const s = el('div', 'sheet');
   const head = el('div', 'row');
@@ -3723,6 +3754,7 @@ function renderShop() {
   s.appendChild(grid);
   showScreen(s);
   nb2.focus({ preventScroll: true });
+  if (prev) { screen.scrollTop = prev[0]; s.scrollTop = prev[1]; window.scrollTo(0, prev[2]); }
 }
 
 function renderCasket(choices, tier = 3) {
@@ -5055,7 +5087,7 @@ window.__rr = {
   start: (i) => { pickedHero = HEROES[i || 0]; begin(); }, endStage: () => endStage(),
   skipTo: (stage) => { run.stage = stage - 1; startStage(); }, dropClue: (tier) => pickups.push({ kind: 'clue', tier: tier ?? 3, x: run.p.x + 60, y: run.p.y, t: 0 }),
   killAll: () => { for (const e of enemies) e.hp = 1; },
-  kill: (e) => killEnemy(e),
+  kill: (e) => killEnemy(e), hit: (e, n) => damageEnemy(e, n, false),
   clearWave: () => { toSpawn = 0; run.evAt = null; run.insaneAt = null; run.circleAt = null; enemies.length = 0; },
   die: () => die(),
   rollOffers: () => { rollOffers(true); return offers; },

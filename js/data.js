@@ -595,6 +595,8 @@ mon('scurrius', 'Scurrius', 'Scurrius.png', 200, 1300, 90, 12, 150, 130, 'melee'
 mon('giant_mole', 'Giant Mole', 'Giant_Mole.png', 230, 1700, 100, 14, 150, 150, 'melee', { boss: 'mole' });
 mon('elvarg', 'Elvarg', 'Elvarg.png', 83, 2800, 95, 20, 190, 180, 'melee', { boss: 'dragon' });
 mon('kalphite_queen', 'Kalphite Queen', 'Kalphite_Queen.png', 333, 3000, 95, 24, 190, 220, 'melee', { boss: 'kq', noPray: true });
+const KQ_FORM2_FILE = 'Kalphite_Queen_2nd_form.png'; // her airborne second form
+const KQ_MORPH = 4; // seconds she spends collapsing and rising between forms
 mon('kbd', 'King Black Dragon', 'King_Black_Dragon.png', 276, 4400, 85, 26, 220, 260, 'melee', { boss: 'kbd' });
 mon('graardor', 'General Graardor', 'General_Graardor.png', 624, 5000, 150, 28, 200, 320, 'melee', { boss: 'graardor' });
 mon('zulrah', 'Zulrah', 'Zulrah_(serpentine).png', 725, 5600, 0, 30, 200, 380, 'ranged', { boss: 'zulrah' });
