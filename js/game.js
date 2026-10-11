@@ -462,7 +462,7 @@ function spawnMonster(id, x, y, opts = {}) {
   // Minion cap (Nathan): during a boss fight, however high the scaling, only MINION_CAP adds can be alive at once.
   // Extra spawns are dropped (returned dead and never placed). Mechanic pieces a boss depends on are exempt.
   if (!opts.wave && !d.boss && !d.clue && !e.raidBoss && !MINION_EXEMPT.has(id) && enemies.some((x) => !x.dead && (x.d.boss || x.d.clue))) {
-    const adds = enemies.reduce((n, x) => n + (!x.dead && !x.d.boss && !x.d.clue && !x.raidBoss ? 1 : 0), 0);
+    const adds = enemies.reduce((n, x) => n + (!x.dead && !x.wave && !x.d.boss && !x.d.clue && !x.raidBoss ? 1 : 0), 0); // the boss stage's own wave mobs don't count
     if (adds >= MINION_CAP) { e.dead = true; return e; }
   }
   enemies.push(e);
