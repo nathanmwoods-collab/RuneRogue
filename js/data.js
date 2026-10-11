@@ -193,7 +193,7 @@ item('armadyl_helmet', 'Armadyl helmet', 'ranged', 'head', 8, 'uncommon', { def:
 item('masori_mask', 'Masori mask', 'ranged', 'head', 14, 'rare', { def: 9, dmg: 0.12, hp: 10 });
 item('leather_body', 'Leather body', 'ranged', 'body', 0, 'common', { def: 3 });
 item('green_dhide_body', "Green d'hide body", 'ranged', 'body', 2, 'common', { def: 5, dmg: 0.08 });
-item('black_dhide_body', "Black d'hide body", 'ranged', 'body', 5, 'common', { def: 8, dmg: 0.12 });
+item('black_dhide_body', "Black d'hide body", 'ranged', 'body', 5, 'common', { def: 8, dmg: 0.13 });
 item('armadyl_chestplate', 'Armadyl chestplate', 'ranged', 'body', 8, 'uncommon', { def: 12, dmg: 0.2, hp: 10 });
 item('masori_body', 'Masori body', 'ranged', 'body', 14, 'rare', { def: 15, dmg: 0.26, hp: 15 });
 item('leather_chaps', 'Leather chaps', 'ranged', 'legs', 0, 'common', { def: 2 });
@@ -201,7 +201,7 @@ item('green_dhide_chaps', "Green d'hide chaps", 'ranged', 'legs', 2, 'common', {
 item('black_dhide_chaps', "Black d'hide chaps", 'ranged', 'legs', 5, 'common', { def: 6, dmg: 0.08 });
 item('armadyl_chainskirt', 'Armadyl chainskirt', 'ranged', 'legs', 8, 'uncommon', { def: 9, dmg: 0.12 });
 item('masori_chaps', 'Masori chaps', 'ranged', 'legs', 14, 'rare', { def: 12, dmg: 0.16, hp: 10 });
-item('leather_vambraces', 'Leather vambraces', 'ranged', 'hands', 0, 'common', { def: 1, dmg: 0.03 });
+item('leather_vambraces', 'Leather vambraces', 'ranged', 'hands', 0, 'common', { def: 1, dmg: 0.02 });
 item('green_dhide_vambraces', "Green d'hide vambraces", 'ranged', 'hands', 2, 'common', { def: 2, dmg: 0.05 });
 item('black_dhide_vambraces', "Black d'hide vambraces", 'ranged', 'hands', 5, 'common', { def: 3, dmg: 0.08 });
 item('zaryte_vambraces', 'Zaryte vambraces', 'ranged', 'hands', 12, 'uncommon', { def: 5, dmg: 0.16 });
@@ -403,7 +403,7 @@ item('adamant_platebody', 'Adamant platebody', 'melee', 'body', 2, 'common', { d
 item('dragon_chainbody', 'Dragon chainbody', 'melee', 'body', 4, 'common', { def: 10 });
 item('dharoks_platebody', "Dharok's platebody", 'melee', 'body', 7, 'uncommon', { def: 15, hp: 10 });
 item('inquisitors_hauberk', "Inquisitor's hauberk", 'melee', 'body', 12, 'rare', { def: 11, dmg: 0.16 });
-item('hardleather_body', 'Hardleather body', 'ranged', 'body', 1, 'common', { def: 4, dmg: 0.04 });
+item('hardleather_body', 'Hardleather body', 'ranged', 'body', 1, 'common', { def: 4, dmg: 0.02 });
 item('blue_dhide_body', "Blue d'hide body", 'ranged', 'body', 3, 'common', { def: 6, dmg: 0.1 });
 item('karils_leathertop', "Karil's leathertop", 'ranged', 'body', 6, 'uncommon', { def: 10, dmg: 0.14 });
 item('infinity_top', 'Infinity top', 'magic', 'body', 5, 'uncommon', { def: 3, dmg: 0.13 });
@@ -1283,9 +1283,9 @@ item('morrigans_javelin', "Morrigan's javelin", 'ranged', 'weapon', 9, 'rare', S
 item('webweaver_bow', 'Webweaver bow', 'ranged', 'weapon', 9, 'rare', SH(14, 0.24, 440, { wt: 'short' }));
 item('eclipse_atlatl', 'Eclipse atlatl', 'ranged', 'weapon', 9, 'uncommon', SH(38, 0.6, 380, { pierce: 2, speed: 900 }));
 // Ranged armour: snakeskin, studded, red d'hide, spined, god d'hide, Eclipse moon, crystal, void
-// Body/chaps damage follows the wiki's Ranged attack bonus: studded (+8/+6) sits just above hardleather and below
-// green d'hide (+15/+8), snakeskin (+12) between them, and spined is defensive armour with only a slight bonus.
-for (const [pre, tier, rar, bd, ld, h] of [['Snakeskin', 2, 'common', 0.07, 0.04, 3], ['Studded', 1, 'common', 0.05, 0.04, 3], ['Spined', 2, 'common', 0.03, 0.02, 4]]) {
+// Body/chaps damage follows the wiki's Ranged attack bonus: leather, hardleather, studded and snakeskin stay well below
+// green d'hide (+15 body), and each d'hide colour is a clear step up. Spined is defensive with only a slight bonus.
+for (const [pre, tier, rar, bd, ld, h] of [['Snakeskin', 2, 'common', 0.04, 0.025, 3], ['Studded', 1, 'common', 0.03, 0.02, 3], ['Spined', 2, 'common', 0.025, 0.015, 4]]) {
   const id = pre.toLowerCase();
   item(`${id}_body`, `${pre} body`, 'ranged', 'body', tier, rar, { def: h + 2, dmg: bd });
   item(`${id}_chaps`, `${pre} chaps`, 'ranged', 'legs', tier, rar, { def: h, dmg: ld });
@@ -1296,7 +1296,7 @@ item('spined_helm', 'Spined helm', 'ranged', 'head', 2, 'common', { def: 4, dmg:
 item('spined_gloves', 'Spined gloves', 'ranged', 'hands', 2, 'common', { def: 2, dmg: 0.03 });
 item('spined_boots', 'Spined boots', 'ranged', 'feet', 2, 'common', { def: 2, dmg: 0.04 });
 item('archer_helm', 'Archer helm', 'ranged', 'head', 4, 'common', { def: 5, dmg: 0.04 });
-item('red_dhide_body', "Red d'hide body", 'ranged', 'body', 4, 'common', { def: 7, dmg: 0.11 });
+item('red_dhide_body', "Red d'hide body", 'ranged', 'body', 4, 'common', { def: 7, dmg: 0.115 });
 item('blue_dhide_chaps', "Blue d'hide chaps", 'ranged', 'legs', 3, 'common', { def: 5, dmg: 0.06 });
 item('red_dhide_chaps', "Red d'hide chaps", 'ranged', 'legs', 4, 'common', { def: 5, dmg: 0.07 });
 item('blue_dhide_vambraces', "Blue d'hide vambraces", 'ranged', 'hands', 3, 'common', { def: 2, dmg: 0.06 });
@@ -1304,7 +1304,7 @@ item('red_dhide_vambraces', "Red d'hide vambraces", 'ranged', 'hands', 4, 'commo
 for (const god of ['Saradomin', 'Guthix', 'Zamorak', 'Armadyl', 'Bandos', 'Ancient']) {
   const g = god.toLowerCase();
   item(`${g}_coif`, `${god} coif`, 'ranged', 'head', 6, 'common', { def: 5, dmg: 0.06, pp: 1 });
-  item(`${g}_dhide_body`, `${god} d'hide body`, 'ranged', 'body', 6, 'common', { def: 9, dmg: 0.13, pp: 1 });
+  item(`${g}_dhide_body`, `${god} d'hide body`, 'ranged', 'body', 6, 'common', { def: 9, dmg: 0.135, pp: 1 });
   item(`${g}_chaps`, `${god} chaps`, 'ranged', 'legs', 6, 'common', { def: 7, dmg: 0.09, pp: 1 });
 }
 item('saradomin_dhide_shield', "Saradomin d'hide shield", 'ranged', 'shield', 6, 'common', { def: 7, dmg: 0.04 });
