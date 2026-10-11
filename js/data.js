@@ -104,14 +104,14 @@ function item(id, name, lane, slot, tier, rarity, stats, file) {
 // w: kind swing|shot|spell. dmg per hit, cd seconds, reach/range px.
 // --- Melee weapons
 item('bronze_sword', 'Bronze sword', 'melee', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'swing', dmg: 6, cd: 0.75, reach: 72, arc: 1.7 } });
-item('rune_scimitar', 'Rune scimitar', 'melee', 'weapon', 1, 'common', { w: { kind: 'swing', dmg: 11, cd: 0.6, reach: 80, arc: 1.8 } });
-item('dragon_scimitar', 'Dragon scimitar', 'melee', 'weapon', 3, 'common', { w: { kind: 'swing', dmg: 16, cd: 0.55, reach: 85, arc: 1.9 } });
+item('rune_scimitar', 'Rune scimitar', 'melee', 'weapon', 4, 'common', { w: { kind: 'swing', dmg: 11, cd: 0.6, reach: 80, arc: 1.8 } });
+item('dragon_scimitar', 'Dragon scimitar', 'melee', 'weapon', 5, 'common', { w: { kind: 'swing', dmg: 16, cd: 0.55, reach: 85, arc: 1.9 } });
 item('granite_maul', 'Granite maul', 'melee', 'weapon', 4, 'uncommon', { w: { kind: 'swing', dmg: 40, cd: 1.15, reach: 100, arc: 6.3, knock: 90 } });
-item('abyssal_whip', 'Abyssal whip', 'melee', 'weapon', 5, 'common', { w: { kind: 'swing', dmg: 23, cd: 0.5, reach: 125, arc: 1.3 } });
+item('abyssal_whip', 'Abyssal whip', 'melee', 'weapon', 6, 'common', { w: { kind: 'swing', dmg: 23, cd: 0.5, reach: 125, arc: 1.3 } });
 item('dragon_claws', 'Dragon claws', 'melee', 'weapon', 7, 'rare', { w: { kind: 'swing', dmg: 22, cd: 0.42, reach: 85, arc: 1.9, hits: 2 } });
 item('bandos_godsword', 'Bandos godsword', 'melee', 'weapon', 8, 'rare', { w: { kind: 'swing', dmg: 70, cd: 1.0, reach: 115, arc: 2.6, knock: 50 } });
-item('armadyl_godsword', 'Armadyl godsword', 'melee', 'weapon', 9, 'rare', { w: { kind: 'swing', dmg: 88, cd: 1.0, reach: 115, arc: 2.6 } });
-item('ghrazi_rapier', 'Ghrazi rapier', 'melee', 'weapon', 11, 'uncommon', { w: { kind: 'swing', dmg: 46, cd: 0.42, reach: 95, arc: 1.2 } });
+item('armadyl_godsword', 'Armadyl godsword', 'melee', 'weapon', 8, 'rare', { w: { kind: 'swing', dmg: 88, cd: 1.0, reach: 115, arc: 2.6 } });
+item('ghrazi_rapier', 'Ghrazi rapier', 'melee', 'weapon', 12, 'uncommon', { w: { kind: 'swing', dmg: 46, cd: 0.42, reach: 95, arc: 1.2 } });
 item('osmumtens_fang', "Osmumten's fang", 'melee', 'weapon', 12, 'uncommon', { w: { kind: 'swing', dmg: 52, cd: 0.42, reach: 90, arc: 1.3 } });
 item('inquisitors_mace', "Inquisitor's mace", 'melee', 'weapon', 12, 'rare', { w: { kind: 'swing', dmg: 58, cd: 0.45, reach: 90, arc: 1.8 } });
 item('elder_maul', 'Elder maul', 'melee', 'weapon', 13, 'rare', { w: { kind: 'swing', dmg: 130, cd: 1.05, reach: 110, arc: 6.3, knock: 80 } });
@@ -122,9 +122,9 @@ item('shortbow', 'Shortbow', 'ranged', 'weapon', 0, 'common', { price: 0, start:
 item('sandwich_tray', 'Sandwiches', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 6, cd: 0.55, range: 360, speed: 620, pierce: 1, count: 1, knock: 3,
   foods: ['Baguette.png', 'Triangle_sandwich.png', 'Square_sandwich.png', 'Chocolate_bar.png', 'Kebab.png', 'Roll.png', 'Meat_pie.png'] } }, 'Triangle_sandwich.png');
 item('dorgeshuun_crossbow', 'Dorgeshuun crossbow', 'ranged', 'weapon', 0, 'common', { price: 0, start: true, w: { kind: 'shot', dmg: 8, cd: 0.8, range: 400, speed: 950, pierce: 2, count: 1, bolt: true } });
-item('magic_shortbow', 'Magic shortbow', 'ranged', 'weapon', 1, 'common', { w: { kind: 'shot', dmg: 8, cd: 0.36, range: 420, speed: 900, pierce: 1, count: 1 } });
-item('rune_crossbow', 'Rune crossbow', 'ranged', 'weapon', 3, 'common', { w: { kind: 'shot', dmg: 22, cd: 0.8, range: 460, speed: 1050, pierce: 3, count: 1, bolt: true } });
-item('dark_bow', 'Dark bow', 'ranged', 'weapon', 4, 'uncommon', { w: { kind: 'shot', dmg: 21, cd: 0.95, range: 430, speed: 900, pierce: 2, count: 2, spread: 0.14 } });
+item('magic_shortbow', 'Magic shortbow', 'ranged', 'weapon', 3, 'common', { w: { kind: 'shot', dmg: 8, cd: 0.36, range: 420, speed: 900, pierce: 1, count: 1 } });
+item('rune_crossbow', 'Rune crossbow', 'ranged', 'weapon', 4, 'common', { w: { kind: 'shot', dmg: 22, cd: 0.8, range: 460, speed: 1050, pierce: 3, count: 1, bolt: true } });
+item('dark_bow', 'Dark bow', 'ranged', 'weapon', 5, 'uncommon', { w: { kind: 'shot', dmg: 21, cd: 0.95, range: 430, speed: 900, pierce: 2, count: 2, spread: 0.14 } });
 item('toxic_blowpipe', 'Toxic blowpipe', 'ranged', 'weapon', 9, 'uncommon', { w: { kind: 'shot', dmg: 20, cd: 0.22, range: 360, speed: 1000, pierce: 1, count: 1, dart: true } });
 item('bow_of_faerdhinen', 'Bow of Faerdhinen', 'ranged', 'weapon', 11, 'rare', { w: { kind: 'shot', dmg: 48, cd: 0.5, range: 520, speed: 1150, pierce: 2, count: 1 } });
 item('zaryte_crossbow', 'Zaryte crossbow', 'ranged', 'weapon', 12, 'uncommon', { w: { kind: 'shot', dmg: 70, cd: 0.7, range: 500, speed: 1200, pierce: 4, count: 1, bolt: true } });
@@ -144,23 +144,23 @@ item('tumekens_shadow', "Tumeken's shadow", 'magic', 'weapon', 13, 'mega', { w: 
 
 // --- Melee armour
 item('bronze_full_helm', 'Bronze full helm', 'melee', 'head', 0, 'common', { def: 2 });
-item('rune_full_helm', 'Rune full helm', 'melee', 'head', 2, 'common', { def: 5 });
+item('rune_full_helm', 'Rune full helm', 'melee', 'head', 4, 'common', { def: 5 });
 item('helm_of_neitiznot', 'Helm of Neitiznot', 'melee', 'head', 5, 'common', { def: 7, dmg: 0.04 });
 item('neitiznot_faceguard', 'Neitiznot faceguard', 'melee', 'head', 10, 'uncommon', { def: 10, dmg: 0.06, hp: 10 });
 item('torva_full_helm', 'Torva full helm', 'melee', 'head', 14, 'rare', { def: 14, dmg: 0.08, hp: 20 });
 item('bronze_platebody', 'Bronze platebody', 'melee', 'body', 0, 'common', { def: 3 });
-item('rune_platebody', 'Rune platebody', 'melee', 'body', 2, 'common', { def: 8, hp: 5 });
+item('rune_platebody', 'Rune platebody', 'melee', 'body', 4, 'common', { def: 8, hp: 5 });
 item('fighter_torso', 'Fighter torso', 'melee', 'body', 4, 'common', { def: 8, dmg: 0.08 });
 item('bandos_chestplate', 'Bandos chestplate', 'melee', 'body', 8, 'uncommon', { def: 14, dmg: 0.1, hp: 10 });
 item('torva_platebody', 'Torva platebody', 'melee', 'body', 14, 'rare', { def: 20, dmg: 0.14, hp: 25 });
 item('bronze_platelegs', 'Bronze platelegs', 'melee', 'legs', 0, 'common', { def: 2 });
-item('rune_platelegs', 'Rune platelegs', 'melee', 'legs', 2, 'common', { def: 6 });
+item('rune_platelegs', 'Rune platelegs', 'melee', 'legs', 4, 'common', { def: 6 });
 item('dragon_platelegs', 'Dragon platelegs', 'melee', 'legs', 5, 'common', { def: 8, dmg: 0.03 });
 item('bandos_tassets', 'Bandos tassets', 'melee', 'legs', 8, 'uncommon', { def: 11, dmg: 0.07 });
 item('torva_platelegs', 'Torva platelegs', 'melee', 'legs', 14, 'rare', { def: 16, dmg: 0.1, hp: 15 });
 item('wooden_shield', 'Wooden shield', 'melee', 'shield', 0, 'common', { def: 2 });
-item('rune_kiteshield', 'Rune kiteshield', 'melee', 'shield', 2, 'common', { def: 6 });
-item('dragon_defender', 'Dragon defender', 'melee', 'shield', 4, 'common', { def: 4, aspd: 0.12 });
+item('rune_kiteshield', 'Rune kiteshield', 'melee', 'shield', 4, 'common', { def: 6 });
+item('dragon_defender', 'Dragon defender', 'melee', 'shield', 5, 'common', { def: 4, aspd: 0.12 });
 item('dragonfire_shield', 'Dragonfire shield', 'melee', 'shield', 7, 'uncommon', { def: 12, hp: 10 });
 item('avernic_defender', 'Avernic defender', 'melee', 'shield', 11, 'uncommon', { def: 8, aspd: 0.18, dmg: 0.06 });
 item('elysian_spirit_shield', 'Elysian spirit shield', 'any', 'shield', 15, 'rare', { def: 22, hp: 40, taken: 0.8 });
@@ -168,16 +168,16 @@ item('leather_gloves', 'Leather gloves', 'any', 'hands', 0, 'common', { def: 1 }
 item('barrows_gloves', 'Barrows gloves', 'any', 'hands', 5, 'common', { def: 4, dmg: 0.08, aspd: 0.04 });
 item('ferocious_gloves', 'Ferocious gloves', 'melee', 'hands', 10, 'uncommon', { def: 3, dmg: 0.14 });
 item('leather_boots', 'Leather boots', 'any', 'feet', 0, 'common', { def: 1, speed: 0.03 });
-item('rune_boots', 'Rune boots', 'melee', 'feet', 3, 'common', { def: 4 });
+item('rune_boots', 'Rune boots', 'melee', 'feet', 4, 'common', { def: 4 });
 item('dragon_boots', 'Dragon boots', 'melee', 'feet', 5, 'common', { def: 4, dmg: 0.05 });
 item('primordial_boots', 'Primordial boots', 'melee', 'feet', 10, 'uncommon', { def: 6, dmg: 0.1 });
 item('obsidian_cape', 'Obsidian cape', 'melee', 'cape', 3, 'common', { def: 3, dmg: 0.05 });
 item('fire_cape', 'Fire cape', 'any', 'cape', 11, 'uncommon', { def: 5, dmg: 0.1, hp: 10 });
-item('infernal_cape', 'Infernal cape', 'any', 'cape', 15, 'rare', { def: 8, dmg: 0.16, hp: 15 });
+item('infernal_cape', 'Infernal cape', 'any', 'cape', 15, 'rare', { def: 9, dmg: 0.2, hp: 18 });
 // Max capes: the best capes for each style (the imbued god max cape is the best magic cape). The plain max cape has
 // the Ava's accumulator effect built in, as in OSRS, a bit stronger (Nathan: better for ranged than the accumulator).
 item('max_cape', 'Max cape', 'any', 'cape', 12, 'ultra', { def: 6, dmg: 0.06, pp: 4, hp: 10, aspd: 0.12, range: 0.18 });
-item('infernal_max_cape', 'Infernal max cape', 'melee', 'cape', 16, 'ultra', { def: 9, dmg: 0.2, hp: 18, pp: 4 });
+item('infernal_max_cape', 'Infernal max cape', 'melee', 'cape', 16, 'ultra', { def: 10, dmg: 0.22, hp: 20, pp: 4 });
 item('imbued_saradomin_max_cape', 'Imbued Saradomin max cape', 'magic', 'cape', 13, 'ultra', { def: 6, dmg: 0.18, hp: 10, pp: 4 }, 'Imbued_Saradomin_max_cape.png');
 item('masori_assembler_max_cape', 'Masori assembler max cape', 'ranged', 'cape', 16, 'ultra', { aspd: 0.18, range: 0.25, dmg: 0.15, pp: 4 });
 item('amulet_of_strength', 'Amulet of strength', 'melee', 'neck', 1, 'common', { dmg: 0.08 });
@@ -188,13 +188,13 @@ item('ultor_ring', 'Ultor ring', 'melee', 'ring', 13, 'rare', { dmg: 0.2 });
 // --- Ranged armour
 item('leather_cowl', 'Leather cowl', 'ranged', 'head', 0, 'common', { def: 1 });
 item('coif', 'Coif', 'ranged', 'head', 1, 'common', { def: 2, dmg: 0.03 });
-item('robin_hood_hat', 'Robin Hood hat', 'ranged', 'head', 5, 'uncommon', { def: 4, dmg: 0.08 });
-item('armadyl_helmet', 'Armadyl helmet', 'ranged', 'head', 8, 'uncommon', { def: 6, dmg: 0.08 });
+item('robin_hood_hat', 'Robin Hood hat', 'ranged', 'head', 4, 'uncommon', { def: 4, dmg: 0.08 });
+item('armadyl_helmet', 'Armadyl helmet', 'ranged', 'head', 8, 'uncommon', { def: 7, dmg: 0.1 });
 item('masori_mask', 'Masori mask', 'ranged', 'head', 14, 'rare', { def: 9, dmg: 0.12, hp: 10 });
 item('leather_body', 'Leather body', 'ranged', 'body', 0, 'common', { def: 3 });
 item('green_dhide_body', "Green d'hide body", 'ranged', 'body', 2, 'common', { def: 5, dmg: 0.07 });
 item('black_dhide_body', "Black d'hide body", 'ranged', 'body', 5, 'common', { def: 8, dmg: 0.13 });
-item('armadyl_chestplate', 'Armadyl chestplate', 'ranged', 'body', 8, 'uncommon', { def: 12, dmg: 0.2, hp: 10 });
+item('armadyl_chestplate', 'Armadyl chestplate', 'ranged', 'body', 8, 'uncommon', { def: 12, dmg: 0.16, hp: 10 });
 item('masori_body', 'Masori body', 'ranged', 'body', 14, 'rare', { def: 15, dmg: 0.26, hp: 15 });
 item('leather_chaps', 'Leather chaps', 'ranged', 'legs', 0, 'common', { def: 2 });
 item('green_dhide_chaps', "Green d'hide chaps", 'ranged', 'legs', 2, 'common', { def: 4, dmg: 0.04 });
@@ -217,41 +217,40 @@ item('necklace_of_anguish', 'Necklace of anguish', 'ranged', 'neck', 10, 'uncomm
 item('archers_ring', 'Archers ring', 'ranged', 'ring', 5, 'common', { dmg: 0.1 });
 item('venator_ring', 'Venator ring', 'ranged', 'ring', 13, 'rare', { dmg: 0.2 });
 item('bronze_arrow', 'Bronze arrow', 'ranged', 'ammo', 0, 'common', { dmg: 0.03 }, 'Bronze_arrow_5.png');
-item('adamant_arrow', 'Adamant arrow', 'ranged', 'ammo', 2, 'common', { dmg: 0.07 }, 'Adamant_arrow_5.png');
+item('adamant_arrow', 'Adamant arrow', 'ranged', 'ammo', 2, 'common', { dmg: 0.08 }, 'Adamant_arrow_5.png');
 item('rune_arrow', 'Rune arrow', 'ranged', 'ammo', 3, 'common', { dmg: 0.1 }, 'Rune_arrow_5.png');
-item('amethyst_arrow', 'Amethyst arrow', 'ranged', 'ammo', 6, 'common', { dmg: 0.14, pierce: 1 }, 'Amethyst_arrow_5.png');
-item('dragon_arrow', 'Dragon arrow', 'ranged', 'ammo', 10, 'uncommon', { dmg: 0.22, pierce: 1 }, 'Dragon_arrow_5.png');
+item('amethyst_arrow', 'Amethyst arrow', 'ranged', 'ammo', 5, 'common', { dmg: 0.14, pierce: 1 }, 'Amethyst_arrow_5.png');
+item('dragon_arrow', 'Dragon arrow', 'ranged', 'ammo', 7, 'uncommon', { dmg: 0.17, pierce: 1 }, 'Dragon_arrow_5.png');
 // Enchanted dragon bolts: each has its real bolt effect (proc) from the wiki.
-item('dragonstone_dragon_bolts_e', 'Dragonstone dragon bolts (e)', 'ranged', 'ammo', 7, 'uncommon', { dmg: 0.15, proc: 'dragonstone' }, 'Dragonstone_dragon_bolts_(e)_detail.png');
-item('ruby_dragon_bolts_e', 'Ruby dragon bolts (e)', 'ranged', 'ammo', 8, 'rare', { dmg: 0.16, proc: 'ruby' }, 'Ruby_dragon_bolts_(e)_detail.png');
-item('diamond_dragon_bolts_e', 'Diamond dragon bolts (e)', 'ranged', 'ammo', 9, 'rare', { dmg: 0.18, proc: 'diamond' }, 'Diamond_dragon_bolts_(e)_1.png');
-item('onyx_dragon_bolts_e', 'Onyx dragon bolts (e)', 'ranged', 'ammo', 11, 'rare', { dmg: 0.2, proc: 'onyx' }, 'Onyx_dragon_bolts_(e)_1.png');
+item('dragonstone_dragon_bolts_e', 'Dragonstone dragon bolts (e)', 'ranged', 'ammo', 8, 'uncommon', { dmg: 0.185, proc: 'dragonstone' }, 'Dragonstone_dragon_bolts_(e)_detail.png');
+item('ruby_dragon_bolts_e', 'Ruby dragon bolts (e)', 'ranged', 'ammo', 8, 'rare', { dmg: 0.19, proc: 'ruby' }, 'Ruby_dragon_bolts_(e)_detail.png');
+item('diamond_dragon_bolts_e', 'Diamond dragon bolts (e)', 'ranged', 'ammo', 9, 'rare', { dmg: 0.21, proc: 'diamond' }, 'Diamond_dragon_bolts_(e)_1.png');
+item('onyx_dragon_bolts_e', 'Onyx dragon bolts (e)', 'ranged', 'ammo', 10, 'rare', { dmg: 0.23, proc: 'onyx' }, 'Onyx_dragon_bolts_(e)_1.png');
 // --- Magic armour
 item('blue_wizard_hat', 'Blue wizard hat', 'magic', 'head', 0, 'common', { def: 1, dmg: 0.03 });
 item('mystic_hat', 'Mystic hat', 'magic', 'head', 2, 'common', { def: 2, dmg: 0.05 });
-item('ahrims_hood', "Ahrim's hood", 'magic', 'head', 6, 'uncommon', { def: 5, dmg: 0.08 });
+item('ahrims_hood', "Ahrim's hood", 'magic', 'head', 7, 'uncommon', { def: 5, dmg: 0.08 });
 item('ancestral_hat', 'Ancestral hat', 'magic', 'head', 10, 'uncommon', { def: 6, dmg: 0.12 });
 item('virtus_mask', 'Virtus mask', 'magic', 'head', 10, 'rare', { def: 7, dmg: 0.09, hp: 10 });
 item('blue_wizard_robe', 'Blue wizard robe', 'magic', 'body', 0, 'common', { def: 1, dmg: 0.06 });
 item('mystic_robe_top', 'Mystic robe top', 'magic', 'body', 2, 'common', { def: 3, dmg: 0.1 });
-item('ahrims_robetop', "Ahrim's robetop", 'magic', 'body', 6, 'uncommon', { def: 7, dmg: 0.15 });
+item('ahrims_robetop', "Ahrim's robetop", 'magic', 'body', 7, 'uncommon', { def: 8, dmg: 0.16 });
 item('ancestral_robe_top', 'Ancestral robe top', 'magic', 'body', 10, 'uncommon', { def: 9, dmg: 0.24 });
 item('virtus_robe_top', 'Virtus robe top', 'magic', 'body', 10, 'rare', { def: 11, dmg: 0.19, hp: 15 });
 item('blue_skirt', 'Blue skirt', 'magic', 'legs', 0, 'common', { def: 1, dmg: 0.03 });
 item('mystic_robe_bottom', 'Mystic robe bottom', 'magic', 'legs', 2, 'common', { def: 2, dmg: 0.06 });
-item('ahrims_robeskirt', "Ahrim's robeskirt", 'magic', 'legs', 6, 'uncommon', { def: 6, dmg: 0.1 });
+item('ahrims_robeskirt', "Ahrim's robeskirt", 'magic', 'legs', 7, 'uncommon', { def: 7, dmg: 0.11 });
 item('ancestral_robe_bottom', 'Ancestral robe bottom', 'magic', 'legs', 10, 'uncommon', { def: 8, dmg: 0.16 });
 item('virtus_robe_bottom', 'Virtus robe bottom', 'magic', 'legs', 10, 'rare', { def: 9, dmg: 0.12, hp: 10 });
-item('mystic_gloves', 'Mystic gloves', 'magic', 'hands', 2, 'common', { def: 1, dmg: 0.04 });
+item('mystic_gloves', 'Mystic gloves', 'magic', 'hands', 2, 'common', { def: 1, dmg: 0.035 });
 item('tormented_bracelet', 'Tormented bracelet', 'magic', 'hands', 10, 'uncommon', { dmg: 0.14 });
-item('wizard_boots', 'Wizard boots', 'magic', 'feet', 1, 'uncommon', { dmg: 0.04, speed: 0.03 });
+item('wizard_boots', 'Wizard boots', 'magic', 'feet', 1, 'uncommon', { dmg: 0.02, speed: 0.03 });
 item('mystic_boots', 'Mystic boots', 'magic', 'feet', 2, 'common', { def: 1, dmg: 0.03 });
 item('eternal_boots', 'Eternal boots', 'magic', 'feet', 10, 'uncommon', { def: 3, dmg: 0.1 });
 item('mages_book', "Mage's book", 'magic', 'shield', 4, 'common', { dmg: 0.1 });
 item('arcane_spirit_shield', 'Arcane spirit shield', 'magic', 'shield', 11, 'rare', { def: 12, dmg: 0.16 });
-item('saradomin_cape', 'Saradomin cape', 'magic', 'cape', 3, 'common', { dmg: 0.06 });
 item('imbued_saradomin_cape', 'Imbued Saradomin cape', 'magic', 'cape', 8, 'uncommon', { dmg: 0.12 });
-item('imbued_zamorak_cape', 'Imbued Zamorak cape', 'magic', 'cape', 9, 'uncommon', { dmg: 0.12, def: 2 });
+item('imbued_zamorak_cape', 'Imbued Zamorak cape', 'magic', 'cape', 8, 'uncommon', { dmg: 0.12, def: 2 });
 item('amulet_of_magic', 'Amulet of magic', 'magic', 'neck', 1, 'common', { dmg: 0.08 });
 item('occult_necklace', 'Occult necklace', 'magic', 'neck', 6, 'uncommon', { dmg: 0.2 });
 item('seers_ring', 'Seers ring', 'magic', 'ring', 5, 'common', { dmg: 0.1 });
@@ -266,19 +265,19 @@ item('ppot', 'Prayer potion', 'any', 'food', 0, 'common', { price: 26, desc: 'Re
 
 // --- More gear from the wiki's slot tables (any hero can wear any of it)
 // Melee weapons
-item('adamant_scimitar', 'Adamant scimitar', 'melee', 'weapon', 1, 'common', { w: { kind: 'swing', dmg: 9, cd: 0.6, reach: 78, arc: 1.8 } });
-item('dragon_dagger', 'Dragon dagger', 'melee', 'weapon', 2, 'common', { w: { kind: 'swing', dmg: 8, cd: 0.42, reach: 66, arc: 1.4, hits: 2 } });
-item('dragon_longsword', 'Dragon longsword', 'melee', 'weapon', 3, 'common', { w: { kind: 'swing', dmg: 21, cd: 0.7, reach: 95, arc: 2.0 } });
-item('zamorakian_spear', 'Zamorakian spear', 'melee', 'weapon', 5, 'uncommon', { w: { kind: 'swing', dmg: 26, cd: 0.6, reach: 130, arc: 0.9, knock: 70 } });
+item('adamant_scimitar', 'Adamant scimitar', 'melee', 'weapon', 3, 'common', { w: { kind: 'swing', dmg: 9, cd: 0.6, reach: 78, arc: 1.8 } });
+item('dragon_dagger', 'Dragon dagger', 'melee', 'weapon', 5, 'common', { w: { kind: 'swing', dmg: 8, cd: 0.42, reach: 66, arc: 1.4, hits: 2 } });
+item('dragon_longsword', 'Dragon longsword', 'melee', 'weapon', 5, 'common', { w: { kind: 'swing', dmg: 21, cd: 0.7, reach: 95, arc: 2.0 } });
+item('zamorakian_spear', 'Zamorakian spear', 'melee', 'weapon', 8, 'uncommon', { w: { kind: 'swing', dmg: 26, cd: 0.6, reach: 130, arc: 0.9, knock: 70 } });
 item('dragon_warhammer', 'Dragon warhammer', 'melee', 'weapon', 6, 'uncommon', { w: { kind: 'swing', dmg: 46, cd: 0.95, reach: 90, arc: 2.2, knock: 40 } });
-item('saradomin_sword', 'Saradomin sword', 'melee', 'weapon', 6, 'uncommon', { w: { kind: 'swing', dmg: 38, cd: 0.7, reach: 110, arc: 2.4 } });
-item('abyssal_tentacle', 'Abyssal tentacle', 'melee', 'weapon', 7, 'common', { w: { kind: 'swing', dmg: 30, cd: 0.5, reach: 130, arc: 1.3 } });
+item('saradomin_sword', 'Saradomin sword', 'melee', 'weapon', 8, 'uncommon', { w: { kind: 'swing', dmg: 38, cd: 0.7, reach: 110, arc: 2.4 } });
+item('abyssal_tentacle', 'Abyssal tentacle', 'melee', 'weapon', 8, 'common', { w: { kind: 'swing', dmg: 30, cd: 0.5, reach: 130, arc: 1.3 } });
 item('abyssal_bludgeon', 'Abyssal bludgeon', 'melee', 'weapon', 9, 'uncommon', { w: { kind: 'swing', dmg: 60, cd: 0.8, reach: 100, arc: 6.3 } });
-item('saradomin_godsword', 'Saradomin godsword', 'melee', 'weapon', 9, 'rare', { w: { kind: 'swing', dmg: 76, cd: 1.0, reach: 115, arc: 2.6, leech: 0.1 } });
+item('saradomin_godsword', 'Saradomin godsword', 'melee', 'weapon', 8, 'rare', { w: { kind: 'swing', dmg: 76, cd: 1.0, reach: 115, arc: 2.6, leech: 0.1 } });
 item('blade_of_saeldor', 'Blade of Saeldor', 'melee', 'weapon', 11, 'rare', { w: { kind: 'swing', dmg: 50, cd: 0.42, reach: 100, arc: 1.8 } });
 // Ranged weapons
 item('maple_shortbow', 'Maple shortbow', 'ranged', 'weapon', 1, 'common', { w: { kind: 'shot', dmg: 7, cd: 0.45, range: 400, speed: 820, pierce: 1, count: 1 } });
-item('magic_longbow', 'Magic longbow', 'ranged', 'weapon', 2, 'common', { w: { kind: 'shot', dmg: 14, cd: 0.7, range: 560, speed: 950, pierce: 2, count: 1 } });
+item('magic_longbow', 'Magic longbow', 'ranged', 'weapon', 3, 'common', { w: { kind: 'shot', dmg: 14, cd: 0.7, range: 560, speed: 950, pierce: 2, count: 1 } });
 item('dragon_crossbow', 'Dragon crossbow', 'ranged', 'weapon', 6, 'common', { w: { kind: 'shot', dmg: 32, cd: 0.75, range: 470, speed: 1080, pierce: 3, count: 1, bolt: true } });
 item('crawss_bow', "Craw's bow", 'ranged', 'weapon', 7, 'uncommon', { w: { kind: 'shot', dmg: 26, cd: 0.45, range: 460, speed: 1000, pierce: 1, count: 1 } }, "Craw's_bow.png");
 item('dragon_hunter_crossbow', 'Dragon hunter crossbow', 'ranged', 'weapon', 7, 'uncommon', { w: { kind: 'shot', dmg: 38, cd: 0.7, range: 480, speed: 1100, pierce: 3, count: 1, bolt: true } });
@@ -353,16 +352,16 @@ const GOD_SPELLS = {
   zamorak: { spell: 'Flames of Zamorak', icon: 'Flames_of_Zamorak.png', color: '#ff4a2a', info: 'hits lower the enemy\'s Magic: it hits you 20% softer for 4 sec' },
 };
 for (const [id, name, god, tier, dmg, cd] of [
-  ['saradomin_staff', 'Saradomin staff', 'saradomin', 3, 24, 0.85], ['guthix_staff', 'Guthix staff', 'guthix', 3, 24, 0.85], ['zamorak_staff', 'Zamorak staff', 'zamorak', 3, 24, 0.85],
-  ['staff_of_balance', 'Staff of balance', 'guthix', 5, 32, 0.78], ['staff_of_light', 'Staff of light', 'saradomin', 6, 34, 0.72], ['staff_of_the_dead', 'Staff of the dead', 'zamorak', 6, 38, 0.78],
+  ['saradomin_staff', 'Saradomin staff', 'saradomin', 5, 24, 0.85], ['guthix_staff', 'Guthix staff', 'guthix', 5, 24, 0.85], ['zamorak_staff', 'Zamorak staff', 'zamorak', 5, 24, 0.85],
+  ['staff_of_balance', 'Staff of balance', 'guthix', 6, 32, 0.78], ['staff_of_light', 'Staff of light', 'saradomin', 6, 34, 0.72], ['staff_of_the_dead', 'Staff of the dead', 'zamorak', 6, 38, 0.78],
 ]) {
   const G = GOD_SPELLS[god];
   item(id, name, 'magic', 'weapon', tier, tier >= 5 ? 'uncommon' : 'common', { w: { kind: 'spell', god, spell: G.spell, icon: G.icon, dmg, cd, range: 410, speed: 640, splash: 56, color: G.color } },
     { staff_of_balance: 'Staff_of_Balance.png', staff_of_light: 'Staff_of_Light.png', staff_of_the_dead: 'Staff_of_the_Dead.png' }[id]);
 }
-item('saradomin_cape', 'Saradomin cape', 'magic', 'cape', 3, 'common', { dmg: 0.06, def: 1 });
-item('guthix_cape', 'Guthix cape', 'magic', 'cape', 3, 'common', { dmg: 0.06, def: 1 });
-item('zamorak_cape', 'Zamorak cape', 'magic', 'cape', 3, 'common', { dmg: 0.06, def: 1 });
+item('saradomin_cape', 'Saradomin cape', 'magic', 'cape', 5, 'common', { dmg: 0.06, def: 1 });
+item('guthix_cape', 'Guthix cape', 'magic', 'cape', 5, 'common', { dmg: 0.06, def: 1 });
+item('zamorak_cape', 'Zamorak cape', 'magic', 'cape', 5, 'common', { dmg: 0.06, def: 1 });
 // Bows: normal, oak, willow, maple, yew and magic, short and long
 const WOODS = [['', 'Shortbow', 'Longbow', 0], ['oak', 'Oak shortbow', 'Oak longbow', 0], ['willow', 'Willow shortbow', 'Willow longbow', 1], ['maple', 'Maple shortbow', 'Maple longbow', 1], ['yew', 'Yew shortbow', 'Yew longbow', 2], ['magic', 'Magic shortbow', 'Magic longbow', 3]];
 WOODS.forEach(([wid, sname, lname, tier], i) => {
@@ -386,40 +385,40 @@ for (const [eid, spell, color, fx] of ELEMENTS) {
 }
 // Head
 item('iron_full_helm', 'Iron full helm', 'melee', 'head', 0, 'common', { def: 3 });
-item('adamant_full_helm', 'Adamant full helm', 'melee', 'head', 1, 'common', { def: 4 });
+item('adamant_full_helm', 'Adamant full helm', 'melee', 'head', 3, 'common', { def: 4 });
 item('berserker_helm', 'Berserker helm', 'melee', 'head', 4, 'common', { def: 6, dmg: 0.03 });
-item('dragon_full_helm', 'Dragon full helm', 'melee', 'head', 6, 'uncommon', { def: 9 });
-item('dharoks_helm', "Dharok's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
-item('inquisitors_great_helm', "Inquisitor's great helm", 'melee', 'head', 12, 'rare', { def: 6, dmg: 0.1 });
-item('crystal_helm', 'Crystal helm', 'ranged', 'head', 9, 'uncommon', { def: 6, dmg: 0.09, pp: 2 });
-item('karils_coif', "Karil's coif", 'ranged', 'head', 6, 'uncommon', { def: 5, dmg: 0.06 });
-item('infinity_hat', 'Infinity hat', 'magic', 'head', 5, 'uncommon', { def: 2, dmg: 0.07 });
+item('dragon_full_helm', 'Dragon full helm', 'melee', 'head', 5, 'uncommon', { def: 9 });
+item('dharoks_helm', "Dharok's helm", 'melee', 'head', 7, 'uncommon', { def: 10, hp: 6 });
+item('inquisitors_great_helm', "Inquisitor's great helm", 'melee', 'head', 12, 'rare', { def: 8, dmg: 0.12, hp: 5 });
+item('crystal_helm', 'Crystal helm', 'ranged', 'head', 9, 'uncommon', { def: 7, dmg: 0.11, pp: 2 });
+item('karils_coif', "Karil's coif", 'ranged', 'head', 7, 'uncommon', { def: 6, dmg: 0.08 });
+item('infinity_hat', 'Infinity hat', 'magic', 'head', 5, 'uncommon', { def: 3, dmg: 0.08 });
 item('justiciar_faceguard', 'Justiciar faceguard', 'any', 'head', 12, 'rare', { def: 14, pp: 2, taken: 0.96 });
 // Body
 item('bronze_chainbody', 'Bronze chainbody', 'melee', 'body', 0, 'common', { def: 2, aspd: 0.02 });
 item('iron_platebody', 'Iron platebody', 'melee', 'body', 0, 'common', { def: 4 });
 item('black_platebody', 'Black platebody', 'melee', 'body', 1, 'common', { def: 5 });
-item('adamant_platebody', 'Adamant platebody', 'melee', 'body', 2, 'common', { def: 7 });
-item('dragon_chainbody', 'Dragon chainbody', 'melee', 'body', 4, 'common', { def: 10 });
+item('adamant_platebody', 'Adamant platebody', 'melee', 'body', 3, 'common', { def: 7 });
+item('dragon_chainbody', 'Dragon chainbody', 'melee', 'body', 5, 'common', { def: 13, hp: 8 });
 item('dharoks_platebody', "Dharok's platebody", 'melee', 'body', 7, 'uncommon', { def: 15, hp: 10 });
-item('inquisitors_hauberk', "Inquisitor's hauberk", 'melee', 'body', 12, 'rare', { def: 11, dmg: 0.16 });
+item('inquisitors_hauberk', "Inquisitor's hauberk", 'melee', 'body', 12, 'rare', { def: 14, dmg: 0.2, hp: 5 });
 item('hardleather_body', 'Hardleather body', 'ranged', 'body', 1, 'common', { def: 4, dmg: 0.02 });
 item('blue_dhide_body', "Blue d'hide body", 'ranged', 'body', 3, 'common', { def: 6, dmg: 0.09 });
-item('karils_leathertop', "Karil's leathertop", 'ranged', 'body', 6, 'uncommon', { def: 10, dmg: 0.14 });
-item('infinity_top', 'Infinity top', 'magic', 'body', 5, 'uncommon', { def: 3, dmg: 0.13 });
+item('karils_leathertop', "Karil's leathertop", 'ranged', 'body', 7, 'uncommon', { def: 10, dmg: 0.14 });
+item('infinity_top', 'Infinity top', 'magic', 'body', 5, 'uncommon', { def: 4, dmg: 0.15 });
 item('elite_void_top', 'Elite void top', 'any', 'body', 7, 'uncommon', { def: 10, dmg: 0.08, pp: 3 });
 item('justiciar_chestguard', 'Justiciar chestguard', 'any', 'body', 12, 'rare', { def: 24, pp: 4, taken: 0.94 });
 // Legs
-item('karils_leatherskirt', "Karil's leatherskirt", 'ranged', 'legs', 6, 'uncommon', { def: 7, dmg: 0.1 });
-item('infinity_bottoms', 'Infinity bottoms', 'magic', 'legs', 5, 'uncommon', { def: 2, dmg: 0.09 });
+item('karils_leatherskirt', "Karil's leatherskirt", 'ranged', 'legs', 7, 'uncommon', { def: 8, dmg: 0.1 });
+item('infinity_bottoms', 'Infinity bottoms', 'magic', 'legs', 5, 'uncommon', { def: 3, dmg: 0.11 });
 item('justiciar_legguards', 'Justiciar legguards', 'any', 'legs', 12, 'rare', { def: 18, pp: 2, taken: 0.95 });
 // Shield
 item('granite_shield', 'Granite shield', 'melee', 'shield', 4, 'common', { def: 9 });
-item('book_of_darkness', 'Book of Darkness', 'magic', 'shield', 5, 'common', { dmg: 0.08, pp: 5 });
+item('book_of_darkness', 'Book of Darkness', 'magic', 'shield', 5, 'common', { dmg: 0.1, pp: 5 });
 item('spectral_spirit_shield', 'Spectral spirit shield', 'any', 'shield', 9, 'uncommon', { def: 15, pp: 5, taken: 0.92 });
 // Hands
 item('dragon_gloves', 'Dragon gloves', 'melee', 'hands', 4, 'common', { def: 3, dmg: 0.09 });
-item('regen_bracelet', 'Regen bracelet', 'any', 'hands', 6, 'uncommon', { dmg: 0.04, regen: 1.2 });
+item('regen_bracelet', 'Regen bracelet', 'any', 'hands', 4, 'uncommon', { dmg: 0.04, regen: 1.2 });
 // Feet
 item('climbing_boots', 'Climbing boots', 'melee', 'feet', 0, 'common', { dmg: 0.03 });
 item('infinity_boots', 'Infinity boots', 'magic', 'feet', 5, 'uncommon', { def: 2, dmg: 0.05 });
@@ -429,7 +428,7 @@ item('black_cape', 'Black cape', 'any', 'cape', 0, 'common', { def: 1 });
 item('ghostly_cloak', 'Ghostly cloak', 'magic', 'cape', 1, 'common', { dmg: 0.05 });
 item('cape_of_legends', 'Cape of Legends', 'any', 'cape', 3, 'common', { def: 5 });
 item('mythical_cape', 'Mythical cape', 'melee', 'cape', 6, 'common', { def: 6, dmg: 0.03 });
-item('bandos_cloak', 'Bandos cloak', 'any', 'cape', 8, 'common', { def: 3, pp: 3 });
+item('bandos_cloak', 'Bandos cloak', 'any', 'cape', 3, 'common', { def: 3, pp: 5 });
 item('ardougne_cloak_4', 'Ardougne cloak 4', 'any', 'cape', 7, 'uncommon', { def: 3, dmg: 0.04, pp: 6 });
 // Third age: its own rarity, a quarter as likely as ultra rare, in shops and caskets from area 10.
 const TA = (extra) => extra;
@@ -439,15 +438,15 @@ item('3rd_age_platelegs', '3rd Age platelegs', 'melee', 'legs', 10, 'thirdage', 
 item('3rd_age_plateskirt', '3rd Age plateskirt', 'melee', 'legs', 10, 'thirdage', TA({ def: 17, hp: 10 }));
 item('3rd_age_kiteshield', '3rd Age kiteshield', 'melee', 'shield', 10, 'thirdage', TA({ def: 16, hp: 10 }));
 item('3rd_age_longsword', '3rd Age longsword', 'melee', 'weapon', 10, 'thirdage', TA({ w: { kind: 'swing', dmg: 44, cd: 0.55, reach: 105, arc: 1.8 } }));
-item('3rd_age_range_coif', '3rd Age range coif', 'ranged', 'head', 10, 'thirdage', TA({ def: 6, dmg: 0.06 }));
-item('3rd_age_range_top', '3rd Age range top', 'ranged', 'body', 10, 'thirdage', TA({ def: 12, dmg: 0.14, hp: 10 }));
-item('3rd_age_range_legs', '3rd Age range legs', 'ranged', 'legs', 10, 'thirdage', TA({ def: 9, dmg: 0.08 }));
+item('3rd_age_range_coif', '3rd Age range coif', 'ranged', 'head', 10, 'thirdage', TA({ def: 8, dmg: 0.12 }));
+item('3rd_age_range_top', '3rd Age range top', 'ranged', 'body', 10, 'thirdage', TA({ def: 13, dmg: 0.2, hp: 10 }));
+item('3rd_age_range_legs', '3rd Age range legs', 'ranged', 'legs', 10, 'thirdage', TA({ def: 11, dmg: 0.13 }));
 item('3rd_age_vambraces', '3rd Age vambraces', 'ranged', 'hands', 10, 'thirdage', TA({ def: 4, dmg: 0.1 }));
 item('3rd_age_bow', '3rd Age bow', 'ranged', 'weapon', 10, 'thirdage', TA({ w: { kind: 'shot', dmg: 38, cd: 0.5, range: 480, speed: 1100, pierce: 2, count: 1 } }));
-item('3rd_age_mage_hat', '3rd Age mage hat', 'magic', 'head', 10, 'thirdage', TA({ def: 5, dmg: 0.06 }));
-item('3rd_age_robe_top', '3rd Age robe top', 'magic', 'body', 10, 'thirdage', TA({ def: 8, dmg: 0.14, hp: 10 }));
-item('3rd_age_robe', '3rd Age robe', 'magic', 'legs', 10, 'thirdage', TA({ def: 6, dmg: 0.1 }));
-item('3rd_age_amulet', '3rd Age amulet', 'magic', 'neck', 10, 'thirdage', TA({ def: 3, dmg: 0.12 }));
+item('3rd_age_mage_hat', '3rd Age mage hat', 'magic', 'head', 10, 'thirdage', TA({ def: 7, dmg: 0.12 }));
+item('3rd_age_robe_top', '3rd Age robe top', 'magic', 'body', 10, 'thirdage', TA({ def: 10, dmg: 0.2, hp: 10 }));
+item('3rd_age_robe', '3rd Age robe', 'magic', 'legs', 10, 'thirdage', TA({ def: 8, dmg: 0.15 }));
+item('3rd_age_amulet', '3rd Age amulet', 'magic', 'neck', 10, 'thirdage', TA({ def: 4, dmg: 0.2 }));
 item('3rd_age_wand', '3rd Age wand', 'magic', 'weapon', 10, 'thirdage', TA({ w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 44, cd: 0.7, range: 430, speed: 700, splash: 60, color: '#ff7a1a' } }));
 item('3rd_age_druidic_robe_top', '3rd Age druidic robe top', 'any', 'body', 10, 'thirdage', TA({ def: 6, pp: 8, hp: 10 }));
 item('3rd_age_druidic_robe_bottoms', '3rd Age druidic robe bottoms', 'any', 'legs', 10, 'thirdage', TA({ def: 5, pp: 6 }));
@@ -467,17 +466,17 @@ item('amulet_of_rancour', 'Amulet of rancour', 'melee', 'neck', 14, 'rare', { dm
 // Ring
 item('explorers_ring_1', "Explorer's ring 1", 'any', 'ring', 0, 'common', { pp: 3 }, "Explorer's_ring_1.png");
 item('ring_of_recoil', 'Ring of recoil', 'any', 'ring', 0, 'common', { def: 2, taken: 0.97 });
-item('warrior_ring', 'Warrior ring', 'melee', 'ring', 4, 'common', { dmg: 0.07, aspd: 0.03 });
+item('warrior_ring', 'Warrior ring', 'melee', 'ring', 4, 'common', { dmg: 0.06, aspd: 0.02 });
 item('granite_ring', 'Granite ring', 'any', 'ring', 5, 'common', { def: 6 });
 item('ring_of_the_gods', 'Ring of the gods', 'any', 'ring', 7, 'uncommon', { def: 2, pp: 8 });
-item('treasonous_ring', 'Treasonous ring', 'melee', 'ring', 7, 'uncommon', { aspd: 0.1 });
-item('tyrannical_ring', 'Tyrannical ring', 'melee', 'ring', 7, 'uncommon', { dmg: 0.08, def: 2 });
+item('treasonous_ring', 'Treasonous ring', 'melee', 'ring', 7, 'uncommon', { aspd: 0.12 });
+item('tyrannical_ring', 'Tyrannical ring', 'melee', 'ring', 7, 'uncommon', { dmg: 0.1, def: 2 });
 item('berserker_ring_i', 'Berserker ring (i)', 'melee', 'ring', 9, 'uncommon', { dmg: 0.16 });
 item('archers_ring_i', 'Archers ring (i)', 'ranged', 'ring', 9, 'uncommon', { dmg: 0.16 });
 item('seers_ring_i', 'Seers ring (i)', 'magic', 'ring', 9, 'uncommon', { dmg: 0.16 });
 item('brimstone_ring', 'Brimstone ring', 'any', 'ring', 9, 'uncommon', { dmg: 0.1 });
 item('ring_of_suffering', 'Ring of suffering', 'any', 'ring', 9, 'uncommon', { def: 8, hp: 10, taken: 0.95 });
-item('lightbearer', 'Lightbearer', 'any', 'ring', 10, 'uncommon', { aspd: 0.08 });
+item('lightbearer', 'Lightbearer', 'any', 'ring', 10, 'uncommon', { aspd: 0.11 });
 item('bellator_ring', 'Bellator ring', 'melee', 'ring', 13, 'rare', { dmg: 0.16, aspd: 0.06 });
 
 // ---------------------------------------------------------------------------
@@ -1176,20 +1175,20 @@ const PET_RATE = { route: 1 / 40, clue: 1 / 25, thief: 1 / 400 };
 // ---------- Barrows equipment and set effects (wear all four pieces of one brother) ----------
 item('dharoks_platelegs', "Dharok's platelegs", 'melee', 'legs', 7, 'uncommon', { def: 12, hp: 6 });
 item('dharoks_greataxe', "Dharok's greataxe", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 50, cd: 1.05, reach: 95, arc: 2.4 } });
-item('guthans_helm', "Guthan's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
+item('guthans_helm', "Guthan's helm", 'melee', 'head', 7, 'uncommon', { def: 10, hp: 6 });
 item('guthans_platebody', "Guthan's platebody", 'melee', 'body', 7, 'uncommon', { def: 15, hp: 10 });
 item('guthans_chainskirt', "Guthan's chainskirt", 'melee', 'legs', 7, 'uncommon', { def: 11, hp: 6 });
 item('guthans_warspear', "Guthan's warspear", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', dmg: 27, cd: 0.6, reach: 120, arc: 1.0 } });
-item('veracs_helm', "Verac's helm", 'melee', 'head', 7, 'uncommon', { def: 9, hp: 5 });
-item('veracs_brassard', "Verac's brassard", 'melee', 'body', 7, 'uncommon', { def: 13, hp: 8 });
+item('veracs_helm', "Verac's helm", 'melee', 'head', 7, 'uncommon', { def: 10, hp: 6 });
+item('veracs_brassard', "Verac's brassard", 'melee', 'body', 7, 'uncommon', { def: 14, hp: 8 });
 item('veracs_plateskirt', "Verac's plateskirt", 'melee', 'legs', 7, 'uncommon', { def: 11, hp: 6 });
 item('veracs_flail', "Verac's flail", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 29, cd: 0.6, reach: 92, arc: 1.8 } });
-item('torags_helm', "Torag's helm", 'melee', 'head', 7, 'uncommon', { def: 10, hp: 5 });
+item('torags_helm', "Torag's helm", 'melee', 'head', 7, 'uncommon', { def: 11, hp: 6 });
 item('torags_platebody', "Torag's platebody", 'melee', 'body', 7, 'uncommon', { def: 16, hp: 10 });
 item('torags_platelegs', "Torag's platelegs", 'melee', 'legs', 7, 'uncommon', { def: 13, hp: 6 });
 item('torags_hammers', "Torag's hammers", 'melee', 'weapon', 7, 'uncommon', { w: { kind: 'swing', wt: 'mace', dmg: 17, cd: 0.7, reach: 88, arc: 1.8, hits: 2 } });
-item('karils_crossbow', "Karil's crossbow", 'ranged', 'weapon', 6, 'uncommon', { w: { kind: 'shot', dmg: 30, cd: 0.55, range: 450, speed: 1080, pierce: 2, count: 1, bolt: true } });
-item('ahrims_staff', "Ahrim's staff", 'magic', 'weapon', 6, 'uncommon', { w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 30, cd: 0.78, range: 420, speed: 640, splash: 66, color: '#ff7a1a' } });
+item('karils_crossbow', "Karil's crossbow", 'ranged', 'weapon', 7, 'uncommon', { w: { kind: 'shot', dmg: 30, cd: 0.55, range: 450, speed: 1080, pierce: 2, count: 1, bolt: true } });
+item('ahrims_staff', "Ahrim's staff", 'magic', 'weapon', 7, 'uncommon', { w: { kind: 'spell', spell: 'Fire Wave', icon: 'Fire_Wave.png', dmg: 30, cd: 0.78, range: 420, speed: 640, splash: 66, color: '#ff7a1a' } });
 // --- Evening out the styles (Nathan, 2026-10-10): more real magic and ranged gear so every style gets a similar pool.
 // Magic weapons: combination battlestaves and mystic staves, Mage Training Arena wands, sceptres and boss staves
 const SP = (spell, icon, dmg, cd, splash, color, extra) => ({ w: { kind: 'spell', spell, icon, dmg, cd, range: 410, speed: 640, splash, color, ...(extra || {}) } });
@@ -1202,11 +1201,11 @@ for (const [eid, name, spell, color, fx] of [
 }
 item('skull_sceptre', 'Skull sceptre', 'magic', 'weapon', 1, 'common', SP('Earth Bolt', 'Earth_Bolt.png', 13, 0.75, 46, '#8a6a3a'));
 item('beginner_wand', 'Beginner wand', 'magic', 'weapon', 1, 'common', SP('Fire Bolt', 'Fire_Bolt.png', 12, 0.72, 44, '#ff7a1a'));
-item('slayers_staff', "Slayer's staff", 'magic', 'weapon', 2, 'common', SP('Magic Dart', 'Magic_Dart.png', 18, 0.6, 30, '#c0a0ff'));
+item('slayers_staff', "Slayer's staff", 'magic', 'weapon', 3, 'common', SP('Magic Dart', 'Magic_Dart.png', 18, 0.6, 30, '#c0a0ff'));
 item('apprentice_wand', 'Apprentice wand', 'magic', 'weapon', 2, 'common', SP('Fire Blast', 'Fire_Blast.png', 18, 0.75, 52, '#ff7a1a'));
 item('teacher_wand', 'Teacher wand', 'magic', 'weapon', 4, 'common', SP('Fire Wave', 'Fire_Wave.png', 26, 0.78, 60, '#ff7a1a'));
-item('lunar_staff', 'Lunar staff', 'magic', 'weapon', 4, 'common', SP('Water Wave', 'Water_Wave.png', 27, 0.75, 60, '#bfe0ff'));
-item('bryophytas_staff', "Bryophyta's staff", 'magic', 'weapon', 4, 'uncommon', SP('Earth Wave', 'Earth_Wave.png', 30, 0.8, 64, '#5fd04a'));
+item('lunar_staff', 'Lunar staff', 'magic', 'weapon', 5, 'common', SP('Water Wave', 'Water_Wave.png', 27, 0.75, 60, '#bfe0ff'));
+item('bryophytas_staff', "Bryophyta's staff", 'magic', 'weapon', 3, 'uncommon', SP('Earth Wave', 'Earth_Wave.png', 30, 0.8, 64, '#5fd04a'));
 item('warped_sceptre', 'Warped sceptre', 'magic', 'weapon', 7, 'uncommon', SP('Warped', null, 38, 0.7, 50, '#b04bff'));
 item('accursed_sceptre', 'Accursed sceptre', 'magic', 'weapon', 9, 'uncommon', SP('Accursed', null, 46, 0.7, 60, '#7a3aff'));
 item('nightmare_staff', 'Nightmare staff', 'magic', 'weapon', 9, 'uncommon', SP('Fire Surge', 'Fire_Surge.png', 44, 0.72, 60, '#ff5a1a'));
@@ -1225,8 +1224,8 @@ item('black_wizard_hat', 'Black wizard hat', 'magic', 'head', 0, 'common', { def
 item('black_robe', 'Black robe', 'magic', 'body', 0, 'common', { def: 1, dmg: 0.06 });
 item('black_skirt', 'Black skirt', 'magic', 'legs', 0, 'common', { def: 1, dmg: 0.03 });
 for (const [set, pre, tier, rar, d, h, extra] of [
-  ['xerician', 'Xerician', 1, 'common', 0.02, 2, {}], ['splitbark', 'Splitbark', 3, 'common', 0.03, 4, {}], ['skeletal', 'Skeletal', 4, 'common', 0.03, 5, { def: 1 }],
-  ['lunar', 'Lunar', 5, 'common', 0.04, 4, { pp: 1 }], ['swampbark', 'Swampbark', 7, 'uncommon', 0.05, 6, {}], ['bloodbark', 'Bloodbark', 8, 'uncommon', 0.05, 5, { regen: 0.3 }],
+  ['xerician', 'Xerician', 1, 'common', 0.02, 2, {}], ['splitbark', 'Splitbark', 3, 'common', 0.03, 4, {}], ['skeletal', 'Skeletal', 4, 'common', 0.03, 5, {}],
+  ['lunar', 'Lunar', 5, 'common', 0.04, 5, { pp: 1 }], ['swampbark', 'Swampbark', 7, 'uncommon', 0.05, 6, {}], ['bloodbark', 'Bloodbark', 8, 'uncommon', 0.06, 6, { regen: 0.3 }],
 ]) {
   const P = { xerician: ['hat', 'top', 'robe'], splitbark: ['helm', 'body', 'legs'], skeletal: ['helm', 'top', 'bottoms'], lunar: ['helm', 'torso', 'legs'], swampbark: ['helm', 'body', 'legs'], bloodbark: ['helm', 'body', 'legs'] }[set];
   item(`${set}_${P[0]}`, `${pre} ${P[0]}`, 'magic', 'head', tier, rar, { def: h, dmg: d * 1.5, ...extra });
@@ -1241,25 +1240,25 @@ for (const [set, pre, tier, rar, d, h, extra] of [
 item('mystic_hat_dark', 'Mystic hat (dark)', 'magic', 'head', 3, 'common', { def: 2, dmg: 0.06 });
 item('mystic_robe_top_dark', 'Mystic robe top (dark)', 'magic', 'body', 3, 'common', { def: 3, dmg: 0.11 });
 item('mystic_robe_bottom_dark', 'Mystic robe bottom (dark)', 'magic', 'legs', 3, 'common', { def: 2, dmg: 0.07 });
-item('dagonhai_hat', "Dagon'hai hat", 'magic', 'head', 6, 'uncommon', { def: 3, dmg: 0.07 });
-item('dagonhai_robe_top', "Dagon'hai robe top", 'magic', 'body', 6, 'uncommon', { def: 5, dmg: 0.14 });
-item('dagonhai_robe_bottom', "Dagon'hai robe bottom", 'magic', 'legs', 6, 'uncommon', { def: 4, dmg: 0.09 });
+item('dagonhai_hat', "Dagon'hai hat", 'magic', 'head', 6, 'uncommon', { def: 4, dmg: 0.08 });
+item('dagonhai_robe_top', "Dagon'hai robe top", 'magic', 'body', 6, 'uncommon', { def: 6, dmg: 0.16 });
+item('dagonhai_robe_bottom', "Dagon'hai robe bottom", 'magic', 'legs', 6, 'uncommon', { def: 5, dmg: 0.11 });
 item('blue_moon_helm', 'Blue Moon helm', 'magic', 'head', 7, 'uncommon', { def: 6, dmg: 0.07 });
 item('blue_moon_chestplate', 'Blue Moon chestplate', 'magic', 'body', 7, 'uncommon', { def: 10, dmg: 0.13 });
 item('blue_moon_tassets', 'Blue Moon tassets', 'magic', 'legs', 7, 'uncommon', { def: 8, dmg: 0.09 });
-item('elder_chaos_hood', 'Elder chaos hood', 'magic', 'head', 8, 'uncommon', { def: 2, dmg: 0.09 });
-item('elder_chaos_top', 'Elder chaos top', 'magic', 'body', 8, 'uncommon', { def: 3, dmg: 0.17 });
-item('elder_chaos_robe', 'Elder chaos robe', 'magic', 'legs', 8, 'uncommon', { def: 2, dmg: 0.11 });
+item('elder_chaos_hood', 'Elder chaos hood', 'magic', 'head', 8, 'uncommon', { def: 3, dmg: 0.12 });
+item('elder_chaos_top', 'Elder chaos top', 'magic', 'body', 8, 'uncommon', { def: 4, dmg: 0.23 });
+item('elder_chaos_robe', 'Elder chaos robe', 'magic', 'legs', 8, 'uncommon', { def: 3, dmg: 0.17 });
 item('zuriels_hood', "Zuriel's hood", 'magic', 'head', 9, 'rare', { def: 6, dmg: 0.09, hp: 5 });
 item('zuriels_robe_top', "Zuriel's robe top", 'magic', 'body', 9, 'rare', { def: 10, dmg: 0.17, hp: 10 });
 item('zuriels_robe_bottom', "Zuriel's robe bottom", 'magic', 'legs', 9, 'rare', { def: 8, dmg: 0.11, hp: 5 });
-item('infinity_gloves', 'Infinity gloves', 'magic', 'hands', 5, 'uncommon', { def: 2, dmg: 0.06 });
+item('infinity_gloves', 'Infinity gloves', 'magic', 'hands', 5, 'uncommon', { def: 2, dmg: 0.055 });
 item('confliction_gauntlets', 'Confliction gauntlets', 'magic', 'hands', 13, 'rare', { def: 4, dmg: 0.16 });
 item('tome_of_fire', 'Tome of fire', 'magic', 'shield', 7, 'uncommon', { dmg: 0.12 });
 item('tome_of_water', 'Tome of water', 'magic', 'shield', 7, 'uncommon', { dmg: 0.1, def: 3 });
 item('tome_of_earth', 'Tome of earth', 'magic', 'shield', 7, 'uncommon', { dmg: 0.1, hp: 8 });
-item('malediction_ward', 'Malediction ward', 'magic', 'shield', 6, 'uncommon', { def: 10, dmg: 0.06 });
-item('elidinis_ward', "Elidinis' ward", 'magic', 'shield', 12, 'rare', { def: 12, dmg: 0.12, pp: 4 });
+item('malediction_ward', 'Malediction ward', 'magic', 'shield', 7, 'uncommon', { def: 10, dmg: 0.06 });
+item('elidinis_ward', "Elidinis' ward", 'magic', 'shield', 12, 'rare', { def: 13, dmg: 0.16, pp: 4 });
 item('elidinis_ward_f', "Elidinis' ward (f)", 'magic', 'shield', 14, 'rare', { def: 14, dmg: 0.2, pp: 4 });
 item('imbued_guthix_cape', 'Imbued Guthix cape', 'magic', 'cape', 8, 'uncommon', { dmg: 0.12, hp: 5 });
 item('lunar_amulet', 'Lunar amulet', 'magic', 'neck', 4, 'common', { dmg: 0.1 });
@@ -1274,7 +1273,7 @@ item('hunters_crossbow', "Hunters' crossbow", 'ranged', 'weapon', 1, 'common', S
 item('comp_ogre_bow', 'Comp ogre bow', 'ranged', 'weapon', 2, 'common', SH(15, 0.85, 540, { wt: 'long', pierce: 2 }));
 item('hunters_sunlight_crossbow', "Hunters' sunlight crossbow", 'ranged', 'weapon', 3, 'common', SH(19, 0.7, 440, { wt: 'xbow', pierce: 2, bolt: true }));
 item('seercull', 'Seercull', 'ranged', 'weapon', 4, 'uncommon', SH(15, 0.42, 440, { wt: 'short' }));
-item('amethyst_dart', 'Amethyst dart', 'ranged', 'weapon', 6, 'common', SH(9, 0.24, 230, { wt: 'dart', dart: true, speed: 900 }));
+item('amethyst_dart', 'Amethyst dart', 'ranged', 'weapon', 4, 'common', SH(9, 0.24, 230, { wt: 'dart', dart: true, speed: 900 }));
 item('toktz_xil_ul', 'Toktz-xil-ul', 'ranged', 'weapon', 6, 'uncommon', SH(14, 0.34, 320, { wt: 'thrownaxe', bounce: 1, speed: 900 }));
 item('light_ballista', 'Light ballista', 'ranged', 'weapon', 8, 'uncommon', SH(80, 1.3, 580, { pierce: 5, bolt: true, speed: 1250 }));
 item('crystal_bow', 'Crystal bow', 'ranged', 'weapon', 8, 'uncommon', SH(34, 0.55, 500, { pierce: 2, speed: 1100 }));
@@ -1303,7 +1302,7 @@ item('blue_dhide_vambraces', "Blue d'hide vambraces", 'ranged', 'hands', 3, 'com
 item('red_dhide_vambraces', "Red d'hide vambraces", 'ranged', 'hands', 4, 'common', { def: 3, dmg: 0.085 });
 for (const god of ['Saradomin', 'Guthix', 'Zamorak', 'Armadyl', 'Bandos', 'Ancient']) {
   const g = god.toLowerCase();
-  item(`${g}_coif`, `${god} coif`, 'ranged', 'head', 6, 'common', { def: 5, dmg: 0.06, pp: 1 });
+  item(`${g}_coif`, `${god} coif`, 'ranged', 'head', 6, 'common', { def: 6, dmg: 0.07, pp: 1 });
   item(`${g}_dhide_body`, `${god} d'hide body`, 'ranged', 'body', 6, 'common', { def: 9, dmg: 0.135, pp: 1 });
   item(`${g}_chaps`, `${god} chaps`, 'ranged', 'legs', 6, 'common', { def: 7, dmg: 0.1, pp: 1 });
 }
@@ -1311,21 +1310,21 @@ item('saradomin_dhide_shield', "Saradomin d'hide shield", 'ranged', 'shield', 6,
 item('armadyl_dhide_shield', "Armadyl d'hide shield", 'ranged', 'shield', 6, 'common', { def: 7, dmg: 0.04 });
 item('zamorak_dhide_shield', "Zamorak d'hide shield", 'ranged', 'shield', 6, 'common', { def: 7, dmg: 0.04 });
 item('void_ranger_helm', 'Void ranger helm', 'ranged', 'head', 7, 'uncommon', { def: 6, dmg: 0.1 });
-item('eclipse_moon_helm', 'Eclipse Moon helm', 'ranged', 'head', 7, 'uncommon', { def: 6, dmg: 0.07 });
+item('eclipse_moon_helm', 'Eclipse Moon helm', 'ranged', 'head', 7, 'uncommon', { def: 7, dmg: 0.08 });
 item('eclipse_moon_chestplate', 'Eclipse Moon chestplate', 'ranged', 'body', 7, 'uncommon', { def: 11, dmg: 0.15 });
 item('eclipse_moon_tassets', 'Eclipse Moon tassets', 'ranged', 'legs', 7, 'uncommon', { def: 9, dmg: 0.1 });
-item('crystal_body', 'Crystal body', 'ranged', 'body', 9, 'uncommon', { def: 11, dmg: 0.16, pp: 2 });
-item('crystal_legs', 'Crystal legs', 'ranged', 'legs', 9, 'uncommon', { def: 9, dmg: 0.11, pp: 2 });
+item('crystal_body', 'Crystal body', 'ranged', 'body', 9, 'uncommon', { def: 13, dmg: 0.2, pp: 2 });
+item('crystal_legs', 'Crystal legs', 'ranged', 'legs', 9, 'uncommon', { def: 10, dmg: 0.12, pp: 2 });
 // Crystal armour set bonus, as in OSRS: each piece adds damage and accuracy, but only with a crystal bow
 // (Bow of Faerdhinen or Crystal bow). The full set gives +15% damage and +30% accuracy (30% fewer misses).
 const CRYSTAL_BOWS = ['bow_of_faerdhinen', 'crystal_bow'];
 const CRYSTAL_ARMOUR = { crystal_helm: { dmg: 0.025, acc: 0.05 }, crystal_body: { dmg: 0.075, acc: 0.15 }, crystal_legs: { dmg: 0.05, acc: 0.1 } };
 item('iron_arrow', 'Iron arrow', 'ranged', 'ammo', 0, 'common', { dmg: 0.04 }, 'Iron_arrow_5.png');
 item('mithril_arrow', 'Mithril arrow', 'ranged', 'ammo', 1, 'common', { dmg: 0.06 }, 'Mithril_arrow_5.png');
-item('broad_arrows', 'Broad arrows', 'ranged', 'ammo', 4, 'common', { dmg: 0.1 }, 'Broad_arrows_5.png');
-item('runite_bolts', 'Runite bolts', 'ranged', 'ammo', 4, 'common', { dmg: 0.11 }, 'Runite_bolts_5.png');
-item('dragon_bolts', 'Dragon bolts', 'ranged', 'ammo', 7, 'uncommon', { dmg: 0.15 }, 'Dragon_bolts_5.png');
-item('atlatl_dart', 'Atlatl dart', 'ranged', 'ammo', 8, 'uncommon', { dmg: 0.16 }, 'Atlatl_dart_5.png');
+item('broad_arrows', 'Broad arrows', 'ranged', 'ammo', 4, 'common', { dmg: 0.115 }, 'Broad_arrows_5.png');
+item('runite_bolts', 'Runite bolts', 'ranged', 'ammo', 4, 'common', { dmg: 0.12 }, 'Runite_bolts_5.png');
+item('dragon_bolts', 'Dragon bolts', 'ranged', 'ammo', 7, 'uncommon', { dmg: 0.16 }, 'Dragon_bolts_5.png');
+item('atlatl_dart', 'Atlatl dart', 'ranged', 'ammo', 8, 'uncommon', { dmg: 0.18 }, 'Atlatl_dart_5.png');
 // Set effects from the wiki, turned into this game's terms. 25% of hits trigger them (Dharok's always works).
 const BARROWS_SETS = {
   dharok: { name: "Dharok's", effect: 'Wretched Strength', pieces: ['dharoks_helm', 'dharoks_platebody', 'dharoks_platelegs', 'dharoks_greataxe'], info: 'Up to +60% damage the lower your hitpoints are' },
@@ -1362,8 +1361,8 @@ const SPELLS = [
 
 // ---------- Slayer ----------
 // Real slayer drops need their real Slayer level before the shop or a casket will hand them over.
-item('leaf_bladed_sword', 'Leaf-bladed sword', 'melee', 'weapon', 3, 'uncommon', { w: { kind: 'swing', wt: 'sword', dmg: 17, cd: 0.55, reach: 86, arc: 1.7 } });
-item('leaf_bladed_battleaxe', 'Leaf-bladed battleaxe', 'melee', 'weapon', 4, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 30, cd: 0.8, reach: 90, arc: 2.2 } });
+item('leaf_bladed_sword', 'Leaf-bladed sword', 'melee', 'weapon', 4, 'uncommon', { w: { kind: 'swing', wt: 'sword', dmg: 17, cd: 0.55, reach: 86, arc: 1.7 } });
+item('leaf_bladed_battleaxe', 'Leaf-bladed battleaxe', 'melee', 'weapon', 5, 'uncommon', { w: { kind: 'swing', wt: 'battleaxe', dmg: 30, cd: 0.8, reach: 90, arc: 2.2 } });
 item('slayer_helmet', 'Slayer helmet', 'any', 'head', 4, 'uncommon', { def: 7, task: 0.16, info: '+16% damage to your Slayer task' });
 const SLAYER_REQ = {
   leaf_bladed_sword: [55, 'kurask'], leaf_bladed_battleaxe: [55, 'kurask'], neitiznot_faceguard: [60, 'basilisk knights'],
@@ -1514,3 +1513,33 @@ const EL_WEAKNESS = {
   spoof_dscim: ['fire', 50],
 };
 for (const id in EL_WEAKNESS) if (MONSTERS[id]) MONSTERS[id].elWeak = { el: EL_WEAKNESS[id][0], pct: EL_WEAKNESS[id][1] };
+
+// ---------- Weapon ladder (Nathan, 2026-10-11): power follows the order you get weapons in OSRS ----------
+// tier is where a weapon sits in the wiki's progression (Attack/Ranged/Magic requirement and where it drops), and each
+// tier is a clear step up from the last: a weapon's damage is scaled so its power lands in its tier's band, so nothing
+// from an earlier tier beats something from a later one. Within a tier the hand-set stats only decide the order.
+// Power counts the extra hits, arrows, splash, pierce and bounce a weapon gets; the Twisted bow's boost against
+// high-level targets is counted too. Mega rares sit well above the top tier.
+const WEAPON_POWER = [10, 14, 19, 24, 30, 37, 45, 54, 64, 76, 90, 106, 124, 150];
+const WEAPON_LANE_POWER = { melee: 1, ranged: 1, magic: 1.08 }; // spells travel slower and never pierce
+const WEAPON_BAND = 0.06; // every weapon is within 6% of its tier's power; tiers are at least 17% apart
+const WEAPON_MEGA = 1.4;
+function weaponPower(w) {
+  if (w.kind === 'swing') return w.dmg * (1 + (w.wt === 'claws' ? 1 : 0.6) * ((w.hits || 1) - 1)) / w.cd * (1 + 0.06 * Math.min(4, (w.arc || 1.5) - 1.5) + (w.reach - 90) / 600);
+  if (w.kind === 'shot') return w.dmg * (w.count || 1) / w.cd * (w.wt === 'short' ? 1.25 : 1) * (1 + 0.04 * ((w.pierce || 1) - 1) + (w.splash ? 0.25 : 0) + 0.12 * (w.bounce || 0)) * (w.tbow ? 1.45 : 1);
+  return w.dmg / w.cd * (1 + ((w.splash || 50) - 55) / 300 + (w.freeze ? 0.08 : 0) + (w.leech ? 0.06 : 0));
+}
+(() => {
+  const groups = {};
+  for (const it of Object.values(ITEMS)) if (it.w) (groups[it.lane + it.tier] = groups[it.lane + it.tier] || []).push(it);
+  for (const list of Object.values(groups)) {
+    const pw = list.filter((it) => it.rarity !== 'mega').map((it) => weaponPower(it.w)).sort((a, b) => a - b);
+    const mid = pw[pw.length >> 1];
+    for (const it of list) {
+      const T = WEAPON_POWER[Math.min(it.tier, WEAPON_POWER.length - 1)] * WEAPON_LANE_POWER[it.lane];
+      const r = it.rarity === 'mega' ? WEAPON_MEGA : Math.min(1 + WEAPON_BAND, Math.max(1 - WEAPON_BAND, Math.sqrt(weaponPower(it.w) / mid)));
+      const dmg = it.w.dmg * T * r / weaponPower(it.w);
+      it.w.dmg = dmg < 20 ? Math.round(dmg * 10) / 10 : Math.round(dmg);
+    }
+  }
+})();
