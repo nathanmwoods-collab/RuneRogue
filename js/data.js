@@ -150,7 +150,7 @@ item('neitiznot_faceguard', 'Neitiznot faceguard', 'melee', 'head', 10, 'uncommo
 item('torva_full_helm', 'Torva full helm', 'melee', 'head', 14, 'rare', { def: 14, dmg: 0.08, hp: 20 });
 item('bronze_platebody', 'Bronze platebody', 'melee', 'body', 0, 'common', { def: 3 });
 item('rune_platebody', 'Rune platebody', 'melee', 'body', 2, 'common', { def: 8, hp: 5 });
-item('fighter_torso', 'Fighter torso', 'melee', 'body', 4, 'common', { def: 8, dmg: 0.12 });
+item('fighter_torso', 'Fighter torso', 'melee', 'body', 4, 'common', { def: 8, dmg: 0.08 });
 item('bandos_chestplate', 'Bandos chestplate', 'melee', 'body', 8, 'uncommon', { def: 14, dmg: 0.1, hp: 10 });
 item('torva_platebody', 'Torva platebody', 'melee', 'body', 14, 'rare', { def: 20, dmg: 0.14, hp: 25 });
 item('bronze_platelegs', 'Bronze platelegs', 'melee', 'legs', 0, 'common', { def: 2 });
@@ -1283,16 +1283,18 @@ item('morrigans_javelin', "Morrigan's javelin", 'ranged', 'weapon', 9, 'rare', S
 item('webweaver_bow', 'Webweaver bow', 'ranged', 'weapon', 9, 'rare', SH(14, 0.24, 440, { wt: 'short' }));
 item('eclipse_atlatl', 'Eclipse atlatl', 'ranged', 'weapon', 9, 'uncommon', SH(38, 0.6, 380, { pierce: 2, speed: 900 }));
 // Ranged armour: snakeskin, studded, red d'hide, spined, god d'hide, Eclipse moon, crystal, void
-for (const [pre, tier, rar, d, h] of [['Snakeskin', 2, 'common', 0.03, 3], ['Studded', 1, 'common', 0.03, 3], ['Spined', 4, 'common', 0.04, 4]]) {
+// Body/chaps damage follows the wiki's Ranged attack bonus: studded (+8/+6) sits just above hardleather and below
+// green d'hide (+15/+8), snakeskin (+12) between them, and spined is defensive armour with only a slight bonus.
+for (const [pre, tier, rar, bd, ld, h] of [['Snakeskin', 2, 'common', 0.07, 0.04, 3], ['Studded', 1, 'common', 0.05, 0.04, 3], ['Spined', 2, 'common', 0.03, 0.02, 4]]) {
   const id = pre.toLowerCase();
-  item(`${id}_body`, `${pre} body`, 'ranged', 'body', tier, rar, { def: h + 2, dmg: d * 3 });
-  item(`${id}_chaps`, `${pre} chaps`, 'ranged', 'legs', tier, rar, { def: h, dmg: d * 2 });
+  item(`${id}_body`, `${pre} body`, 'ranged', 'body', tier, rar, { def: h + 2, dmg: bd });
+  item(`${id}_chaps`, `${pre} chaps`, 'ranged', 'legs', tier, rar, { def: h, dmg: ld });
 }
 item('snakeskin_bandana', 'Snakeskin bandana', 'ranged', 'head', 2, 'common', { def: 2, dmg: 0.04 });
 item('snakeskin_vambraces', 'Snakeskin vambraces', 'ranged', 'hands', 2, 'common', { def: 2, dmg: 0.04 });
-item('spined_helm', 'Spined helm', 'ranged', 'head', 4, 'common', { def: 4, dmg: 0.05 });
-item('spined_gloves', 'Spined gloves', 'ranged', 'hands', 4, 'common', { def: 2, dmg: 0.05 });
-item('spined_boots', 'Spined boots', 'ranged', 'feet', 4, 'common', { def: 2, dmg: 0.04 });
+item('spined_helm', 'Spined helm', 'ranged', 'head', 2, 'common', { def: 4, dmg: 0.03 });
+item('spined_gloves', 'Spined gloves', 'ranged', 'hands', 2, 'common', { def: 2, dmg: 0.03 });
+item('spined_boots', 'Spined boots', 'ranged', 'feet', 2, 'common', { def: 2, dmg: 0.04 });
 item('archer_helm', 'Archer helm', 'ranged', 'head', 4, 'common', { def: 5, dmg: 0.04 });
 item('red_dhide_body', "Red d'hide body", 'ranged', 'body', 4, 'common', { def: 7, dmg: 0.11 });
 item('blue_dhide_chaps', "Blue d'hide chaps", 'ranged', 'legs', 3, 'common', { def: 5, dmg: 0.06 });
